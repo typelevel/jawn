@@ -28,13 +28,15 @@ trait Parser {
   def is(i: Int, c: Char): Boolean = at(i) == c
   def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
 
-  final class PosBox(var pos: Int)
+  final class PosBox {
+    var pos = 0
+  }
 
   // this code relies on parseLong/parseDouble to blow up for invalid inputs;
   // it does not try to exactly model the JSON input because we're not actually
   // going to "build" the numbers ourselves. it just needs to be sure that for
   // valid JSON we will find the right "number region".
-  def parseNum(i: Int): (Value, Int) = {
+  def parseNum(i: Int, box: PosBox): Value = {
     var j = i
     var c = at(j)
 
@@ -48,11 +50,14 @@ trait Parser {
         j += 1
         c = at(j)
       }
-      (DoubleNum(java.lang.Double.parseDouble(at(i, j))), j)
+      box.pos = j
+      DoubleNum(java.lang.Double.parseDouble(at(i, j)))
     } else if (j - i < 19) {
-      (LongNum(java.lang.Long.parseLong(at(i, j), 10)), j)
+      box.pos = j
+      LongNum(java.lang.Long.parseLong(at(i, j), 10))
     } else {
-      (DoubleNum(java.lang.Double.parseDouble(at(i, j))), j)
+      box.pos = j
+      DoubleNum(java.lang.Double.parseDouble(at(i, j)))
     }
   }
   
@@ -61,7 +66,7 @@ trait Parser {
 
   // TODO: try using debox.buffer.Mutable + new String(arr, i, len)
   // instead of StringBuilder
-  final def parseString(i: Int): (String, Int) = {
+  final def parseString(i: Int, box: PosBox): String = {
     if (at(i) != '"') sys.error("argh")
     val sb = new StringBuilder
     var j = i + 1
@@ -95,7 +100,8 @@ trait Parser {
       j = reset(j)
       c = at(j)
     }
-    (sb.toString, j + 1)
+    box.pos = j + 1
+    sb.toString
   }
 
   def parseTrue(i: Int) =
@@ -124,8 +130,10 @@ trait Parser {
       }
 
     case '"' =>
-      val (str, j) = parseString(i)
-      if (atEof(j)) Str(str) else die(j, "expected eof")
+      //val (str, j) = parseString(i)
+      val str = parseString(i, box)
+      //if (atEof(j)) Str(str) else die(j, "expected eof")
+      if (atEof(box.pos)) Str(str) else die(box.pos, "expected eof")
 
     case 't' =>
       if (atEof(i + 4)) parseTrue(i) else die(i + 4, "expected eof")
@@ -140,6 +148,8 @@ trait Parser {
       die(i, "expected json value")
   }
 
+  val box = new PosBox
+
   @tailrec
   final def rparse(state: Int, j: Int, stack: List[Context]): Container = {
     val i = reset(j)
@@ -153,16 +163,20 @@ trait Parser {
         case '{' => rparse(OBJBEG, i + 1, new ObjContext :: stack)
 
         case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
-          val (n, j) = parseNum(i)
+          //val (n, j) = parseNum(i, box)
+          val n = parseNum(i, box)
           val ctxt = stack.head
           ctxt.add(n)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          //rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, box.pos, stack)
 
         case '"' =>
-          val (str, j) = parseString(i)
+          //val (str, j) = parseString(i)
+          val str = parseString(i, box)
           val ctxt = stack.head
           ctxt.add(Str(str))
-          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          //rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, box.pos, stack)
 
         case 't' =>
           val ctxt = stack.head
@@ -186,9 +200,11 @@ trait Parser {
         case '\n' => rparse(state, i + 1, stack)
 
         case '"' =>
-          val (str, j) = parseString(i)
+          //val (str, j) = parseString(i)
+          val str = parseString(i, box)
           stack.head.asInstanceOf[ObjContext].addKey(str)
-          rparse(SEP, j, stack)
+          //rparse(SEP, j, stack)
+          rparse(SEP, box.pos, stack)
 
         case _ => die(i, "expected \"")
       }
