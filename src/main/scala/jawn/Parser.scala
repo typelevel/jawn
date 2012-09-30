@@ -2,6 +2,11 @@ package jawn
 
 import scala.annotation.{switch, tailrec}
 
+import java.lang.Character.isHighSurrogate
+import java.lang.Double.parseDouble
+import java.lang.Integer.parseInt
+import java.lang.Long.parseLong
+
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 
@@ -14,6 +19,10 @@ trait Parser {
 
   /**
    * Read all remaining data from 'i' onwards and return it as a String.
+   *
+   * This is only used in the case where we have a top-level number, so it's
+   * not generally used in the "critical path", since there's an upper-bound
+   * to how long a single number literal can be.
    */
   def all(i: Int): String
 
@@ -69,6 +78,10 @@ trait Parser {
   protected[this] def die(i: Int, msg: String) =
     sys.error("%s got %s (%d)" format (msg, at(i), i))
 
+  //def makeDouble(s: String) = DeferNum(s)
+  def makeDouble(s: String) = DoubleNum(parseDouble(s))
+  def makeLong(s: String) = LongNum(parseLong(s, 10))
+
   /**
    * Parse the given number, and add it to the given context.
    *
@@ -77,7 +90,7 @@ trait Parser {
    * going to "build" the numbers ourselves. It just needs to be sure that for
    * valid JSON we will find the right "number region".
    *
-   * TODO: We spend a *lot* of time in java.lang.Double.parseDouble() so
+   * TODO: We spend a *lot* of time in parseDouble() so
    * consider other possible alternatives.
    */
   def parseNum(i: Int, ctxt: Context): Int = {
@@ -94,13 +107,18 @@ trait Parser {
         j += 1
         c = at(j)
       }
-      ctxt.add(DoubleNum(java.lang.Double.parseDouble(at(i, j))))
+      //ctxt.add(DoubleNum(parseDouble(at(i, j))))
+      //ctxt.add(DeferNum(at(i, j)))
+      ctxt.add(makeDouble(at(i, j)))
       j
     } else if (j - i < 19) {
-      ctxt.add(LongNum(java.lang.Long.parseLong(at(i, j), 10)))
+      //ctxt.add(LongNum(parseLong(at(i, j), 10)))
+      ctxt.add(makeLong(at(i, j)))
       j
     } else {
-      ctxt.add(DoubleNum(java.lang.Double.parseDouble(at(i, j))))
+      //ctxt.add(DoubleNum(parseDouble(at(i, j))))
+      //ctxt.add(DeferNum(at(i, j)))
+      ctxt.add(makeDouble(at(i, j)))
       j
     }
   }
@@ -111,18 +129,16 @@ trait Parser {
    * NOTE: This is only capable of generating characters from the basic plane.
    * This is why it can only return Char instead of Int.
    */
-  final def descape(s: String) = java.lang.Integer.parseInt(s, 16).toChar
+  final def descape(s: String) = parseInt(s, 16).toChar
 
   /**
    * Parse the string according to JSON rules, and add to the given context.
    *
    * TODO: Make sure we're handling encodings (i.e. UTF-8) correctly.
-   *
-   * TODO: See if debox.buffer.Mutable with new String(arr, i, len) is faster.
    */
   final def parseString(i: Int, ctxt: Context): Int = {
     if (at(i) != '"') sys.error("argh")
-    val sb = new StringBuilder
+    val sb = new CharBuilder
     var j = i + 1
     var c = at(j)
     while (c != '"') {
@@ -140,7 +156,7 @@ trait Parser {
           // permissive: let any escaped char through, not just ", / and \
           case c2 => { sb.append(c2); j += 2 }
         }
-      } else if (java.lang.Character.isHighSurrogate(c)) {
+      } else if (isHighSurrogate(c)) {
         // this case dodges the situation where we might incorrectly parse the
         // second Char of a unicode code point.
         sb.append(c)
@@ -154,7 +170,7 @@ trait Parser {
       j = reset(j)
       c = at(j)
     }
-    ctxt.add(sb.toString)
+    ctxt.add(sb.makeString)
     j + 1
   }
 
@@ -197,10 +213,10 @@ trait Parser {
     // we have a single top-level number
     case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
       try {
-        LongNum(java.lang.Long.parseLong(all(i)))
+        LongNum(parseLong(all(i)))
       } catch {
         case e:NumberFormatException =>
-          DoubleNum(java.lang.Double.parseDouble(all(i)))
+          DoubleNum(parseDouble(all(i)))
       }
 
     // we have a single top-level string
