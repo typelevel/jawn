@@ -7,15 +7,12 @@ import sys
 constants = [True, False, None]
 
 def mkconstant():
-    print "mkconstant"
     return choice(constants)
 
 def mkinteger():
-    print "mkinteger"
     return randint(-1e3, 1e3) * (10 ** normalvariate(0, 4)) + randint(-1e3, 1e3)
 
 def mkdouble():
-    print "mkdouble"
     return random() * (10 ** normalvariate(0, 30))
 
 def mknum():
@@ -25,7 +22,6 @@ def mknum():
         return mkinteger()
 
 def mkstring():
-    print "mkstring"
     n = int(min(abs(normalvariate(40, 20)), abs(normalvariate(30, 10))))
     return ''.join([choice(string.ascii_letters) for i in range(0, n)])
 
@@ -35,19 +31,18 @@ def mkvalue():
     return choice(values)()
 
 def mkarray(n, t, threshold):
-    print "mkarray(%s, %s, %s)" % (n, t, threshold)
     a = []
     t2 = t + random()
     if (t > threshold):
         for i in range(0, 2 * n):
             a.append(mkvalue())
     else:
+        #print "mkarray(%s, %s, %s)" % (n, t, threshold)
         for i in range(0, n / 5):
             a.append(mkcontainer(t2, threshold))
     return a
 
 def mkobject(n, t, threshold):
-    print "mkobject(%s, %s, %s)" % (n, t, threshold)
     d = {}
     t2 = t + random()
     if (t > threshold):
@@ -56,6 +51,7 @@ def mkobject(n, t, threshold):
             v = mkvalue()
             d[k] = v
     else:
+        #print "mkobject(%s, %s, %s)" % (n, t, threshold)
         for i in range(0, n / 10):
             k = mkstring()
             v = mkcontainer(t2, threshold)
@@ -70,11 +66,13 @@ def mkcontainer(t, threshold):
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    if args:
-        for arg in args:
-            f = open(arg, 'w')
-            c = mkcontainer(0.0, 3.0)
-            f.write(json.dumps(c))
-            f.close()
+    try:
+        weight = float(args[0])
+        path = args[1]
+        print "generating random JSON with weight %s into %s" % (weight, path)
+        f = open(path, 'w')
+        c = mkcontainer(0.0, weight)
+        f.write(json.dumps(c))
+        f.close()
     else:
-        print "usage: %s FILE [FILE ...]" % sys.argv[0]
+        print "usage: %s WEIGHT (0.0 < w < ~4.0) FILE" % sys.argv[0]
