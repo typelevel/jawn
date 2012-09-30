@@ -18,26 +18,28 @@ object State {
 import State._
 
 sealed trait Context {
-  def add(v: Value): Int
+  def add(v: Value): Unit
   def finish: Container
-  def initial: Int
+  def isObj: Boolean
 }
 
 protected[jawn] final class ArrContext extends Context {
   private val vs = Mutable.empty[Value]
-  def add(v: Value): Int = { vs.append(v); ARR }
+
+  def add(v: Value): Unit = vs.append(v)
   def finish: Arr = new Arr(vs)
-  def initial: Int = DAT
+  def isObj = false
 }
 
 protected[jawn] final class ObjContext extends Context {
   implicit val u = debox.Unset.Implicits.anyrefHasNullUnset[String]
   private var key: String = null
   private val vs = Map.empty[String, Value]
-  def addKey(k: String): Int = { key = k; SEP }
-  def add(v: Value): Int = { vs(key) = v; OBJ }
+
+  def addKey(k: String): Unit = key = k
+  def add(v: Value): Unit = vs(key) = v
   def finish: Obj = new Obj(vs)
-  def initial: Int = KEY
+  def isObj = true
 }
 
 trait Parser {
@@ -163,22 +165,38 @@ trait Parser {
           case (ctxt1:ArrContext) :: Nil =>
             ctxt1.finish
           case (ctxt1:ArrContext) :: ctxt2 :: tail =>
-            rparse(ctxt2.add(ctxt1.finish), i + 1, ctxt2 :: tail)
+            ctxt2.add(ctxt1.finish)
+            rparse(if (ctxt2.isObj) OBJ else ARR, i + 1, ctxt2 :: tail)
           case _ =>
             sys.error("invalid stack")
         }
 
         case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
           val (n, j) = parseNum(i)
-          rparse(stack.head.add(n), j, stack)
+          val ctxt = stack.head
+          ctxt.add(n)
+          rparse(if (ctxt.isObj) OBJ else ARR, j, stack)
 
         case '"' =>
           val (str, j) = parseString(i)
-          rparse(stack.head.add(Str(str)), j, stack)
+          val ctxt = stack.head
+          ctxt.add(Str(str))
+          rparse(if (ctxt.isObj) OBJ else ARR, j, stack)
 
-        case 't' => rparse(stack.head.add(parseTrue(i)), i + 4, stack)
-        case 'f' => rparse(stack.head.add(parseFalse(i)), i + 5, stack)
-        case 'n' => rparse(stack.head.add(parseNull(i)), i + 4, stack)
+        case 't' =>
+          val ctxt = stack.head
+          ctxt.add(parseTrue(i))
+          rparse(if (ctxt.isObj) OBJ else ARR, i + 4, stack)
+
+        case 'f' =>
+          val ctxt = stack.head
+          ctxt.add(parseFalse(i))
+          rparse(if (ctxt.isObj) OBJ else ARR, i + 5, stack)
+
+        case 'n' =>
+          val ctxt = stack.head
+          ctxt.add(parseNull(i))
+          rparse(if (ctxt.isObj) OBJ else ARR, i + 4, stack)
       }
 
       case KEY => (at(i): @switch) match {
@@ -188,7 +206,8 @@ trait Parser {
 
         case '"' =>
           val (str, j) = parseString(i)
-          rparse(stack.head.asInstanceOf[ObjContext].addKey(str), j, stack)
+          stack.head.asInstanceOf[ObjContext].addKey(str)
+          rparse(SEP, j, stack)
 
         case _ => die(i, "expected \"")
       }
@@ -208,13 +227,14 @@ trait Parser {
         case '\t' => rparse(state, i + 1, stack)
         case '\n' => rparse(state, i + 1, stack)
 
-        case ',' => rparse(stack.head.initial, i + 1, stack)
+        case ',' => rparse(DAT, i + 1, stack)
 
         case ']' => stack match {
           case ctxt1 :: Nil =>
             ctxt1.finish
           case ctxt1 :: ctxt2 :: tail =>
-            rparse(ctxt2.add(ctxt1.finish), i + 1, ctxt2 :: tail)
+            ctxt2.add(ctxt1.finish)
+            rparse(if (ctxt2.isObj) OBJ else ARR, i + 1, ctxt2 :: tail)
           case _ =>
             sys.error("invalid stack")
         }
@@ -227,13 +247,14 @@ trait Parser {
         case '\t' => rparse(state, i + 1, stack)
         case '\n' => rparse(state, i + 1, stack)
 
-        case ',' => rparse(stack.head.initial, i + 1, stack)
+        case ',' => rparse(KEY, i + 1, stack)
 
         case '}' => stack match {
           case ctxt1 :: Nil =>
             ctxt1.finish
           case ctxt1 :: ctxt2 :: tail =>
-            rparse(ctxt2.add(ctxt1.finish), i + 1, ctxt2 :: tail)
+            ctxt2.add(ctxt1.finish)
+            rparse(if (ctxt2.isObj) OBJ else ARR, i + 1, ctxt2 :: tail)
           case _ =>
             sys.error("invalid stack")
         }
