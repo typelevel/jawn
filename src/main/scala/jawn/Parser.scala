@@ -1,48 +1,19 @@
 package jawn
 
 import scala.annotation.{switch, tailrec}
-import debox.buffer._
-import debox.map._
 
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 
-object State {
+trait Parser {
+
+  // states
   @inline final val DAT = 1
   @inline final val KEY = 2
   @inline final val SEP = 3
   @inline final val ARR = 4
   @inline final val OBJ = 5
-}
 
-import State._
-
-sealed trait Context {
-  def add(v: Value): Unit
-  def finish: Container
-  def isObj: Boolean
-}
-
-protected[jawn] final class ArrContext extends Context {
-  private val vs = Mutable.empty[Value]
-
-  def add(v: Value): Unit = vs.append(v)
-  def finish: Arr = new Arr(vs)
-  def isObj = false
-}
-
-protected[jawn] final class ObjContext extends Context {
-  implicit val u = debox.Unset.Implicits.anyrefHasNullUnset[String]
-  private var key: String = null
-  private val vs = Map.empty[String, Value]
-
-  def addKey(k: String): Unit = key = k
-  def add(v: Value): Unit = vs(key) = v
-  def finish: Obj = new Obj(vs)
-  def isObj = true
-}
-
-trait Parser {
   def reset(i: Int): Unit
   def die(i: Int, msg: String) = sys.error("%s got %s (%d)" format (msg, at(i), i))
 
@@ -79,9 +50,12 @@ trait Parser {
       (DoubleNum(java.lang.Double.parseDouble(at(i, j))), j)
     }
   }
-
+  
+  // used to parse the 4 hex digits from "\u1234" (i.e. "1234")
   final def descape(s: String) = java.lang.Integer.parseInt(s, 16).toChar
 
+  // TODO: try using debox.buffer.Mutable + new String(arr, i, len)
+  // instead of StringBuilder
   final def parseString(i: Int): (String, Int) = {
     if (at(i) != '"') sys.error("argh")
     val sb = new StringBuilder
@@ -118,9 +92,14 @@ trait Parser {
     (sb.toString, j + 1)
   }
 
-  def parseTrue(i: Int) = if (is(i, i + 4, "true")) True else die(i, "expected true")
-  def parseFalse(i: Int) = if (is(i, i + 5, "false")) False else die(i, "expected false")
-  def parseNull(i: Int) = if (is(i, i + 4, "null")) Null else die(i, "expected null")
+  def parseTrue(i: Int) =
+    if (is(i, i + 4, "true")) True else die(i, "expected true")
+
+  def parseFalse(i: Int) =
+    if (is(i, i + 5, "false")) False else die(i, "expected false")
+
+  def parseNull(i: Int) =
+    if (is(i, i + 4, "null")) Null else die(i, "expected null")
 
   def parse(i: Int): Value = (at(i): @switch) match {
     case ' ' => parse(i + 1)
@@ -277,6 +256,7 @@ final class StringParser(s: String) extends Parser {
   def all = s
 }
 
+// FIXME: not quite there yet
 final class PathParser(name: String) extends Parser {
   @inline final def bufsize = 1024
   @inline final def shift = 10
