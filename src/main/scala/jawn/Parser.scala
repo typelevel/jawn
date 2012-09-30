@@ -5,6 +5,8 @@ import scala.annotation.{switch, tailrec}
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 
+import debox.buffer.Mutable
+
 trait Parser {
 
   // states
@@ -14,10 +16,10 @@ trait Parser {
   @inline final val ARR = 4
   @inline final val OBJ = 5
 
-  def reset(i: Int): Unit
   def die(i: Int, msg: String) = sys.error("%s got %s (%d)" format (msg, at(i), i))
 
-  def all: String
+  def reset(i: Int): Int
+  def all(i: Int): String
   def at(i: Int): Char
   def at(i: Int, j: Int): String
   def atEof(i: Int): Boolean
@@ -30,7 +32,6 @@ trait Parser {
   // valid JSON we will find the right "number region".
   def parseNum(i: Int): (Value, Int) = {
     var j = i
-    var integral = true
     var c = at(j)
 
     if (c == '-') { j += 1; c = at(j) }
@@ -87,6 +88,7 @@ trait Parser {
         sb.append(c)
         j += 1
       }
+      j = reset(j)
       c = at(j)
     }
     (sb.toString, j + 1)
@@ -111,32 +113,38 @@ trait Parser {
 
     case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
       try {
-        LongNum(java.lang.Long.parseLong(all))
+        LongNum(java.lang.Long.parseLong(all(i)))
       } catch {
         case e:NumberFormatException =>
-          DoubleNum(java.lang.Double.parseDouble(all))
+          DoubleNum(java.lang.Double.parseDouble(all(i)))
       }
 
     case '"' =>
       val (str, j) = parseString(i)
       if (atEof(j)) Str(str) else die(j, "expected eof")
 
-    case 't' => if (atEof(i + 4)) parseTrue(i) else die(i + 4, "expected eof")
-    case 'f' => if (atEof(i + 5)) parseFalse(i) else die(i + 5, "expected eof")
-    case 'n' => if (atEof(i + 4)) parseNull(i) else die(i + 4, "expected eof")
+    case 't' =>
+      if (atEof(i + 4)) parseTrue(i) else die(i + 4, "expected eof")
 
-    case _ => die(i, "expected json value")
+    case 'f' =>
+      if (atEof(i + 5)) parseFalse(i) else die(i + 5, "expected eof")
+
+    case 'n' =>
+      if (atEof(i + 4)) parseNull(i) else die(i + 4, "expected eof")
+
+    case _ =>
+      die(i, "expected json value")
   }
 
-  // TODO test c then state to unify whitespace handling :P
   @tailrec
-  final def rparse(state: Int, i: Int, stack: List[Context]): Container = {
-    reset(i)
+  final def rparse(state: Int, j: Int, stack: List[Context]): Container = {
+    val i = reset(j)
     (state: @switch) match {
       case DAT => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
         case '\n' => rparse(state, i + 1, stack)
+
         case '[' => rparse(DAT, i + 1, new ArrContext :: stack)
         case '{' => rparse(KEY, i + 1, new ObjContext :: stack)
 
@@ -237,7 +245,7 @@ trait Parser {
           case _ =>
             sys.error("invalid stack")
         }
-
+        
         case _ => die(i, "expected } or ,")
       }
     }
@@ -249,88 +257,80 @@ object Parser {
 }
 
 final class StringParser(s: String) extends Parser {
-  def reset(i: Int): Unit = ()
+  def reset(i: Int): Int = i
   def at(i: Int): Char = s.charAt(i)
   def at(i: Int, j: Int): String = s.substring(i, j)
   def atEof(i: Int) = i == s.length
-  def all = s
+  def all(i: Int) = s.substring(i)
 }
 
 // FIXME: not quite there yet
 final class PathParser(name: String) extends Parser {
-  @inline final def bufsize = 1024
-  @inline final def shift = 10
-  //@inline final def bufsize = 131072 // 128k blocks
-  //@inline final def shift = 17 // x / 131072 == x >> 17
+  // bufsize must be a power of 2
+  @inline final def bufsize = 131072
   @inline final def mask = bufsize - 1
-  @inline final def numbufs = 4
 
   val f = new FileInputStream(name)
   val ch = f.getChannel()
 
-  var pos = 0
-  var n = 1
+  var curr = new Array[Byte](bufsize)
+  var next = new Array[Byte](bufsize)
 
-  val cs = Array.fill(numbufs)(new Array[Byte](bufsize))
-  val bs = cs.map(ByteBuffer.wrap(_))
-  val ns = Array.fill(numbufs)(-1)
+  var bcurr = ByteBuffer.wrap(curr)
+  var bnext = ByteBuffer.wrap(next)
 
-  (0 until numbufs).foreach(init)
-
-  private def unset(j: Int) = ns(j) == -1
-
-  private def init(j: Int) {
-    ns(j) = ch.read(bs(j))
-    if (ns(j) == -1) {
-      bs(j) = null
-      cs(j) = null
-    }
+  var ncurr = ch.read(bcurr)
+  var nnext = ch.read(bnext)
+  
+  def swap() {
+    var tmp = curr; curr = next; next = tmp
+    var btmp = bcurr; bcurr = bnext; bnext = btmp
+    var ntmp = ncurr; ncurr = nnext; nnext = ntmp
   }
 
-  private def free(j: Int) {
-    bs(j).clear()
-    ns(j) = -1
-  }
-
-  def reset(j: Int): Unit = {
-    val k = (j >> shift) % 4
-    if (k > pos) {
-      while (pos < k) {
-        free(pos)
-        init(pos)
-        pos += 1
-      }
-    }
-  }
-
-  def at(i: Int): Char = cs((i >> shift) % 4)(i & mask).toChar
-  def at(i: Int, k: Int): String = {
-    val ishift = (i >> shift) % 4
-    val kshift = (k >> shift) % 4
-    if (ishift == kshift) {
-      // this is the common case where the string comes from one sub-array
-      new String(cs(ishift), i & mask, k - i)
+  def reset(i: Int): Int = {
+    if (i >= bufsize) {
+      bcurr.clear()
+      swap()
+      nnext = ch.read(bnext)
+      i - bufsize
     } else {
-      // this is the case where our string crosses sub-array boundaries, so
-      // we'll need to allocate it ourselves.
-      val imask = i & mask
-
-      val arr = new Array[Byte](k - i)
-      var sz = bufsize - imask
-      System.arraycopy(cs(ishift), imask, arr, 0, sz)
-
-      var jshift = ishift + 1 
-      while (jshift < kshift) {
-        System.arraycopy(cs(jshift), 0, arr, sz, bufsize)
-        sz += bufsize
-        jshift += 1
-      }
-
-      System.arraycopy(cs(kshift), 0, arr, sz, k & mask)
-      new String(arr)
+      i
     }
   }
 
-  def atEof(i: Int) = ns(i >> shift) == -1
-  def all = sys.error("fixme")
+  def at(i: Int): Char = if (i < bufsize)
+    curr(i).toChar
+  else
+    next(i & mask).toChar
+
+  def at(i: Int, k: Int): String = {
+    val len = k - i
+    val arr = new Array[Byte](len)
+
+    if (k <= bufsize) {
+      System.arraycopy(curr, i, arr, 0, len)
+    } else {
+      val mid = bufsize - i
+      System.arraycopy(curr, i, arr, 0, mid)
+      System.arraycopy(next, 0, arr, mid, k - bufsize)
+    }
+    new String(arr)
+  }
+
+  def atEof(i: Int) = if (i < bufsize) i >= ncurr else i >= nnext
+  def all(i: Int) = {
+    var j = i
+    val sb = new StringBuilder
+    while (!atEof(j)) {
+      if (ncurr == bufsize) {
+        sb.append(at(j, bufsize))
+        j = reset(bufsize)
+      } else {
+        sb.append(at(j, ncurr))
+        j = reset(ncurr)
+      }
+    }
+    sb.toString
+  }
 }
