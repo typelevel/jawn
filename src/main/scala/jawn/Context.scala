@@ -9,7 +9,7 @@ sealed trait Context {
   def isObj: Boolean
 }
 
-protected[jawn] final class ArrContext extends Context {
+final class ArrContext extends Context {
   private val vs = Mutable.empty[Value]
 
   def add(v: Value): Unit = vs.append(v)
@@ -17,7 +17,7 @@ protected[jawn] final class ArrContext extends Context {
   def isObj = false
 }
 
-protected[jawn] final class ObjContext extends Context {
+final class ObjContext extends Context {
   implicit val u = debox.Unset.Implicits.anyrefHasNullUnset[String]
   private var key: String = null
   private val vs = Map.empty[String, Value]

@@ -10,11 +10,13 @@ import debox.buffer.Mutable
 trait Parser {
 
   // states
-  @inline final val DAT = 1
+  @inline final val ARRBEG = 6
+  @inline final val OBJBEG = 7
+  @inline final val DATA = 1
   @inline final val KEY = 2
   @inline final val SEP = 3
-  @inline final val ARR = 4
-  @inline final val OBJ = 5
+  @inline final val ARREND = 4
+  @inline final val OBJEND = 5
 
   def die(i: Int, msg: String) = sys.error("%s got %s (%d)" format (msg, at(i), i))
 
@@ -25,6 +27,8 @@ trait Parser {
   def atEof(i: Int): Boolean
   def is(i: Int, c: Char): Boolean = at(i) == c
   def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
+
+  final class PosBox(var pos: Int)
 
   // this code relies on parseLong/parseDouble to blow up for invalid inputs;
   // it does not try to exactly model the JSON input because we're not actually
@@ -108,8 +112,8 @@ trait Parser {
     case '\t' => parse(i + 1)
     case '\n' => parse(i + 1)
 
-    case '[' => rparse(DAT, i + 1, new ArrContext :: Nil)
-    case '{' => rparse(KEY, i + 1, new ObjContext :: Nil)
+    case '[' => rparse(ARRBEG, i + 1, new ArrContext :: Nil)
+    case '{' => rparse(OBJBEG, i + 1, new ObjContext :: Nil)
 
     case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
       try {
@@ -140,50 +144,40 @@ trait Parser {
   final def rparse(state: Int, j: Int, stack: List[Context]): Container = {
     val i = reset(j)
     (state: @switch) match {
-      case DAT => (at(i): @switch) match {
+      case DATA => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
         case '\n' => rparse(state, i + 1, stack)
 
-        case '[' => rparse(DAT, i + 1, new ArrContext :: stack)
-        case '{' => rparse(KEY, i + 1, new ObjContext :: stack)
-
-        case ']' => stack match {
-          case (ctxt1:ArrContext) :: Nil =>
-            ctxt1.finish
-          case (ctxt1:ArrContext) :: ctxt2 :: tail =>
-            ctxt2.add(ctxt1.finish)
-            rparse(if (ctxt2.isObj) OBJ else ARR, i + 1, ctxt2 :: tail)
-          case _ =>
-            sys.error("invalid stack")
-        }
+        case '[' => rparse(ARRBEG, i + 1, new ArrContext :: stack)
+        case '{' => rparse(OBJBEG, i + 1, new ObjContext :: stack)
 
         case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
           val (n, j) = parseNum(i)
           val ctxt = stack.head
           ctxt.add(n)
-          rparse(if (ctxt.isObj) OBJ else ARR, j, stack)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
 
         case '"' =>
           val (str, j) = parseString(i)
           val ctxt = stack.head
           ctxt.add(Str(str))
-          rparse(if (ctxt.isObj) OBJ else ARR, j, stack)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
 
         case 't' =>
           val ctxt = stack.head
           ctxt.add(parseTrue(i))
-          rparse(if (ctxt.isObj) OBJ else ARR, i + 4, stack)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
 
         case 'f' =>
           val ctxt = stack.head
           ctxt.add(parseFalse(i))
-          rparse(if (ctxt.isObj) OBJ else ARR, i + 5, stack)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 5, stack)
 
         case 'n' =>
           val ctxt = stack.head
           ctxt.add(parseNull(i))
-          rparse(if (ctxt.isObj) OBJ else ARR, i + 4, stack)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
       }
 
       case KEY => (at(i): @switch) match {
@@ -199,29 +193,65 @@ trait Parser {
         case _ => die(i, "expected \"")
       }
 
-      case SEP => (at(i): @switch) match {
+      case ARRBEG => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
         case '\n' => rparse(state, i + 1, stack)
-
-        case ':' => rparse(DAT, i + 1, stack)
-
-        case _ => die(i, "expected :")
-      }
-
-      case ARR => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
-
-        case ',' => rparse(DAT, i + 1, stack)
 
         case ']' => stack match {
           case ctxt1 :: Nil =>
             ctxt1.finish
           case ctxt1 :: ctxt2 :: tail =>
             ctxt2.add(ctxt1.finish)
-            rparse(if (ctxt2.isObj) OBJ else ARR, i + 1, ctxt2 :: tail)
+            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
+          case _ =>
+            sys.error("invalid stack")
+        }
+
+        case _ => rparse(DATA, i, stack)
+      }
+
+      case OBJBEG => (at(i): @switch) match {
+        case ' ' => rparse(state, i + 1, stack)
+        case '\t' => rparse(state, i + 1, stack)
+        case '\n' => rparse(state, i + 1, stack)
+
+        case '}' => stack match {
+          case ctxt1 :: Nil =>
+            ctxt1.finish
+          case ctxt1 :: ctxt2 :: tail =>
+            ctxt2.add(ctxt1.finish)
+            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
+          case _ =>
+            sys.error("invalid stack")
+        }
+
+        case _ => rparse(KEY, i, stack)
+      }
+
+      case SEP => (at(i): @switch) match {
+        case ' ' => rparse(state, i + 1, stack)
+        case '\t' => rparse(state, i + 1, stack)
+        case '\n' => rparse(state, i + 1, stack)
+
+        case ':' => rparse(DATA, i + 1, stack)
+
+        case _ => die(i, "expected :")
+      }
+
+      case ARREND => (at(i): @switch) match {
+        case ' ' => rparse(state, i + 1, stack)
+        case '\t' => rparse(state, i + 1, stack)
+        case '\n' => rparse(state, i + 1, stack)
+
+        case ',' => rparse(DATA, i + 1, stack)
+
+        case ']' => stack match {
+          case ctxt1 :: Nil =>
+            ctxt1.finish
+          case ctxt1 :: ctxt2 :: tail =>
+            ctxt2.add(ctxt1.finish)
+            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
           case _ =>
             sys.error("invalid stack")
         }
@@ -229,7 +259,7 @@ trait Parser {
         case _ => die(i, "expected ] or ,")
       }
 
-      case OBJ => (at(i): @switch) match {
+      case OBJEND => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
         case '\n' => rparse(state, i + 1, stack)
@@ -241,7 +271,7 @@ trait Parser {
             ctxt1.finish
           case ctxt1 :: ctxt2 :: tail =>
             ctxt2.add(ctxt1.finish)
-            rparse(if (ctxt2.isObj) OBJ else ARR, i + 1, ctxt2 :: tail)
+            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
           case _ =>
             sys.error("invalid stack")
         }
@@ -264,10 +294,8 @@ final class StringParser(s: String) extends Parser {
   def all(i: Int) = s.substring(i)
 }
 
-// FIXME: not quite there yet
 final class PathParser(name: String) extends Parser {
-  // bufsize must be a power of 2
-  @inline final def bufsize = 131072
+  @inline final def bufsize = 1048576 // 1M buffer
   @inline final def mask = bufsize - 1
 
   val f = new FileInputStream(name)
