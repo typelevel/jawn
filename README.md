@@ -1,0 +1,88 @@
+## Jawn
+
+"Jawn is for reading jay-sawn."
+
+### Origin
+
+The term "jawn" comes from the Philadelphia area. It conveys about as much
+information as "thing" does. I chose the name because I'm living in Montreal
+right now so I feel fondly toward Philly. Also, there isn't a better way to
+describe objects encoded in JSON than thing. Finally we get a catchy slogan.
+
+### Overview
+
+Jawn is designed to try to parse JSON into one large DOM-esque object as fast
+as possible. There is a minimum of boxing, and there aren't any fancy
+operations to build your own objects for you. It follows the "sealed-trait +
+cas class" pattern of many other JSON libraries in Scala. The big speed win
+has to due with using Scala's `@tailrec` optimization as heavily as possible,
+along with various other hacks. There isn't really too much code.
+
+Currently the objects returned have very few capabilities: you must break them
+open to get at their delicious brains. There's no reason that they can't have
+a useful API but I haven't written one yet.
+
+Jawn also lacks many other nice features, like maintaining key/value order for
+JSON objects. This would not be a hard feature to add but isn't necessary in
+the general case and would slow things down a bit.
+
+### Examples
+
+Jawn can parse a string:
+
+```scala
+val s = "[1, 2.0, \"three\", null]"
+val o = jawn.Parser.parseString(s)
+```
+
+...or a path:
+
+```scala
+val o = jawn.Parser.parsePath("data.json")
+```
+
+Jawn objects can also generate a valid JSON representation of themselves using
+the `j` method (although as mentioned above, it is not guaranteed to be the
+same JSON representation they were read with):
+
+```scala
+val s = "[1, 2.0, \"three\", null]"
+val o = jawn.Parser.parseString(s)
+o.j // -> "[1, 2.0, \"three\", null]"
+```
+
+### Dependencies
+
+Jawn currently depends on Scala 2.10.0-M7, as well as an (unreleased) version
+of the Debox library. If you build it using SBT things should just work,
+otherwise you may need to fiddle with things a bit.
+
+There are some benchmarks and tests which have their own dependencies.
+
+### Profiling
+
+There are some micro-benchmarks using Caliper, as well as some ad-hoc
+benchmarks. From SBT you can run the benchmarks like so:
+
+```
+> project benchmark
+> run
+```
+
+Any JSON files you put in `benchmark/src/main/resources` will be included in
+the ad-hoc benchmark. There is a Python script I've been using to generate
+random JSON data called `randjson.py` which is a bit quirky but does seem to
+work.
+
+### Disclaimers
+
+I just banged this out in around 12-16 hours so I'm sure there are some bugs.
+No liability or warranty is implied or granted. This was mostly intended as a
+proof-of-concept for the underlying design.
+
+### Copyright and License
+
+All code is available to you under the MIT license, available at
+http://opensource.org/licenses/mit-license.php. 
+
+Copyright Erik Osheim, 2012.
