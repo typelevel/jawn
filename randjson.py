@@ -74,5 +74,5 @@ if __name__ == "__main__":
         c = mkcontainer(0.0, weight)
         f.write(json.dumps(c))
         f.close()
-    else:
+    except:
         print "usage: %s WEIGHT (0.0 < w < ~4.0) FILE" % sys.argv[0]
