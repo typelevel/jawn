@@ -5,26 +5,36 @@
 ### Origin
 
 The term "jawn" comes from the Philadelphia area. It conveys about as much
-information as "thing" does. I chose the name because I'm living in Montreal
-right now so I feel fondly toward Philly. Also, there isn't a better way to
-describe objects encoded in JSON than thing. Finally we get a catchy slogan.
+information as "thing" does. I chose the name because I moved to Montreal so I
+am remembering Philly fondly. Also, there isn't a better way to describe
+objects encoded in JSON than "things". Finally, we get a catchy slogan.
 
 ### Overview
 
 Jawn is designed to try to parse JSON into one large DOM-esque object as fast
 as possible. There is a minimum of boxing, and there aren't any fancy
-operations to build your own objects for you. It follows the "sealed-trait +
-cas class" pattern of many other JSON libraries in Scala. The big speed win
-has to due with using Scala's `@tailrec` optimization as heavily as possible,
-along with various other hacks. There isn't really too much code.
+operations to build your own objects for you. It uses algebraic data types,
+following the "sealed-trait + case class" pattern of many other JSON libraries
+in Scala.
 
-Currently the objects returned have very few capabilities: you must break them
-open to get at their delicious brains. There's no reason that they can't have
-a useful API but I haven't written one yet.
+The big speed win has to due with using Scala's `@tailrec` optimization as
+heavily as possible, along with various other hacks, and some semblence of an
+attempt for good IO perofrmance. There isn't really too much code, and
+profiling shows that I'm spending about 50% of my time running
+`java.lang.Double.parseDouble()` so that's something.
 
-Jawn also lacks many other nice features, like maintaining key/value order for
-JSON objects. This would not be a hard feature to add but isn't necessary in
-the general case and would slow things down a bit.
+Jawn is currently single-threaded: the design probably permits multi-threaded
+loading but that's for the future.
+
+The `jawn.Value` objects returned have very few capabilities: you must break
+them open to get at their delicious brains, preferably using pattern matchin.
+There's no reason that they can't have a useful API but I haven't written one
+yet.
+
+Jawn also lacks many other nice features, like keeping track of whitespace or
+maintaining key/value order for JSON objects. This would not be a hard feature
+to add but isn't necessary in the general case and would slow things down a
+bit. There also isn't any kind of SAX-like API.
 
 ### Examples
 
@@ -77,12 +87,13 @@ work.
 ### Disclaimers
 
 I just banged this out in around 12-16 hours so I'm sure there are some bugs.
-No liability or warranty is implied or granted. This was mostly intended as a
+There aren't even any formal tests yet! (Test-driven development? What?) No
+liability or warranty is implied or granted. This was mostly intended as a
 proof-of-concept for the underlying design.
 
 ### Copyright and License
 
 All code is available to you under the MIT license, available at
-http://opensource.org/licenses/mit-license.php. 
+http://opensource.org/licenses/mit-license.php.
 
 Copyright Erik Osheim, 2012.
