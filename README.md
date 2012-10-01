@@ -19,21 +19,21 @@ in Scala.
 
 The big speed win has to due with using Scala's `@tailrec` optimization as
 heavily as possible, along with various other hacks, and some semblence of an
-attempt for good IO perofrmance. There isn't really too much code, and
-profiling shows that I'm spending about 50% of my time running
+attempt at good IO buffering/performance. There isn't really too much code,
+and profiling shows that I'm spending about 50% of my time running
 `java.lang.Double.parseDouble()` so that's something.
 
 Jawn is currently single-threaded: the design probably permits multi-threaded
 loading but that's for the future.
 
 The `jawn.Value` objects returned have very few capabilities: you must break
-them open to get at their delicious brains, preferably using pattern matchin.
+them open to get at their delicious brains, preferably using pattern matching.
 There's no reason that they can't have a useful API but I haven't written one
 yet.
 
 Jawn also lacks many other nice features, like keeping track of whitespace or
 maintaining key/value order for JSON objects. This would not be a hard feature
-to add but isn't necessary in the general case and would slow things down a
+to add but it isn't necessary in the general case and would slow things down a
 bit. There also isn't any kind of SAX-like API.
 
 ### Examples
@@ -83,6 +83,12 @@ Any JSON files you put in `benchmark/src/main/resources` will be included in
 the ad-hoc benchmark. There is a Python script I've been using to generate
 random JSON data called `randjson.py` which is a bit quirky but does seem to
 work.
+
+I have comparisons against smart-json and Jackson right now, and will probably
+add more. Right now Jawn seems to build trees faster (which makes sense since
+it lacks many general purpose capabilities). I'm happy to get pull requests
+either adding new Java/Scala libraries to test against, or using more effient
+methods to build the tree.
 
 ### Disclaimers
 
