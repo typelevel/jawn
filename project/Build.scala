@@ -16,7 +16,8 @@ object MyBuild extends Build {
 
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % "2.10.0-M7",
-      "org.scalatest" % "scalatest_2.10.0-M7" % "1.9-2.10.0-M7-B1" % "test"
+      "org.scalatest" % "scalatest_2.10.0-M7" % "1.9-2.10.0-M7-B1" % "test",
+      "debox" % "debox" % "0.1.0" from "http://plastic-idolatry.com/jars/debox_2.10.0-M7-0.1.0.jar"
     )
   )
 
@@ -31,6 +32,10 @@ object MyBuild extends Build {
     javaOptions in run += "-Xmx6G",
 
     libraryDependencies ++= Seq(
+      "com.fasterxml.jackson.core" % "jackson-annotations" % "2.0.6",
+      "com.fasterxml.jackson.core" % "jackson-core" % "2.0.6",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.0.6",
+      "net.minidev" % "json-smart" % "1.1.1",
       "com.google.guava" % "guava" % "r09",
       "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
       "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://n0d.es/jars/caliper-1.0-SNAPSHOT.jar",
