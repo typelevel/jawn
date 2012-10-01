@@ -1,6 +1,6 @@
 package jawn
 
-object LargeBenchmark {
+object AdHocBenchmarks {
   @inline final def warmups = 2
   @inline final def runs = 5
 
