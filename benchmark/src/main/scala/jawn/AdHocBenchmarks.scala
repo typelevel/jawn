@@ -4,7 +4,7 @@ object AdHocBenchmarks {
   @inline final def warmups = 2
   @inline final def runs = 5
 
-  def smartParse(path: String) = {
+  def smartJsonParse(path: String) = {
     val file = new java.io.File(path)
     val reader = new java.io.FileReader(file)
     net.minidev.json.JSONValue.parse(reader)
@@ -15,6 +15,12 @@ object AdHocBenchmarks {
     import com.fasterxml.jackson.databind.JsonNode
     val file = new java.io.File(path)
     new ObjectMapper().readValue(file, classOf[JsonNode])
+  }
+
+  def liftJsonParse(path: String) = {
+    val file = new java.io.File(path)
+    val reader = new java.io.FileReader(file)
+    net.liftweb.json.JsonParser.parse(reader)
   }
 
   def jawnParse(path: String) = {
@@ -43,10 +49,14 @@ object AdHocBenchmarks {
   }
 
   def run[A](name: String, path: String)(f: String => A) {
-    val t = test(name, path)(f)
-    println("  %-10s  %10.1f ms" format (name, t))
+    try {
+      val t = test(name, path)(f)
+      println("  %-18s  %10.1f ms" format (name, t))
+    } catch {
+      case e: Exception =>
+      println("  %-18s  %10s" format (name, "FAIL"))
+    }
   }
-
 
   def main(args: Array[String]) {
     val d = new java.io.File("src/main/resources")
@@ -65,7 +75,8 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
-      run("smart", path)(smartParse)
+      run("lift-json", path)(liftJsonParse)
+      run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
       run("jawn", path)(jawnParse)
     }

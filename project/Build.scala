@@ -32,6 +32,7 @@ object MyBuild extends Build {
     javaOptions in run += "-Xmx6G",
 
     libraryDependencies ++= Seq(
+      "net.liftweb" % "lift-json_2.9.2" % "2.5-M1",
       "com.fasterxml.jackson.core" % "jackson-annotations" % "2.0.6",
       "com.fasterxml.jackson.core" % "jackson-core" % "2.0.6",
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.0.6",
