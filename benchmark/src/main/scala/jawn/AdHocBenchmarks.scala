@@ -75,7 +75,7 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
-      run("lift-json", path)(liftJsonParse)
+      //run("lift-json", path)(liftJsonParse)
       run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
       run("jawn", path)(jawnParse)

@@ -12,6 +12,7 @@ import java.nio.ByteBuffer
 
 import debox.buffer.Mutable
 
+
 /**
  * Parser contains the state machine that does all the work. The only 
  */
@@ -46,12 +47,12 @@ trait Parser {
   /**
    * Return true iff the byte/char at 'i' is equal to 'c'.
    */
-  def is(i: Int, c: Char): Boolean = at(i) == c
+  final def is(i: Int, c: Char): Boolean = at(i) == c
 
   /**
    * Return true iff the bytes/chars from 'i' until 'j' are equal to 'str'.
    */
-  def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
+  final def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
 
   /**
    * The reset() method is used to signal that we're working from the given
@@ -78,10 +79,6 @@ trait Parser {
   protected[this] def die(i: Int, msg: String) =
     sys.error("%s got %s (%d)" format (msg, at(i), i))
 
-  //def makeDouble(s: String) = DeferNum(s)
-  def makeDouble(s: String) = DoubleNum(parseDouble(s))
-  def makeLong(s: String) = LongNum(parseLong(s, 10))
-
   /**
    * Parse the given number, and add it to the given context.
    *
@@ -93,7 +90,7 @@ trait Parser {
    * TODO: We spend a *lot* of time in parseDouble() so
    * consider other possible alternatives.
    */
-  def parseNum(i: Int, ctxt: Context): Int = {
+  final def parseNum(i: Int, ctxt: Context): Int = {
     var j = i
     var c = at(j)
 
@@ -107,18 +104,13 @@ trait Parser {
         j += 1
         c = at(j)
       }
-      //ctxt.add(DoubleNum(parseDouble(at(i, j))))
-      //ctxt.add(DeferNum(at(i, j)))
-      ctxt.add(makeDouble(at(i, j)))
+      ctxt.add(DeferNum(at(i, j)))
       j
     } else if (j - i < 19) {
-      //ctxt.add(LongNum(parseLong(at(i, j), 10)))
-      ctxt.add(makeLong(at(i, j)))
+      ctxt.add(DeferNum(at(i, j)))
       j
     } else {
-      //ctxt.add(DoubleNum(parseDouble(at(i, j))))
-      //ctxt.add(DeferNum(at(i, j)))
-      ctxt.add(makeDouble(at(i, j)))
+      ctxt.add(DeferNum(at(i, j)))
       j
     }
   }
@@ -131,6 +123,17 @@ trait Parser {
    */
   final def descape(s: String) = parseInt(s, 16).toChar
 
+  final def parseStringSimple(i: Int, ctxt: Context): Int = {
+    var j = i
+    var c = at(j)
+    while (c != '"') {
+      if (c == '\\') return -1
+      j += 1
+      c = at(j)
+    }
+    j + 1
+  }
+
   /**
    * Parse the string according to JSON rules, and add to the given context.
    *
@@ -138,8 +141,16 @@ trait Parser {
    */
   final def parseString(i: Int, ctxt: Context): Int = {
     if (at(i) != '"') sys.error("argh")
-    val sb = new CharBuilder
     var j = i + 1
+
+    val k = parseStringSimple(j, ctxt)
+    if (k != -1) {
+      ctxt.add(at(i + 1, k - 1))
+      return k
+    }
+
+    val sb = new CharBuilder
+      
     var c = at(j)
     while (c != '"') {
       if (c == '\\') {
@@ -177,19 +188,19 @@ trait Parser {
   /**
    * Parse the JSON constant "true".
    */
-  def parseTrue(i: Int) =
+  final def parseTrue(i: Int) =
     if (is(i, i + 4, "true")) True else die(i, "expected true")
 
   /**
    * Parse the JSON constant "false".
    */
-  def parseFalse(i: Int) =
+  final def parseFalse(i: Int) =
     if (is(i, i + 5, "false")) False else die(i, "expected false")
 
   /**
    * Parse the JSON constant "null".
    */
-  def parseNull(i: Int) =
+  final def parseNull(i: Int) =
     if (is(i, i + 4, "null")) Null else die(i, "expected null")
 
   /**
@@ -199,7 +210,7 @@ trait Parser {
    * valid, as well as more traditional documents like [1,2,3,4,5]. However,
    * multiple top-level objects are not allowed.
    */
-  def parse(i: Int): Value = (at(i): @switch) match {
+  final def parse(i: Int): Value = (at(i): @switch) match {
     // ignore whitespace
     case ' ' => parse(i + 1)
     case '\t' => parse(i + 1)
@@ -410,11 +421,11 @@ object Parser {
  * disk, to avoid having to load the whole thing into memory at once.
  */
 final class StringParser(s: String) extends Parser {
-  def reset(i: Int): Int = i
-  def at(i: Int): Char = s.charAt(i)
-  def at(i: Int, j: Int): String = s.substring(i, j)
-  def atEof(i: Int) = i == s.length
-  def all(i: Int) = s.substring(i)
+  final def reset(i: Int): Int = i
+  final def at(i: Int): Char = s.charAt(i)
+  final def at(i: Int, j: Int): String = s.substring(i, j)
+  final def atEof(i: Int) = i == s.length
+  final def all(i: Int) = s.substring(i)
 }
 
 /**
@@ -451,7 +462,7 @@ final class PathParser(name: String) extends Parser {
    * the index provided to reset is no longer in the 'curr' buffer, we want to
    * clear that data and swap the buffers.
    */
-  def swap() {
+  final def swap() {
     var tmp = curr; curr = next; next = tmp
     var btmp = bcurr; bcurr = bnext; bnext = btmp
     var ntmp = ncurr; ncurr = nnext; nnext = ntmp
@@ -461,7 +472,7 @@ final class PathParser(name: String) extends Parser {
    * If the cursor 'i' is past the 'curr' buffer, we want to clear the current
    * byte buffer, do a swap, load some more data, and continue.
    */
-  def reset(i: Int): Int = {
+  final def reset(i: Int): Int = {
     if (i >= bufsize) {
       bcurr.clear()
       swap()
@@ -472,28 +483,28 @@ final class PathParser(name: String) extends Parser {
     }
   }
 
-  def at(i: Int): Char = if (i < bufsize)
+  final def at(i: Int): Char = if (i < bufsize)
     curr(i).toChar
   else
     next(i & mask).toChar
 
-  def at(i: Int, k: Int): String = {
+  final def at(i: Int, k: Int): String = {
     val len = k - i
-    val arr = new Array[Byte](len)
 
     if (k <= bufsize) {
-      System.arraycopy(curr, i, arr, 0, len)
+      new String(curr, i, len)
     } else {
+      val arr = new Array[Byte](len)
       val mid = bufsize - i
       System.arraycopy(curr, i, arr, 0, mid)
       System.arraycopy(next, 0, arr, mid, k - bufsize)
+      new String(arr)
     }
-    new String(arr)
   }
 
-  def atEof(i: Int) = if (i < bufsize) i >= ncurr else i >= nnext
+  final def atEof(i: Int) = if (i < bufsize) i >= ncurr else i >= nnext
 
-  def all(i: Int) = {
+  final def all(i: Int) = {
     var j = i
     val sb = new StringBuilder
     while (!atEof(j)) {

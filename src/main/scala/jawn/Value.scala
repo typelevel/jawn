@@ -10,6 +10,7 @@ case object False extends Value { def j = "false" }
 case object Null extends Value { def j = "null" }
 
 case class Str(s: String) extends Value { def j = "\"%s\"" format s } //fix!
+
 case class LongNum(n: Long) extends Value { def j = n.toString }
 case class DoubleNum(n: Double) extends Value { def j = n.toString } //fix?
 case class DeferNum(s: String) extends Value { def j = s } //lol
