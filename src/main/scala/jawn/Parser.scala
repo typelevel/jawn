@@ -123,129 +123,7 @@ trait Parser {
    */
   final def descape(s: String) = parseInt(s, 16).toChar
 
-  final def parseStringSimple(i: Int, ctxt: Context): Int = {
-    var j = i
-    var c = at(j)
-    while (c != '"') {
-      if (c == '\\') return -1
-      j += 1
-      c = at(j)
-    }
-    j + 1
-  }
-
   def parseString(i: Int, ctxt: Context): Int
-
-  /**
-   * Parse the string according to JSON rules, and add to the given context.
-   *
-   * TODO: Make sure we're handling encodings (i.e. UTF-8) correctly.
-   */
-  final def parseStringUtf16(i: Int, ctxt: Context): Int = {
-    if (at(i) != '"') sys.error("argh")
-    var j = i + 1
-
-    val k = parseStringSimple(j, ctxt)
-    if (k != -1) {
-      ctxt.add(at(i + 1, k - 1))
-      return k
-    }
-
-    val sb = new CharBuilder
-      
-    var c = at(j)
-    while (c != '"') {
-      if (c == '\\') {
-        (at(j + 1): @switch) match {
-          case 'b' => { sb.append('\b'); j += 2 }
-          case 'f' => { sb.append('\f'); j += 2 }
-          case 'n' => { sb.append('\n'); j += 2 }
-          case 'r' => { sb.append('\r'); j += 2 }
-          case 't' => { sb.append('\t'); j += 2 }
-
-          // if there's a problem then descape will explode
-          case 'u' => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
-
-          // permissive: let any escaped char through, not just ", / and \
-          case c2 => { sb.append(c2); j += 2 }
-        }
-      } else if (isHighSurrogate(c)) {
-        // this case dodges the situation where we might incorrectly parse the
-        // second Char of a unicode code point.
-        sb.append(c)
-        sb.append(at(j + 1))
-        j += 2
-      } else {
-        // this case is for "normal" code points that are just one Char.
-        sb.append(c)
-        j += 1
-      }
-      j = reset(j)
-      c = at(j)
-    }
-    ctxt.add(sb.makeString)
-    j + 1
-  }
-
-
-  /**
-   * Parse the string according to JSON rules, and add to the given context.
-   *
-   * TODO: Make sure we're handling encodings (i.e. UTF-8) correctly.
-   */
-  final def parseStringUtf8(i: Int, ctxt: Context): Int = {
-    if (at(i) != '"') sys.error("argh")
-    var j = i + 1
-
-    val k = parseStringSimple(j, ctxt)
-    if (k != -1) {
-      ctxt.add(at(i + 1, k - 1))
-      return k
-    }
-
-    val sb = new CharBuilder
-      
-    var c = at(j)
-    while (c != '"') {
-      if (c == '\\') {
-        (at(j + 1): @switch) match {
-          case 'b' => { sb.append('\b'); j += 2 }
-          case 'f' => { sb.append('\f'); j += 2 }
-          case 'n' => { sb.append('\n'); j += 2 }
-          case 'r' => { sb.append('\r'); j += 2 }
-          case 't' => { sb.append('\t'); j += 2 }
-
-          // if there's a problem then descape will explode
-          case 'u' => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
-
-          // permissive: let any escaped char through, not just ", / and \
-          case c2 => { sb.append(c2); j += 2 }
-        }
-      } else if (c < 128) {
-        // 1-byte UTF-8 sequence
-        sb.append(c)
-        j += 1
-      } else if ((c & 224) == 192) {
-        // 2-byte UTF-8 sequence
-        sb.extend(at(j, j + 2))
-        j += 2
-      } else if ((c & 240) == 224) {
-        // 3-byte UTF-8 sequence
-        sb.extend(at(j, j + 3))
-        j += 3
-      } else if ((c & 248) == 240) {
-        // 4-byte UTF-8 sequence
-        sb.extend(at(j, j + 4))
-        j += 4
-      } else {
-        sys.error("invalid UTF-8 encoding")
-      }
-      j = reset(j)
-      c = at(j)
-    }
-    ctxt.add(sb.makeString)
-    j + 1
-  }
 
   /**
    * Parse the JSON constant "true".
@@ -489,7 +367,79 @@ final class StringParser(s: String) extends Parser {
   final def atEof(i: Int) = i == s.length
   final def all(i: Int) = s.substring(i)
 
-  final def parseString(i: Int, ctxt: Context) = parseStringUtf16(i, ctxt)
+  /**
+   * See if the string has any escape sequences. If not, return the end of the
+   * string. If so, bail out and return -1.
+   *
+   * This method expects the data to be in UTF-16 and accesses it as chars.
+   * In a few cases we might bail out incorrectly (by reading the second-half
+   * of a surrogate pair as \\) but for now the belief is that checking every
+   * character would be more expensive. So... in those cases we'll fall back to
+   * the slower (correct) UTF-16 parsing.
+   */
+  final def parseStringSimple(i: Int, ctxt: Context): Int = {
+    var j = i
+    var c = at(j)
+    while (c != '"') {
+      if (c == '\\') return -1
+      j += 1
+      c = at(j)
+    }
+    j + 1
+  }
+
+  /**
+   * Parse the string according to JSON rules, and add to the given context.
+   *
+   * This method expects the data to be in UTF-16, and access it as Char. It
+   * performs the correct checks to make sure that we don't interpret a
+   * multi-char code point incorrectly.
+   */
+  final def parseString(i: Int, ctxt: Context): Int = {
+    if (at(i) != '"') sys.error("argh")
+    var j = i + 1
+
+    val k = parseStringSimple(j, ctxt)
+    if (k != -1) {
+      ctxt.add(at(i + 1, k - 1))
+      return k
+    }
+
+    val sb = new CharBuilder
+      
+    var c = at(j)
+    while (c != '"') {
+      if (c == '\\') {
+        (at(j + 1): @switch) match {
+          case 'b' => { sb.append('\b'); j += 2 }
+          case 'f' => { sb.append('\f'); j += 2 }
+          case 'n' => { sb.append('\n'); j += 2 }
+          case 'r' => { sb.append('\r'); j += 2 }
+          case 't' => { sb.append('\t'); j += 2 }
+
+          // if there's a problem then descape will explode
+          case 'u' => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
+
+          // permissive: let any escaped char through, not just ", / and \
+          case c2 => { sb.append(c2); j += 2 }
+        }
+      } else if (isHighSurrogate(c)) {
+        // this case dodges the situation where we might incorrectly parse the
+        // second Char of a unicode code point.
+        sb.append(c)
+        sb.append(at(j + 1))
+        j += 2
+      } else {
+        // this case is for "normal" code points that are just one Char.
+        sb.append(c)
+        j += 1
+      }
+      j = reset(j)
+      c = at(j)
+    }
+    ctxt.add(sb.makeString)
+    j + 1
+  }
 }
 
 /**
@@ -523,8 +473,6 @@ final class PathParser(name: String) extends Parser {
   var ncurr = ch.read(bcurr)
   var nnext = ch.read(bnext)
 
-  final def parseString(i: Int, ctxt: Context) = parseStringUtf8(i, ctxt)
-  
   /**
    * Swap the curr and next arrays/buffers/counts.
    *
@@ -558,6 +506,11 @@ final class PathParser(name: String) extends Parser {
   else
     next(i & mask).toChar
 
+  final def byte(i: Int): Byte = if (i < bufsize)
+    curr(i)
+  else
+    next(i & mask)
+
   final def at(i: Int, k: Int): String = {
     val len = k - i
 
@@ -587,5 +540,82 @@ final class PathParser(name: String) extends Parser {
       }
     }
     sb.toString
+  }
+
+  /**
+   * See if the string has any escape sequences. If not, return the end of the
+   * string. If so, bail out and return -1.
+   *
+   * This method expects the data to be in UTF-8 and accesses it as bytes. Thus
+   * we can just ignore any bytes with the highest bit set.
+   */
+  final def parseStringSimple(i: Int, ctxt: Context): Int = {
+    var j = i
+    var c = byte(j)
+    while (c != 34) {
+      if (c == 92) return -1
+      j += 1
+      c = byte(j)
+    }
+    j + 1
+  }
+
+  /**
+   * Parse the string according to JSON rules, and add to the given context.
+   *
+   * This method expects the data to be in UTF-8 and accesses it as bytes.
+   */
+  final def parseString(i: Int, ctxt: Context): Int = {
+    if (at(i) != 34) sys.error("argh")
+    var j = i + 1
+
+    val k = parseStringSimple(j, ctxt)
+    if (k != -1) {
+      ctxt.add(at(i + 1, k - 1))
+      return k
+    }
+
+    val sb = new CharBuilder
+      
+    var c = byte(j)
+    while (c != 34) { // "
+      if (c == 92) { // \
+        (byte(j + 1): @switch) match {
+          case 98 => { sb.append('\b'); j += 2 }
+          case 102 => { sb.append('\f'); j += 2 }
+          case 110 => { sb.append('\n'); j += 2 }
+          case 114 => { sb.append('\r'); j += 2 }
+          case 116 => { sb.append('\t'); j += 2 }
+
+          // if there's a problem then descape will explode
+          case 117 => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
+
+          // permissive: let any escaped char through, not just ", / and \
+          case c2 => { sb.append(c2.toChar); j += 2 }
+        }
+      } else if (c < 128) {
+        // 1-byte UTF-8 sequence
+        sb.append(c.toChar)
+        j += 1
+      } else if ((c & 224) == 192) {
+        // 2-byte UTF-8 sequence
+        sb.extend(at(j, j + 2))
+        j += 2
+      } else if ((c & 240) == 224) {
+        // 3-byte UTF-8 sequence
+        sb.extend(at(j, j + 3))
+        j += 3
+      } else if ((c & 248) == 240) {
+        // 4-byte UTF-8 sequence
+        sb.extend(at(j, j + 4))
+        j += 4
+      } else {
+        sys.error("invalid UTF-8 encoding")
+      }
+      j = reset(j)
+      c = byte(j)
+    }
+    ctxt.add(sb.makeString)
+    j + 1
   }
 }
