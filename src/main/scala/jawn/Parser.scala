@@ -123,6 +123,9 @@ trait Parser {
    */
   final def descape(s: String) = parseInt(s, 16).toChar
 
+  /**
+   * Parse the JSON string starting at 'i' and save it into 'ctxt'.
+   */
   def parseString(i: Int, ctxt: Context): Int
 
   /**
@@ -453,6 +456,18 @@ final class PathParser(name: String) extends Parser {
   if (d.displayName != "UTF-8")
     sys.error("default encoding must be UTF-8, got %s." format d)
 
+  // TODO: figure out if we wouldn't just be better off decoding to UTF-16 on
+  // input, rather than doing the parsing as UTF-8. i'm not sure which works
+  // better since we'll save memory this way but add a bit of complexity. so
+  // far it's working but more resarch is needed.
+  //
+  // on the upside, we avoid a lot of annoying ceremony around Charset,
+  // CharBuffer, array-copying, and so on.
+  //
+  // on the downside, we don't support other encodings, and it's not clear how
+  // much time we actually spend doing any of this relative to the actual
+  // parsing.
+
   // 256K buffers: arrived at via a bit of testing
   @inline final def bufsize = 262144
   @inline final def mask = bufsize - 1
@@ -501,16 +516,30 @@ final class PathParser(name: String) extends Parser {
     }
   }
 
-  final def at(i: Int): Char = if (i < bufsize)
-    curr(i).toChar
-  else
-    next(i & mask).toChar
-
+  /**
+   * This is a specialized accessor for the case where our underlying data are
+   * bytes not chars.
+   */
   final def byte(i: Int): Byte = if (i < bufsize)
     curr(i)
   else
     next(i & mask)
 
+  /**
+   * Rads
+   */
+  final def at(i: Int): Char = if (i < bufsize)
+    curr(i).toChar
+  else
+    next(i & mask).toChar
+
+  /**
+   * Access a byte range as a string.
+   *
+   * Since the underlying data are UTF-8 encoded, i and k must occur on unicode
+   * boundaries. Also, the resulting String is not guaranteed to have length
+   * (k - i).
+   */
   final def at(i: Int, k: Int): String = {
     val len = k - i
 
