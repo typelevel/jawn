@@ -92,10 +92,14 @@ methods to build the tree.
 
 ### Disclaimers
 
-I just banged this out in around 12-16 hours so I'm sure there are some bugs.
-There aren't even any formal tests yet! (Test-driven development? What?) No
-liability or warranty is implied or granted. This was mostly intended as a
-proof-of-concept for the underlying design.
+Jawn only supports UTF-8. This might change in the future, but for now that's
+the target case. If you need full-featured support for character encodings I
+imagine something like Jackson will work better.
+
+The library is still very immature so I'm sure there are some bugs. There
+aren't even any formal tests yet! (Test-driven development? What?) No
+liability or warranty is implied or granted. This project was initially
+intended as a proof-of-concept for the underlying design.
 
 ### Copyright and License
 
