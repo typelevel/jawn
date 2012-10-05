@@ -5,14 +5,20 @@ import debox.map._
 
 sealed trait Value { def j: String }
 
-case object True extends Value { def j = "true" }
-case object False extends Value { def j = "false" }
-case object Null extends Value { def j = "null" }
+case object True extends Value { final def j = "true" }
+case object False extends Value { final def j = "false" }
+case object Null extends Value { final def j = "null" }
 
-case class Str(s: String) extends Value { def j = "\"%s\"" format s } //fix!
+case class Str(s: String) extends Value {
+  def j = "\"%s\"" format Str.escape(s)
+}
+
+object Str {
+  def escape(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
+}
 
 case class LongNum(n: Long) extends Value { def j = n.toString }
-case class DoubleNum(n: Double) extends Value { def j = n.toString } //fix?
+case class DoubleNum(n: Double) extends Value { def j = n.toString }
 case class DeferNum(s: String) extends Value { def j = s } //lol
 
 sealed trait Container extends Value

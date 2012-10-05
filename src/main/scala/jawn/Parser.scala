@@ -134,12 +134,14 @@ trait Parser {
     j + 1
   }
 
+  def parseString(i: Int, ctxt: Context): Int
+
   /**
    * Parse the string according to JSON rules, and add to the given context.
    *
    * TODO: Make sure we're handling encodings (i.e. UTF-8) correctly.
    */
-  final def parseString(i: Int, ctxt: Context): Int = {
+  final def parseStringUtf16(i: Int, ctxt: Context): Int = {
     if (at(i) != '"') sys.error("argh")
     var j = i + 1
 
@@ -177,6 +179,66 @@ trait Parser {
         // this case is for "normal" code points that are just one Char.
         sb.append(c)
         j += 1
+      }
+      j = reset(j)
+      c = at(j)
+    }
+    ctxt.add(sb.makeString)
+    j + 1
+  }
+
+
+  /**
+   * Parse the string according to JSON rules, and add to the given context.
+   *
+   * TODO: Make sure we're handling encodings (i.e. UTF-8) correctly.
+   */
+  final def parseStringUtf8(i: Int, ctxt: Context): Int = {
+    if (at(i) != '"') sys.error("argh")
+    var j = i + 1
+
+    val k = parseStringSimple(j, ctxt)
+    if (k != -1) {
+      ctxt.add(at(i + 1, k - 1))
+      return k
+    }
+
+    val sb = new CharBuilder
+      
+    var c = at(j)
+    while (c != '"') {
+      if (c == '\\') {
+        (at(j + 1): @switch) match {
+          case 'b' => { sb.append('\b'); j += 2 }
+          case 'f' => { sb.append('\f'); j += 2 }
+          case 'n' => { sb.append('\n'); j += 2 }
+          case 'r' => { sb.append('\r'); j += 2 }
+          case 't' => { sb.append('\t'); j += 2 }
+
+          // if there's a problem then descape will explode
+          case 'u' => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
+
+          // permissive: let any escaped char through, not just ", / and \
+          case c2 => { sb.append(c2); j += 2 }
+        }
+      } else if (c < 128) {
+        // 1-byte UTF-8 sequence
+        sb.append(c)
+        j += 1
+      } else if ((c & 224) == 192) {
+        // 2-byte UTF-8 sequence
+        sb.extend(at(j, j + 2))
+        j += 2
+      } else if ((c & 240) == 224) {
+        // 3-byte UTF-8 sequence
+        sb.extend(at(j, j + 3))
+        j += 3
+      } else if ((c & 248) == 240) {
+        // 4-byte UTF-8 sequence
+        sb.extend(at(j, j + 4))
+        j += 4
+      } else {
+        sys.error("invalid UTF-8 encoding")
       }
       j = reset(j)
       c = at(j)
@@ -426,6 +488,8 @@ final class StringParser(s: String) extends Parser {
   final def at(i: Int, j: Int): String = s.substring(i, j)
   final def atEof(i: Int) = i == s.length
   final def all(i: Int) = s.substring(i)
+
+  final def parseString(i: Int, ctxt: Context) = parseStringUtf16(i, ctxt)
 }
 
 /**
@@ -435,6 +499,10 @@ final class StringParser(s: String) extends Parser {
  * parses it. 
  */
 final class PathParser(name: String) extends Parser {
+  val d = java.nio.charset.Charset.defaultCharset
+  if (d.displayName != "UTF-8")
+    sys.error("default encoding must be UTF-8, got %s." format d)
+
   // 256K buffers: arrived at via a bit of testing
   @inline final def bufsize = 262144
   @inline final def mask = bufsize - 1
@@ -454,6 +522,8 @@ final class PathParser(name: String) extends Parser {
   // these are the bytecounts for each array
   var ncurr = ch.read(bcurr)
   var nnext = ch.read(bnext)
+
+  final def parseString(i: Int, ctxt: Context) = parseStringUtf8(i, ctxt)
   
   /**
    * Swap the curr and next arrays/buffers/counts.
