@@ -166,12 +166,7 @@ trait Parser {
 
     // we have a single top-level number
     case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
-      try {
-        LongNum(parseLong(all(i)))
-      } catch {
-        case e:NumberFormatException =>
-          DoubleNum(parseDouble(all(i)))
-      }
+      DeferNum(all(i))
 
     // we have a single top-level string
     case '"' =>
