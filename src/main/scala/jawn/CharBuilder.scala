@@ -1,6 +1,6 @@
 package jawn
 
-final class CharBuilder {
+private[jawn] final class CharBuilder {
   @inline final def INITIALSIZE = 16
 
   private var cs = new Array[Char](INITIALSIZE)

@@ -4,6 +4,15 @@ object AdHocBenchmarks {
   @inline final def warmups = 2
   @inline final def runs = 5
 
+  def argonautParse(path: String) = {
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    argonaut.Parse.parse(s)
+  }
+
   def smartJsonParse(path: String) = {
     val file = new java.io.File(path)
     val reader = new java.io.FileReader(file)
@@ -24,7 +33,8 @@ object AdHocBenchmarks {
   }
 
   def jawnParse(path: String) = {
-    new jawn.PathParser(path).parse(0)
+    val file = new java.io.File(path)
+    jawn.JParser.parseFromFile(file).right.get
   }
 
   def test[A](name: String, path:String)(f: String => A): Double = {
@@ -75,7 +85,7 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
-      //run("lift-json", path)(liftJsonParse)
+      run("argonaut", path)(argonautParse)
       run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
       run("jawn", path)(jawnParse)

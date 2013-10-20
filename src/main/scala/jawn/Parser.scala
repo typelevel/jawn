@@ -1,58 +1,48 @@
 package jawn
 
 import scala.annotation.{switch, tailrec}
-
-import java.lang.Character.isHighSurrogate
-import java.lang.Double.parseDouble
 import java.lang.Integer.parseInt
-import java.lang.Long.parseLong
+import java.nio.charset.Charset
 
-import java.io.FileInputStream
-import java.nio.ByteBuffer
+// underlying parser code adapted from jawn under MIT license.
+// (https://github.com/non/jawn)
 
-import debox.buffer.Mutable
-
+case class ParseException(msg: String, index: Int, line: Int, col: Int) extends Exception(msg)
+case class IncompleteParseException(msg: String) extends Exception(msg)
 
 /**
  * Parser contains the state machine that does all the work. The only 
  */
-trait Parser {
+private[jawn] trait Parser {
 
-  /**
-   * Read all remaining data from 'i' onwards and return it as a String.
-   *
-   * This is only used in the case where we have a top-level number, so it's
-   * not generally used in the "critical path", since there's an upper-bound
-   * to how long a single number literal can be.
-   */
-  def all(i: Int): String
+  protected[this] final val utf8 = Charset.forName("UTF-8")
 
   /**
    * Read the byte/char at 'i' as a Char.
    *
    * Note that this should not be used on potential multi-byte sequences.
    */
-  def at(i: Int): Char
+  protected[this] def at(i: Int): Char
 
   /**
    * Read the bytes/chars from 'i' until 'j' as a String.
    */
-  def at(i: Int, j: Int): String
+  protected[this] def at(i: Int, j: Int): String
 
   /**
    * Return true iff 'i' is at or beyond the end of the input (EOF).
    */
-  def atEof(i: Int): Boolean
+  protected[this] def atEof(i: Int): Boolean
 
   /**
    * Return true iff the byte/char at 'i' is equal to 'c'.
    */
-  final def is(i: Int, c: Char): Boolean = at(i) == c
+  protected[this] final def is(i: Int, c: Char): Boolean = at(i) == c
 
   /**
    * Return true iff the bytes/chars from 'i' until 'j' are equal to 'str'.
    */
-  final def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
+  protected[this] final def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
 
   /**
    * The reset() method is used to signal that we're working from the given
@@ -60,59 +50,150 @@ trait Parser {
    * StringParser) will ignore release, while others (e.g. PathParser) will
    * need to use this information to release and allocate different areas.
    */
-  def reset(i: Int): Int
+  protected[this] def reset(i: Int): Int
+
+  /**
+   * The checkpoint() method is used to allow some parsers to store their
+   * progress.
+   */
+  protected[this] def checkpoint(state: Int, i: Int, stack: List[Context]): Unit
+
+  /**
+   * Should be called when parsing is finished.
+   */
+  protected[this] def close(): Unit
 
   /**
    * Valid parser states.
    */
-  @inline final val ARRBEG = 6
-  @inline final val OBJBEG = 7
-  @inline final val DATA = 1
-  @inline final val KEY = 2
-  @inline final val SEP = 3
-  @inline final val ARREND = 4
-  @inline final val OBJEND = 5
+  @inline protected[this] final val ARRBEG = 6
+  @inline protected[this] final val OBJBEG = 7
+  @inline protected[this] final val DATA = 1
+  @inline protected[this] final val KEY = 2
+  @inline protected[this] final val SEP = 3
+  @inline protected[this] final val ARREND = 4
+  @inline protected[this] final val OBJEND = 5
+
+  protected[this] def newline(i: Int): Unit
+  protected[this] def line(): Int
+  protected[this] def column(i: Int): Int
 
   /**
    * Used to generate error messages with character info and byte addresses.
    */
-  protected[this] def die(i: Int, msg: String) =
-    sys.error("%s got %s (%d)" format (msg, at(i), i))
+  protected[this] def die(i: Int, msg: String) = {
+    val y = line() + 1
+    val x = column(i) + 1
+    val s = "%s got %s (line %d, column %d)" format (msg, at(i), y, x)
+    throw ParseException(s, i, y, x)
+  }
+
+  /**
+   * Used to generate messages for internal errors.
+   */
+  protected[this] def error(msg: String) =
+    sys.error(msg)
 
   /**
    * Parse the given number, and add it to the given context.
    *
-   * This code relies on parseLong/parseDouble to blow up for invalid inputs;
-   * it does not try to exactly model the JSON input because we're not actually
-   * going to "build" the numbers ourselves. It just needs to be sure that for
-   * valid JSON we will find the right "number region".
+   * We don't actually instantiate a number here, but rather save the string
+   * for future use. This ends up being way faster and has the nice side-effect
+   * that we know exactly how the user represented the number.
    *
-   * TODO: We spend a *lot* of time in parseDouble() so
-   * consider other possible alternatives.
+   * It would probably be possible to keep track of the whether the number is
+   * expected to be whole, decimal, etc. but we don't do that at the moment.
    */
-  final def parseNum(i: Int, ctxt: Context): Int = {
+  protected[this] final def parseNum(i: Int, ctxt: Context): Int = {
     var j = i
     var c = at(j)
 
-    if (c == '-') { j += 1; c = at(j) }
-    while ('0' <= c && c <= '9') { j += 1; c = at(j) }
-
-    if (c == '.' || c == 'e' || c == 'E') {
+    if (c == '-') {
       j += 1
       c = at(j)
-      while ('0' <= c && c <= '9' || c == '+' || c == '-' || c == 'e' || c == 'E') {
+    }
+    while ('0' <= c && c <= '9') { j += 1; c = at(j) }
+
+    if (c == '.') {
+      j += 1
+      c = at(j)
+      while ('0' <= c && c <= '9') { j += 1; c = at(j) }
+    }
+
+    if (c == 'e' || c == 'E') {
+      j += 1
+      c = at(j)
+      if (c == '+' || c == '-') {
         j += 1
         c = at(j)
       }
-      ctxt.add(DeferNum(at(i, j)))
-      j
-    } else if (j - i < 19) {
-      ctxt.add(DeferNum(at(i, j)))
-      j
-    } else {
-      ctxt.add(DeferNum(at(i, j)))
-      j
+      while ('0' <= c && c <= '9') { j += 1; c = at(j) }
     }
+
+    ctxt.add(JNum(at(i, j)))
+    j
+  }
+
+  /**
+   * This number parser is a bit slower because it has to be sure it doesn't
+   * run off the end of the input. Normally (when operating in rparse in the
+   * context of an outer array or objedct) we don't have to worry about this
+   * and can just grab characters, because if we run out of characters that
+   * would indicate bad input.
+   *
+   * This method has all the same caveats as the previous method.
+   */
+  protected[this] final def parseNumSlow(i: Int, ctxt: Context): Int = {
+    var j = i
+    var c = at(j)
+
+    if (c == '-') {
+      // any valid input will require at least one digit after -
+      j += 1
+      c = at(j)
+    }
+    while ('0' <= c && c <= '9') {
+      j += 1
+      if (atEof(j)) {
+        ctxt.add(JNum(at(i, j)))
+        return j
+      }
+      c = at(j)
+    }
+
+    if (c == '.') {
+      // any valid input will require at least one digit after .
+      j += 1
+      c = at(j)
+      while ('0' <= c && c <= '9') {
+        j += 1
+        if (atEof(j)) {
+          ctxt.add(JNum(at(i, j)))
+          return j
+        }
+        c = at(j)
+      }
+    }
+
+    if (c == 'e' || c == 'E') {
+      // any valid input will require at least one digit after e, e+, etc
+      j += 1
+      c = at(j)
+      if (c == '+' || c == '-') {
+        j += 1
+        c = at(j)
+      }
+      while ('0' <= c && c <= '9') {
+        j += 1
+        if (atEof(j)) {
+          ctxt.add(JNum(at(i, j)))
+          return j
+        }
+        c = at(j)
+      }
+    }
+    ctxt.add(JNum(at(i, j)))
+    j
   }
 
   /**
@@ -121,67 +202,71 @@ trait Parser {
    * NOTE: This is only capable of generating characters from the basic plane.
    * This is why it can only return Char instead of Int.
    */
-  final def descape(s: String) = parseInt(s, 16).toChar
+  protected[this] final def descape(s: String) = parseInt(s, 16).toChar
 
   /**
    * Parse the JSON string starting at 'i' and save it into 'ctxt'.
    */
-  def parseString(i: Int, ctxt: Context): Int
+  protected[this] def parseString(i: Int, ctxt: Context): Int
 
   /**
    * Parse the JSON constant "true".
    */
-  final def parseTrue(i: Int) =
-    if (is(i, i + 4, "true")) True else die(i, "expected true")
+  protected[this] final def parseTrue(i: Int) =
+    if (is(i, i + 4, "true")) JTrue else die(i, "expected true")
 
   /**
    * Parse the JSON constant "false".
    */
-  final def parseFalse(i: Int) =
-    if (is(i, i + 5, "false")) False else die(i, "expected false")
+  protected[this] final def parseFalse(i: Int) =
+    if (is(i, i + 5, "false")) JFalse else die(i, "expected false")
 
   /**
    * Parse the JSON constant "null".
    */
-  final def parseNull(i: Int) =
-    if (is(i, i + 4, "null")) Null else die(i, "expected null")
+  protected[this] final def parseNull(i: Int) =
+    if (is(i, i + 4, "null")) JNull else die(i, "expected null")
 
   /**
-   * Parse the JSON document into a single JSON value.
-   *
-   * The parser considers documents like '333', 'true', and '"foo"' to be
-   * valid, as well as more traditional documents like [1,2,3,4,5]. However,
-   * multiple top-level objects are not allowed.
+   * Parse and return the "next" JSON value as well as the position beyond it.
+   * This method is used by both parse() as well as parseMany().
    */
-  final def parse(i: Int): Value = (at(i): @switch) match {
-    // ignore whitespace
-    case ' ' => parse(i + 1)
-    case '\t' => parse(i + 1)
-    case '\n' => parse(i + 1)
-
-    // if we have a recursive top-level structure, we'll delegate the parsing
-    // duties to our good friend rparse().
-    case '[' => rparse(ARRBEG, i + 1, new ArrContext :: Nil)
-    case '{' => rparse(OBJBEG, i + 1, new ObjContext :: Nil)
-
-    // we have a single top-level number
-    case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
-      DeferNum(all(i))
-
-    // we have a single top-level string
-    case '"' =>
-      val ctxt = new ArrContext
-      val j = parseString(i, ctxt)
-      if (atEof(j)) ctxt.finish.vs(0) else die(j, "expected eof")
-
-    // we have a single top-level constant
-    case 't' => if (atEof(i + 4)) parseTrue(i) else die(i + 4, "expected eof")
-    case 'f' => if (atEof(i + 5)) parseFalse(i) else die(i + 5, "expected eof")
-    case 'n' => if (atEof(i + 4)) parseNull(i) else die(i + 4, "expected eof")
-
-    // invalid
-    case _ =>
-      die(i, "expected json value")
+  protected[this] final def parse(i: Int): (JValue, Int) = try {
+    (at(i): @switch) match {
+      // ignore whitespace
+      case ' ' => parse(i + 1)
+      case '\t' => parse(i + 1)
+      case '\r' => parse(i + 1)
+      case '\n' => newline(i); parse(i + 1)
+  
+      // if we have a recursive top-level structure, we'll delegate the parsing
+      // duties to our good friend rparse().
+      case '[' => rparse(ARRBEG, i + 1, new ArrContext :: Nil)
+      case '{' => rparse(OBJBEG, i + 1, new ObjContext :: Nil)
+  
+      // we have a single top-level number
+      case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
+        val ctxt = new SingleContext
+        val j = parseNumSlow(i, ctxt)
+        (ctxt.value, j)
+  
+      // we have a single top-level string
+      case '"' =>
+        val ctxt = new SingleContext
+        val j = parseString(i, ctxt)
+        (ctxt.value, j)
+  
+      // we have a single top-level constant
+      case 't' => (parseTrue(i), i + 4)
+      case 'f' => (parseFalse(i), i + 5)
+      case 'n' => (parseNull(i), i + 4)
+  
+      // invalid
+      case _ => die(i, "expected json value")
+    }
+  } catch {
+    case _: IndexOutOfBoundsException =>
+      throw IncompleteParseException("exhausted input")
   }
 
   /**
@@ -196,14 +281,16 @@ trait Parser {
    * constructed if/else statements or something else.
    */
   @tailrec
-  final def rparse(state: Int, j: Int, stack: List[Context]): Container = {
+  protected[this] final def rparse(state: Int, j: Int, stack: List[Context]): (JValue, Int) = {
     val i = reset(j)
+    checkpoint(state, i, stack)
     (state: @switch) match {
       // we are inside an object or array expecting to see data
       case DATA => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
+        case '\r' => rparse(state, i + 1, stack)
+        case '\n' => newline(i); rparse(state, i + 1, stack)
 
         case '[' => rparse(ARRBEG, i + 1, new ArrContext :: stack)
         case '{' => rparse(OBJBEG, i + 1, new ObjContext :: stack)
@@ -232,13 +319,17 @@ trait Parser {
           val ctxt = stack.head
           ctxt.add(parseNull(i))
           rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
+
+        case _ =>
+          die(i, "expected json value")
       }
 
       // we are in an object expecting to see a key
       case KEY => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
+        case '\r' => rparse(state, i + 1, stack)
+        case '\n' => newline(i); rparse(state, i + 1, stack)
 
         case '"' =>
           val j = parseString(i, stack.head)
@@ -251,16 +342,17 @@ trait Parser {
       case ARRBEG => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
+        case '\r' => rparse(state, i + 1, stack)
+        case '\n' => newline(i); rparse(state, i + 1, stack)
 
         case ']' => stack match {
           case ctxt1 :: Nil =>
-            ctxt1.finish
+            (ctxt1.finish, i + 1)
           case ctxt1 :: ctxt2 :: tail =>
             ctxt2.add(ctxt1.finish)
             rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
           case _ =>
-            sys.error("invalid stack")
+            error("invalid stack")
         }
 
         case _ => rparse(DATA, i, stack)
@@ -270,16 +362,17 @@ trait Parser {
       case OBJBEG => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
+        case '\r' => rparse(state, i + 1, stack)
+        case '\n' => newline(i); rparse(state, i + 1, stack)
 
         case '}' => stack match {
           case ctxt1 :: Nil =>
-            ctxt1.finish
+            (ctxt1.finish, i + 1)
           case ctxt1 :: ctxt2 :: tail =>
             ctxt2.add(ctxt1.finish)
             rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
           case _ =>
-            sys.error("invalid stack")
+            error("invalid stack")
         }
 
         case _ => rparse(KEY, i, stack)
@@ -289,7 +382,8 @@ trait Parser {
       case SEP => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
+        case '\r' => rparse(state, i + 1, stack)
+        case '\n' => newline(i); rparse(state, i + 1, stack)
 
         case ':' => rparse(DATA, i + 1, stack)
 
@@ -301,18 +395,19 @@ trait Parser {
       case ARREND => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
+        case '\r' => rparse(state, i + 1, stack)
+        case '\n' => newline(i); rparse(state, i + 1, stack)
 
         case ',' => rparse(DATA, i + 1, stack)
 
         case ']' => stack match {
           case ctxt1 :: Nil =>
-            ctxt1.finish
+            (ctxt1.finish, i + 1)
           case ctxt1 :: ctxt2 :: tail =>
             ctxt2.add(ctxt1.finish)
             rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
           case _ =>
-            sys.error("invalid stack")
+            error("invalid stack")
         }
 
         case _ => die(i, "expected ] or ,")
@@ -323,323 +418,23 @@ trait Parser {
       case OBJEND => (at(i): @switch) match {
         case ' ' => rparse(state, i + 1, stack)
         case '\t' => rparse(state, i + 1, stack)
-        case '\n' => rparse(state, i + 1, stack)
+        case '\r' => rparse(state, i + 1, stack)
+        case '\n' => newline(i); rparse(state, i + 1, stack)
 
         case ',' => rparse(KEY, i + 1, stack)
 
         case '}' => stack match {
           case ctxt1 :: Nil =>
-            ctxt1.finish
+            (ctxt1.finish, i + 1)
           case ctxt1 :: ctxt2 :: tail =>
             ctxt2.add(ctxt1.finish)
             rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
           case _ =>
-            sys.error("invalid stack")
+            error("invalid stack")
         }
         
         case _ => die(i, "expected } or ,")
       }
     }
-  }
-}
-
-/**
- * Parser companion, with convenience methods.
- */
-object Parser {
-  def parseString(s: String): Value = new StringParser(s).parse(0)
-  def parsePath(s: String): Value = new PathParser(s).parse(0)
-}
-
-/**
- * Basic in-memory string parsing.
- *
- * This parser is limited to the maximum string size (~2G). Obviously for large
- * JSON documents it's better to avoid using this parser and go straight from
- * disk, to avoid having to load the whole thing into memory at once.
- */
-final class StringParser(s: String) extends Parser {
-  final def reset(i: Int): Int = i
-  final def at(i: Int): Char = s.charAt(i)
-  final def at(i: Int, j: Int): String = s.substring(i, j)
-  final def atEof(i: Int) = i == s.length
-  final def all(i: Int) = s.substring(i)
-
-  /**
-   * See if the string has any escape sequences. If not, return the end of the
-   * string. If so, bail out and return -1.
-   *
-   * This method expects the data to be in UTF-16 and accesses it as chars.
-   * In a few cases we might bail out incorrectly (by reading the second-half
-   * of a surrogate pair as \\) but for now the belief is that checking every
-   * character would be more expensive. So... in those cases we'll fall back to
-   * the slower (correct) UTF-16 parsing.
-   */
-  final def parseStringSimple(i: Int, ctxt: Context): Int = {
-    var j = i
-    var c = at(j)
-    while (c != '"') {
-      if (c == '\\') return -1
-      j += 1
-      c = at(j)
-    }
-    j + 1
-  }
-
-  /**
-   * Parse the string according to JSON rules, and add to the given context.
-   *
-   * This method expects the data to be in UTF-16, and access it as Char. It
-   * performs the correct checks to make sure that we don't interpret a
-   * multi-char code point incorrectly.
-   */
-  final def parseString(i: Int, ctxt: Context): Int = {
-    if (at(i) != '"') sys.error("argh")
-    var j = i + 1
-
-    val k = parseStringSimple(j, ctxt)
-    if (k != -1) {
-      ctxt.add(at(i + 1, k - 1))
-      return k
-    }
-
-    val sb = new CharBuilder
-      
-    var c = at(j)
-    while (c != '"') {
-      if (c == '\\') {
-        (at(j + 1): @switch) match {
-          case 'b' => { sb.append('\b'); j += 2 }
-          case 'f' => { sb.append('\f'); j += 2 }
-          case 'n' => { sb.append('\n'); j += 2 }
-          case 'r' => { sb.append('\r'); j += 2 }
-          case 't' => { sb.append('\t'); j += 2 }
-
-          // if there's a problem then descape will explode
-          case 'u' => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
-
-          // permissive: let any escaped char through, not just ", / and \
-          case c2 => { sb.append(c2); j += 2 }
-        }
-      } else if (isHighSurrogate(c)) {
-        // this case dodges the situation where we might incorrectly parse the
-        // second Char of a unicode code point.
-        sb.append(c)
-        sb.append(at(j + 1))
-        j += 2
-      } else {
-        // this case is for "normal" code points that are just one Char.
-        sb.append(c)
-        j += 1
-      }
-      j = reset(j)
-      c = at(j)
-    }
-    ctxt.add(sb.makeString)
-    j + 1
-  }
-}
-
-/**
- * Basic file parser.
- *
- * Given a file name this parser opens it, chunks the data 1M at a time, and
- * parses it. 
- */
-final class PathParser(name: String) extends Parser {
-  val d = java.nio.charset.Charset.defaultCharset
-  if (d.displayName != "UTF-8")
-    sys.error("default encoding must be UTF-8, got %s." format d)
-
-  // TODO: figure out if we wouldn't just be better off decoding to UTF-16 on
-  // input, rather than doing the parsing as UTF-8. i'm not sure which works
-  // better since we'll save memory this way but add a bit of complexity. so
-  // far it's working but more resarch is needed.
-  //
-  // on the upside, we avoid a lot of annoying ceremony around Charset,
-  // CharBuffer, array-copying, and so on.
-  //
-  // on the downside, we don't support other encodings, and it's not clear how
-  // much time we actually spend doing any of this relative to the actual
-  // parsing.
-
-  // 256K buffers: arrived at via a bit of testing
-  @inline final def bufsize = 262144
-  @inline final def mask = bufsize - 1
-
-  // fis and channel are the data source
-  val f = new FileInputStream(name)
-  val ch = f.getChannel()
-
-  // these are the actual byte arrays we'll use
-  var curr = new Array[Byte](bufsize)
-  var next = new Array[Byte](bufsize)
-
-  // these are the bytebuffers used to load the data
-  var bcurr = ByteBuffer.wrap(curr)
-  var bnext = ByteBuffer.wrap(next)
-
-  // these are the bytecounts for each array
-  var ncurr = ch.read(bcurr)
-  var nnext = ch.read(bnext)
-
-  /**
-   * Swap the curr and next arrays/buffers/counts.
-   *
-   * We'll call this in response to certain reset() calls. Specifically, when
-   * the index provided to reset is no longer in the 'curr' buffer, we want to
-   * clear that data and swap the buffers.
-   */
-  final def swap() {
-    var tmp = curr; curr = next; next = tmp
-    var btmp = bcurr; bcurr = bnext; bnext = btmp
-    var ntmp = ncurr; ncurr = nnext; nnext = ntmp
-  }
-
-  /**
-   * If the cursor 'i' is past the 'curr' buffer, we want to clear the current
-   * byte buffer, do a swap, load some more data, and continue.
-   */
-  final def reset(i: Int): Int = {
-    if (i >= bufsize) {
-      bcurr.clear()
-      swap()
-      nnext = ch.read(bnext)
-      i - bufsize
-    } else {
-      i
-    }
-  }
-
-  /**
-   * This is a specialized accessor for the case where our underlying data are
-   * bytes not chars.
-   */
-  final def byte(i: Int): Byte = if (i < bufsize)
-    curr(i)
-  else
-    next(i & mask)
-
-  /**
-   * Rads
-   */
-  final def at(i: Int): Char = if (i < bufsize)
-    curr(i).toChar
-  else
-    next(i & mask).toChar
-
-  /**
-   * Access a byte range as a string.
-   *
-   * Since the underlying data are UTF-8 encoded, i and k must occur on unicode
-   * boundaries. Also, the resulting String is not guaranteed to have length
-   * (k - i).
-   */
-  final def at(i: Int, k: Int): String = {
-    val len = k - i
-
-    if (k <= bufsize) {
-      new String(curr, i, len)
-    } else {
-      val arr = new Array[Byte](len)
-      val mid = bufsize - i
-      System.arraycopy(curr, i, arr, 0, mid)
-      System.arraycopy(next, 0, arr, mid, k - bufsize)
-      new String(arr)
-    }
-  }
-
-  final def atEof(i: Int) = if (i < bufsize) i >= ncurr else i >= nnext
-
-  final def all(i: Int) = {
-    var j = i
-    val sb = new StringBuilder
-    while (!atEof(j)) {
-      if (ncurr == bufsize) {
-        sb.append(at(j, bufsize))
-        j = reset(bufsize)
-      } else {
-        sb.append(at(j, ncurr))
-        j = reset(ncurr)
-      }
-    }
-    sb.toString
-  }
-
-  /**
-   * See if the string has any escape sequences. If not, return the end of the
-   * string. If so, bail out and return -1.
-   *
-   * This method expects the data to be in UTF-8 and accesses it as bytes. Thus
-   * we can just ignore any bytes with the highest bit set.
-   */
-  final def parseStringSimple(i: Int, ctxt: Context): Int = {
-    var j = i
-    var c = byte(j)
-    while (c != 34) {
-      if (c == 92) return -1
-      j += 1
-      c = byte(j)
-    }
-    j + 1
-  }
-
-  /**
-   * Parse the string according to JSON rules, and add to the given context.
-   *
-   * This method expects the data to be in UTF-8 and accesses it as bytes.
-   */
-  final def parseString(i: Int, ctxt: Context): Int = {
-    if (at(i) != 34) sys.error("argh")
-    var j = i + 1
-
-    val k = parseStringSimple(j, ctxt)
-    if (k != -1) {
-      ctxt.add(at(i + 1, k - 1))
-      return k
-    }
-
-    val sb = new CharBuilder
-      
-    var c = byte(j)
-    while (c != 34) { // "
-      if (c == 92) { // \
-        (byte(j + 1): @switch) match {
-          case 98 => { sb.append('\b'); j += 2 }
-          case 102 => { sb.append('\f'); j += 2 }
-          case 110 => { sb.append('\n'); j += 2 }
-          case 114 => { sb.append('\r'); j += 2 }
-          case 116 => { sb.append('\t'); j += 2 }
-
-          // if there's a problem then descape will explode
-          case 117 => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
-
-          // permissive: let any escaped char through, not just ", / and \
-          case c2 => { sb.append(c2.toChar); j += 2 }
-        }
-      } else if (c < 128) {
-        // 1-byte UTF-8 sequence
-        sb.append(c.toChar)
-        j += 1
-      } else if ((c & 224) == 192) {
-        // 2-byte UTF-8 sequence
-        sb.extend(at(j, j + 2))
-        j += 2
-      } else if ((c & 240) == 224) {
-        // 3-byte UTF-8 sequence
-        sb.extend(at(j, j + 3))
-        j += 3
-      } else if ((c & 248) == 240) {
-        // 4-byte UTF-8 sequence
-        sb.extend(at(j, j + 4))
-        j += 4
-      } else {
-        sys.error("invalid UTF-8 encoding")
-      }
-      j = reset(j)
-      c = byte(j)
-    }
-    ctxt.add(sb.makeString)
-    j + 1
   }
 }

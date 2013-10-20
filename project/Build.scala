@@ -5,7 +5,7 @@ object MyBuild extends Build {
   override lazy val settings = super.settings ++ Seq(
     name := "jawn",
     version := "0.0.1",
-    scalaVersion := "2.10.0-M7",
+    scalaVersion := "2.10.2",
 
     scalacOptions ++= Seq(
       "-Yinline-warnings",
@@ -15,8 +15,8 @@ object MyBuild extends Build {
     ),
 
     libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-reflect" % "2.10.0-M7",
-      "org.scalatest" % "scalatest_2.10.0-M7" % "1.9-2.10.0-M7-B1" % "test",
+      "org.scala-lang" % "scala-reflect" % "2.10.2",
+      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
       "debox" % "debox" % "0.1.0" from "http://plastic-idolatry.com/jars/debox_2.10.0-M7-0.1.0.jar"
     )
   )
@@ -31,7 +31,15 @@ object MyBuild extends Build {
     // raise memory limits here if necessary
     javaOptions in run += "-Xmx6G",
 
+    resolvers ++= Seq(
+      "mth.io snapshots"  at "http://repo.mth.io/snapshots",
+      "mth.io releases"  at "http://repo.mth.io/releases",
+      "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
+      "releases"  at "http://oss.sonatype.org/content/repositories/releases"
+    ),
+
     libraryDependencies ++= Seq(
+      "io.argonaut" %% "argonaut" % "6.1-M2",
       "net.liftweb" % "lift-json_2.9.2" % "2.5-M1",
       "com.fasterxml.jackson.core" % "jackson-annotations" % "2.0.6",
       "com.fasterxml.jackson.core" % "jackson-core" % "2.0.6",
