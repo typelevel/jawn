@@ -22,7 +22,7 @@ private[jawn] final class ArrContext extends Context {
 
   def add(s: String): Unit = vs.append(JString(s))
   def add(v: JValue): Unit = vs.append(v)
-  def finish = new JArray(vs.toList)
+  def finish = new JArray(vs.toArray)
   def isObj = false
 }
 

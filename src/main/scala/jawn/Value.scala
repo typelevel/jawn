@@ -28,7 +28,7 @@ object JNum {
 
 sealed trait Container extends JValue
 
-case class JArray(vs: List[JValue]) extends Container {
+case class JArray(vs: Array[JValue]) extends Container {
   def j = if (vs.length == 0) {
     "[]"
   } else {
