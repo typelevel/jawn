@@ -13,7 +13,10 @@ object Run {
       println("jawn: parsing %s" format path)
       val f = new File(path)
       val t0 = System.currentTimeMillis()
-      val e = JParser.parseFromFile(f)
+      val j = JParser.parseFromFile(f) match {
+        case Right(j) => j
+        case Left(e) => throw e
+      }
       val t = System.currentTimeMillis - t0
       println("jawn: finished in %d ms" format t)
     }
