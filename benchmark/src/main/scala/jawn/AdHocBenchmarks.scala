@@ -4,6 +4,13 @@ object AdHocBenchmarks {
   @inline final def warmups = 2
   @inline final def runs = 5
 
+  def rojomaParse(path: String) = {
+    val file = new java.io.File(path)
+    val r = new java.io.FileReader(file)
+    val br = new java.io.BufferedReader(r)
+    com.rojoma.json.io.JsonReader(br).read()
+  }
+
   def argonautParse(path: String) = {
     val file = new java.io.File(path)
     val bytes = new Array[Byte](file.length.toInt)
@@ -85,6 +92,7 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
+      run("rojoma", path)(argonautParse)
       run("argonaut", path)(argonautParse)
       run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
