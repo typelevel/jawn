@@ -6,8 +6,8 @@ import java.nio.ByteBuffer
 /**
  * Basic ByteBuffer parser.
  */
-private[jawn] final class ByteBufferParser(src: ByteBuffer)
-extends SyncParser with ByteBasedParser {
+private[jawn] final class ByteBufferParser[J](src: ByteBuffer)
+extends SyncParser[J] with ByteBasedParser[J] {
   final val start = src.position
   final val limit = src.limit - start
 
@@ -17,7 +17,7 @@ extends SyncParser with ByteBasedParser {
 
   final def close() { src.position(src.limit) }
   final def reset(i: Int): Int = i
-  final def checkpoint(state: Int, i: Int, stack: List[Context]) {}
+  final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {}
   final def byte(i: Int): Byte = src.get(i + start)
   final def at(i: Int): Char = src.get(i + start).toChar
 

@@ -5,8 +5,8 @@ import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 
 object ChannelParser {
-  private[jawn] def fromFile(f: File) =
-    new ChannelParser(new FileInputStream(f).getChannel)
+  private[jawn] def fromFile[J](f: File): ChannelParser[J] =
+    new ChannelParser[J](new FileInputStream(f).getChannel)
 }
 
 /**
@@ -15,8 +15,8 @@ object ChannelParser {
  * Given a file name this parser opens it, chunks the data 1M at a time, and
  * parses it. 
  */
-private[jawn] final class ChannelParser(ch: ReadableByteChannel)
-extends SyncParser with ByteBasedParser {
+private[jawn] final class ChannelParser[J](ch: ReadableByteChannel)
+extends SyncParser[J] with ByteBasedParser[J] {
 
   // 256K buffers: arrived at via a bit of testing
   @inline final def bufsize = 262144
@@ -70,7 +70,7 @@ extends SyncParser with ByteBasedParser {
     }
   }
 
-  final def checkpoint(state: Int, i: Int, stack: List[Context]) {}
+  final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {}
 
   /**
    * This is a specialized accessor for the case where our underlying data are

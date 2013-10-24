@@ -6,7 +6,7 @@ import java.lang.Character.isHighSurrogate
 /**
  * Trait used when the data to be parsed is in UTF-16.
  */
-private[jawn] trait CharBasedParser extends Parser {
+private[jawn] trait CharBasedParser[J] extends Parser[J] {
 
   /**
    * See if the string has any escape sequences. If not, return the end of the
@@ -18,7 +18,7 @@ private[jawn] trait CharBasedParser extends Parser {
    * character would be more expensive. So... in those cases we'll fall back to
    * the slower (correct) UTF-16 parsing.
    */
-  protected[this] final def parseStringSimple(i: Int, ctxt: Context): Int = {
+  protected[this] final def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
     var j = i
     var c = at(j)
     while (c != '"') {
@@ -37,7 +37,7 @@ private[jawn] trait CharBasedParser extends Parser {
    * performs the correct checks to make sure that we don't interpret a
    * multi-char code point incorrectly.
    */
-  protected[this] final def parseString(i: Int, ctxt: Context): Int = {
+  protected[this] final def parseString(i: Int, ctxt: FContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)
     if (k != -1) {
       ctxt.add(at(i + 1, k - 1))

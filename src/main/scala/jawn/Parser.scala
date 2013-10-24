@@ -13,7 +13,7 @@ case class IncompleteParseException(msg: String) extends Exception(msg)
 /**
  * Parser contains the state machine that does all the work. The only 
  */
-private[jawn] trait Parser {
+private[jawn] trait Parser[J] {
 
   protected[this] final val utf8 = Charset.forName("UTF-8")
 
@@ -56,7 +56,7 @@ private[jawn] trait Parser {
    * The checkpoint() method is used to allow some parsers to store their
    * progress.
    */
-  protected[this] def checkpoint(state: Int, i: Int, stack: List[Context]): Unit
+  protected[this] def checkpoint(state: Int, i: Int, stack: List[FContext[J]]): Unit
 
   /**
    * Should be called when parsing is finished.
@@ -104,7 +104,7 @@ private[jawn] trait Parser {
    * It would probably be possible to keep track of the whether the number is
    * expected to be whole, decimal, etc. but we don't do that at the moment.
    */
-  protected[this] final def parseNum(i: Int, ctxt: Context): Int = {
+  protected[this] final def parseNum(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
     var c = at(j)
 
@@ -130,7 +130,7 @@ private[jawn] trait Parser {
       while ('0' <= c && c <= '9') { j += 1; c = at(j) }
     }
 
-    ctxt.add(JNum(at(i, j)))
+    ctxt.add(facade.jnum(at(i, j)))
     j
   }
 
@@ -143,7 +143,7 @@ private[jawn] trait Parser {
    *
    * This method has all the same caveats as the previous method.
    */
-  protected[this] final def parseNumSlow(i: Int, ctxt: Context): Int = {
+  protected[this] final def parseNumSlow(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
     var c = at(j)
 
@@ -155,7 +155,7 @@ private[jawn] trait Parser {
     while ('0' <= c && c <= '9') {
       j += 1
       if (atEof(j)) {
-        ctxt.add(JNum(at(i, j)))
+        ctxt.add(facade.jnum(at(i, j)))
         return j
       }
       c = at(j)
@@ -168,7 +168,7 @@ private[jawn] trait Parser {
       while ('0' <= c && c <= '9') {
         j += 1
         if (atEof(j)) {
-          ctxt.add(JNum(at(i, j)))
+          ctxt.add(facade.jnum(at(i, j)))
           return j
         }
         c = at(j)
@@ -186,13 +186,13 @@ private[jawn] trait Parser {
       while ('0' <= c && c <= '9') {
         j += 1
         if (atEof(j)) {
-          ctxt.add(JNum(at(i, j)))
+          ctxt.add(facade.jnum(at(i, j)))
           return j
         }
         c = at(j)
       }
     }
-    ctxt.add(JNum(at(i, j)))
+    ctxt.add(facade.jnum(at(i, j)))
     j
   }
 
@@ -207,31 +207,31 @@ private[jawn] trait Parser {
   /**
    * Parse the JSON string starting at 'i' and save it into 'ctxt'.
    */
-  protected[this] def parseString(i: Int, ctxt: Context): Int
+  protected[this] def parseString(i: Int, ctxt: FContext[J]): Int
 
   /**
    * Parse the JSON constant "true".
    */
-  protected[this] final def parseTrue(i: Int) =
-    if (is(i, i + 4, "true")) JTrue else die(i, "expected true")
+  protected[this] final def parseTrue(i: Int)(implicit facade: Facade[J]) =
+    if (is(i, i + 4, "true")) facade.jtrue else die(i, "expected true")
 
   /**
    * Parse the JSON constant "false".
    */
-  protected[this] final def parseFalse(i: Int) =
-    if (is(i, i + 5, "false")) JFalse else die(i, "expected false")
+  protected[this] final def parseFalse(i: Int)(implicit facade: Facade[J]) =
+    if (is(i, i + 5, "false")) facade.jfalse else die(i, "expected false")
 
   /**
    * Parse the JSON constant "null".
    */
-  protected[this] final def parseNull(i: Int) =
-    if (is(i, i + 4, "null")) JNull else die(i, "expected null")
+  protected[this] final def parseNull(i: Int)(implicit facade: Facade[J]) =
+    if (is(i, i + 4, "null")) facade.jnull else die(i, "expected null")
 
   /**
    * Parse and return the "next" JSON value as well as the position beyond it.
    * This method is used by both parse() as well as parseMany().
    */
-  protected[this] final def parse(i: Int): (JValue, Int) = try {
+  protected[this] final def parse(i: Int)(implicit facade: Facade[J]): (J, Int) = try {
     (at(i): @switch) match {
       // ignore whitespace
       case ' ' => parse(i + 1)
@@ -241,20 +241,20 @@ private[jawn] trait Parser {
   
       // if we have a recursive top-level structure, we'll delegate the parsing
       // duties to our good friend rparse().
-      case '[' => rparse(ARRBEG, i + 1, new ArrContext :: Nil)
-      case '{' => rparse(OBJBEG, i + 1, new ObjContext :: Nil)
+      case '[' => rparse(ARRBEG, i + 1, facade.arrayContext() :: Nil)
+      case '{' => rparse(OBJBEG, i + 1, facade.objectContext() :: Nil)
   
       // we have a single top-level number
       case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
-        val ctxt = new SingleContext
+        val ctxt = facade.singleContext()
         val j = parseNumSlow(i, ctxt)
-        (ctxt.value, j)
+        (ctxt.finish, j)
   
       // we have a single top-level string
       case '"' =>
-        val ctxt = new SingleContext
+        val ctxt = facade.singleContext()
         val j = parseString(i, ctxt)
-        (ctxt.value, j)
+        (ctxt.finish, j)
   
       // we have a single top-level constant
       case 't' => (parseTrue(i), i + 4)
@@ -281,7 +281,7 @@ private[jawn] trait Parser {
    * constructed if/else statements or something else.
    */
   @tailrec
-  protected[this] final def rparse(state: Int, j: Int, stack: List[Context]): (JValue, Int) = {
+  protected[this] final def rparse(state: Int, j: Int, stack: List[FContext[J]])(implicit facade: Facade[J]): (J, Int) = {
     val i = reset(j)
     checkpoint(state, i, stack)
     (state: @switch) match {
@@ -292,8 +292,8 @@ private[jawn] trait Parser {
         case '\r' => rparse(state, i + 1, stack)
         case '\n' => newline(i); rparse(state, i + 1, stack)
 
-        case '[' => rparse(ARRBEG, i + 1, new ArrContext :: stack)
-        case '{' => rparse(OBJBEG, i + 1, new ObjContext :: stack)
+        case '[' => rparse(ARRBEG, i + 1, facade.arrayContext() :: stack)
+        case '{' => rparse(OBJBEG, i + 1, facade.objectContext() :: stack)
 
         case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
           val ctxt = stack.head

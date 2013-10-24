@@ -5,42 +5,42 @@ import java.nio.ByteBuffer
 
 object JParser {
 
-  def parseUnsafe(s: String): JValue = new StringParser(s).parse()
+  def parseUnsafe[J](s: String)(implicit facade: Facade[J]): J = new StringParser(s).parse()
 
   type Result[A] = Either[Exception, A]
 
-  def parseFromString(s: String): Result[JValue] = try {
-    Right(new StringParser(s).parse())
+  def parseFromString[J](s: String)(implicit facade: Facade[J]): Result[J] = try {
+    Right(new StringParser[J](s).parse)
   } catch {
     case (e: Exception) => Left(e)
   }
 
-  def parseFromFile(file: File): Result[JValue] = try {
-    Right(ChannelParser.fromFile(file).parse())
+  def parseFromFile[J](file: File)(implicit facade: Facade[J]): Result[J] = try {
+    Right(ChannelParser.fromFile[J](file).parse)
   } catch {
     case (e: Exception) => Left(e)
   }
 
-  def parseFromByteBuffer(buf: ByteBuffer): Result[JValue] = try {
-    Right(new ByteBufferParser(buf).parse())
+  def parseFromByteBuffer[J](buf: ByteBuffer)(implicit facade: Facade[J]): Result[J] = try {
+    Right(new ByteBufferParser[J](buf).parse)
   } catch {
     case (e: Exception) => Left(e)
   }
 
-  def parseManyFromString(str: String): Result[Seq[JValue]] = try {
-    Right(new StringParser(str).parseMany())
+  def parseManyFromString[J](str: String)(implicit facade: Facade[J]): Result[Seq[J]] = try {
+    Right(new StringParser[J](str).parseMany)
   } catch {
     case (e: Exception) => Left(e)
   }
 
-  def parseManyFromFile(file: File): Result[Seq[JValue]] = try {
-    Right(ChannelParser.fromFile(file).parseMany())
+  def parseManyFromFile[J](file: File)(implicit facade: Facade[J]): Result[Seq[J]] = try {
+    Right(ChannelParser.fromFile[J](file).parseMany)
   } catch {
     case (e: Exception) => Left(e)
   }
 
-  def parseManyFromByteBuffer(buf: ByteBuffer): Result[Seq[JValue]] = try {
-    Right(new ByteBufferParser(buf).parseMany())
+  def parseManyFromByteBuffer[J](buf: ByteBuffer)(implicit facade: Facade[J]): Result[Seq[J]] = try {
+    Right(new ByteBufferParser[J](buf).parseMany)
   } catch {
     case (e: Exception) => Left(e)
   }
