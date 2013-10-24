@@ -45,6 +45,7 @@ object Xyz {
     def jtrue() = argonaut.Json.jTrue
     def jnum(s: String) = argonaut.Json.jNumberOrNull(java.lang.Double.parseDouble(s))
     def jint(s: String) = argonaut.Json.jNumberOrNull(java.lang.Integer.parseInt(s))
+    // use the following to simulate deferred parseInt/parseDouble
     // def jnum(s: String) = jstring(s)
     // def jint(s: String) = jstring(s)
     def jstring(s: String) = argonaut.Json.jString(s)
