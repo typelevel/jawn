@@ -15,6 +15,12 @@ object GenericParser {
     case (e: Exception) => Left(e)
   }
 
+  def parseFromPath[J](file: File)(implicit facade: Facade[J]): Result[J] = try {
+    Right(ChannelParser.fromFile[J](file).parse)
+  } catch {
+    case (e: Exception) => Left(e)
+  }
+
   def parseFromFile[J](file: File)(implicit facade: Facade[J]): Result[J] = try {
     Right(ChannelParser.fromFile[J](file).parse)
   } catch {
@@ -64,6 +70,9 @@ object JParser {
   } catch {
     case (e: Exception) => Left(e)
   }
+
+  def parseFromPath(path: String): Result[JValue] =
+    parseFromFile(new File(path))
 
   def parseFromByteBuffer(buf: ByteBuffer): Result[JValue] = try {
     Right(new ByteBufferParser[JValue](buf).parse)

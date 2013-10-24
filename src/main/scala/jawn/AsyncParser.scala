@@ -132,7 +132,7 @@ final class AsyncParser[J] protected[jawn] (
     len = need
   }
 
-  // Explanation of the new synthetic states .The parser machinery
+  // Explanation of the new synthetic states. The parser machinery
   // uses positive integers for states while parsing json values. We
   // use these negative states to keep track of the async parser's
   // status between json values.

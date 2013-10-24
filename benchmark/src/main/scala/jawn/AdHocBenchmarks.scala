@@ -24,17 +24,14 @@ object Xyz {
     def objectContext() = new FContext[argonaut.Json] {
       var key: String = null
       var vs = scalaz.InsertionMap.empty[String, argonaut.Json]
-      //val vs = mutable.Map.empty[String, argonaut.Json]
       def add(s: String): Unit = if (key == null) {
         key = s
       } else {
-        //vs(key) = jstring(s)
         vs = vs ^+^ (key, jstring(s))
         key = null
       }
 
       def add(v: argonaut.Json): Unit = {
-        //vs(key) = v
         vs = vs ^+^ (key, v)
         key = null
       }
