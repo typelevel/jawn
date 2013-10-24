@@ -4,7 +4,7 @@ import sbt.Keys._
 object MyBuild extends Build {
   override lazy val settings = super.settings ++ Seq(
     name := "jawn",
-    version := "0.0.1",
+    version := "0.1.0",
     scalaVersion := "2.10.2",
 
     scalacOptions ++= Seq(
@@ -16,8 +16,7 @@ object MyBuild extends Build {
 
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % "2.10.2",
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-      "debox" % "debox" % "0.1.0" from "http://plastic-idolatry.com/jars/debox_2.10.0-M7-0.1.0.jar"
+      "org.scalatest" %% "scalatest" % "1.9.1" % "test"
     )
   )
 
@@ -32,8 +31,8 @@ object MyBuild extends Build {
     javaOptions in run += "-Xmx6G",
 
     resolvers ++= Seq(
-      "mth.io snapshots"  at "http://repo.mth.io/snapshots",
-      "mth.io releases"  at "http://repo.mth.io/releases",
+      "mth.io snapshots" at "http://repo.mth.io/snapshots",
+      "mth.io releases" at "http://repo.mth.io/releases",
       "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
       "releases"  at "http://oss.sonatype.org/content/repositories/releases"
     ),
@@ -41,11 +40,11 @@ object MyBuild extends Build {
     libraryDependencies ++= Seq(
       "com.rojoma" %% "rojoma-json" % "2.4.0",
       "io.argonaut" %% "argonaut" % "6.1-M2",
-      "net.liftweb" % "lift-json_2.9.2" % "2.5-M1",
-      "com.fasterxml.jackson.core" % "jackson-annotations" % "2.0.6",
-      "com.fasterxml.jackson.core" % "jackson-core" % "2.0.6",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.0.6",
-      "net.minidev" % "json-smart" % "1.1.1",
+      "net.liftweb" %% "lift-json" % "2.5",
+      "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2",
+      "com.fasterxml.jackson.core" % "jackson-core" % "2.2.2",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2",
+      "net.minidev" % "json-smart" % "1.2",
       "com.google.guava" % "guava" % "r09",
       "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
       "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://n0d.es/jars/caliper-1.0-SNAPSHOT.jar",
