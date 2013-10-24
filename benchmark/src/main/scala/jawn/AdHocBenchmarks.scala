@@ -91,15 +91,14 @@ object AdHocBenchmarks {
   }
 
   def jawnParse(path: String) = {
-    implicit val facade = Facade.Jawn
     val file = new java.io.File(path)
-    jawn.JParser.parseFromFile[JValue](file).right.get
+    jawn.JParser.parseFromFile(file).right.get
   }
 
   def argojawnParse(path: String) = {
     implicit val facade = Xyz.Argonaut
     val file = new java.io.File(path)
-    jawn.JParser.parseFromFile[argonaut.Json](file).right.get
+    jawn.GenericParser.parseFromFile[argonaut.Json](file).right.get
   }
 
   def test[A](name: String, path:String)(f: String => A): Double = {

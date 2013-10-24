@@ -8,14 +8,12 @@ object Run {
   def usage() = println("usage: jawn | smart")
 
   def main(args: Array[String]) {
-    implicit val facade = Facade.Jawn
-
     args.foreach {
       path =>
       println("jawn: parsing %s" format path)
       val f = new File(path)
       val t0 = System.currentTimeMillis()
-      val j = JParser.parseFromFile[JValue](f) match {
+      val j = JParser.parseFromFile(f) match {
         case Right(j) => j
         case Left(e) => throw e
       }
