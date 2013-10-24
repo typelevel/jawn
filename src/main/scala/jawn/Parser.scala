@@ -107,6 +107,7 @@ private[jawn] trait Parser[J] {
   protected[this] final def parseNum(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
     var c = at(j)
+    var dec = false
 
     if (c == '-') {
       j += 1
@@ -115,12 +116,14 @@ private[jawn] trait Parser[J] {
     while ('0' <= c && c <= '9') { j += 1; c = at(j) }
 
     if (c == '.') {
+      dec = true
       j += 1
       c = at(j)
       while ('0' <= c && c <= '9') { j += 1; c = at(j) }
     }
 
     if (c == 'e' || c == 'E') {
+      dec = true
       j += 1
       c = at(j)
       if (c == '+' || c == '-') {
@@ -130,7 +133,10 @@ private[jawn] trait Parser[J] {
       while ('0' <= c && c <= '9') { j += 1; c = at(j) }
     }
 
-    ctxt.add(facade.jnum(at(i, j)))
+    if (dec)
+      ctxt.add(facade.jnum(at(i, j)))
+    else
+      ctxt.add(facade.jint(at(i, j)))
     j
   }
 
@@ -146,6 +152,7 @@ private[jawn] trait Parser[J] {
   protected[this] final def parseNumSlow(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
     var c = at(j)
+    var dec = false
 
     if (c == '-') {
       // any valid input will require at least one digit after -
@@ -163,6 +170,7 @@ private[jawn] trait Parser[J] {
 
     if (c == '.') {
       // any valid input will require at least one digit after .
+      dec = true
       j += 1
       c = at(j)
       while ('0' <= c && c <= '9') {
@@ -177,6 +185,7 @@ private[jawn] trait Parser[J] {
 
     if (c == 'e' || c == 'E') {
       // any valid input will require at least one digit after e, e+, etc
+      dec = true
       j += 1
       c = at(j)
       if (c == '+' || c == '-') {
@@ -192,7 +201,10 @@ private[jawn] trait Parser[J] {
         c = at(j)
       }
     }
-    ctxt.add(facade.jnum(at(i, j)))
+    if (dec)
+      ctxt.add(facade.jnum(at(i, j)))
+    else
+      ctxt.add(facade.jint(at(i, j)))
     j
   }
 

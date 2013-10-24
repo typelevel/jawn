@@ -14,7 +14,7 @@ object Xyz {
     }
 
     def arrayContext() = new FContext[argonaut.Json] {
-      val vs = mutable.ArrayBuffer.empty[argonaut.Json]
+      val vs = mutable.ListBuffer.empty[argonaut.Json]
       def add(s: String) { vs.append(jstring(s)) }
       def add(v: argonaut.Json) { vs.append(v) }
       def finish: argonaut.Json = argonaut.Json.jArray(vs.toList)
@@ -23,27 +23,30 @@ object Xyz {
 
     def objectContext() = new FContext[argonaut.Json] {
       var key: String = null
-      var vs = scalaz.InsertionMap.empty[String, argonaut.Json]
+      var vs = argonaut.JsonObject.empty
       def add(s: String): Unit = if (key == null) {
         key = s
       } else {
-        vs = vs ^+^ (key, jstring(s))
+        vs = vs + (key, jstring(s))
         key = null
       }
 
       def add(v: argonaut.Json): Unit = {
-        vs = vs ^+^ (key, v)
+        vs = vs + (key, v)
         key = null
       }
 
-      def finish = argonaut.Json.jObjectMap(vs)
+      def finish = argonaut.Json.jObject(vs)
       def isObj = true
     }
 
     def jnull() = argonaut.Json.jNull
     def jfalse() = argonaut.Json.jFalse
     def jtrue() = argonaut.Json.jTrue
-    def jnum(s: String) = argonaut.Json.jNumberOrNull(s.toDouble)
+    def jnum(s: String) = argonaut.Json.jNumberOrNull(java.lang.Double.parseDouble(s))
+    def jint(s: String) = argonaut.Json.jNumberOrNull(java.lang.Integer.parseInt(s))
+    // def jnum(s: String) = jstring(s)
+    // def jint(s: String) = jstring(s)
     def jstring(s: String) = argonaut.Json.jString(s)
   }
 }
@@ -152,14 +155,14 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
-      run("lift-json", path)(liftJsonParse)
-      run("rojoma", path)(argonautParse)
+      // run("lift-json", path)(liftJsonParse)
+      // run("rojoma", path)(argonautParse)
       run("argonaut", path)(argonautParse)
-      run("smart-json", path)(smartJsonParse)
-      run("jackson", path)(jacksonParse)
-      run("gson", path)(gsonParse)
+      // run("smart-json", path)(smartJsonParse)
+      // run("jackson", path)(jacksonParse)
+      // run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
-      run("argojawn", path)(jawnParse)
+      run("argojawn", path)(argojawnParse)
     }
   }
 }

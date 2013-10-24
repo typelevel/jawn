@@ -18,6 +18,7 @@ trait Facade[J] {
   def jfalse(): J
   def jtrue(): J
   def jnum(s: String): J
+  def jint(s: String): J
   def jstring(s: String): J
 }
 
@@ -60,6 +61,9 @@ object Facade {
     def jfalse() = JFalse
     def jtrue() = JTrue
     def jnum(s: String) = DeferNum(s)
+    def jint(s: String) = DeferNum(s)
+    // def jnum(s: String) = DoubleNum(java.lang.Double.parseDouble(s))
+    // def jint(s: String) = LongNum(java.lang.Integer.parseInt(s))
     def jstring(s: String) = JString(s)
   }
 }
