@@ -5,7 +5,7 @@ import scala.math.max
 import scala.collection.mutable
 import java.nio.ByteBuffer
 
-case class AsyncParse(errors: Seq[ParseException], values: Seq[JValue])
+case class AsyncParse[J](errors: Seq[ParseException], values: Seq[J])
 
 /**
  * This class is used internally by AsyncParser to signal that we've reached
@@ -21,12 +21,12 @@ object AsyncParser {
   case object Done extends Input
 
   @deprecated("Use AsyncParser.stream() to maintain the current behavior", "1.0")
-  def apply(): AsyncParser = stream()
+  def apply[J](): AsyncParser[J] = stream()
 
   /**
    * Asynchronous parser for a stream of (whitespace-delimited) JSON values.
    */
-  def stream(): AsyncParser = 
+  def stream[J](): AsyncParser[J] = 
     new AsyncParser(state = -1, curr = 0, stack = Nil,
       data = new Array[Byte](131072), len = 0, allocated = 131072,
       offset = 0, done = false, streamMode = 0)
@@ -34,7 +34,7 @@ object AsyncParser {
   /**
    * Asynchronous parser for a single JSON value.
    */
-  def json(): AsyncParser =
+  def json[J](): AsyncParser[J] =
     new AsyncParser(state = -1, curr = 0, stack = Nil,
       data = new Array[Byte](131072), len = 0, allocated = 131072,
       offset = 0, done = false, streamMode = -1)
@@ -43,7 +43,7 @@ object AsyncParser {
    * Asynchronous parser which can unwrap a single JSON array into a stream of
    * values (or return a single value otherwise).
    */
-  def unwrap(): AsyncParser =
+  def unwrap[J](): AsyncParser[J] =
     new AsyncParser(state = -5, curr = 0, stack = Nil,
       data = new Array[Byte](131072), len = 0, allocated = 131072,
       offset = 0, done = false, streamMode = 1)
@@ -86,17 +86,17 @@ object AsyncParser {
  *   -1: No streaming is occuring. Only a single JSON value is
  *       allowed.
  */
-final class AsyncParser protected[jawn] (
+final class AsyncParser[J] protected[jawn] (
   protected[jawn] var state: Int,
   protected[jawn] var curr: Int,
-  protected[jawn] var stack: List[Context],
+  protected[jawn] var stack: List[FContext[J]],
   protected[jawn] var data: Array[Byte],
   protected[jawn] var len: Int,
   protected[jawn] var allocated: Int,
   protected[jawn] var offset: Int,
   protected[jawn] var done: Boolean,
   protected[jawn] var streamMode: Int
-) extends ByteBasedParser {
+) extends ByteBasedParser[J] {
   import AsyncParser._
 
   protected[this] var line = 0
@@ -107,7 +107,8 @@ final class AsyncParser protected[jawn] (
   protected[this] final def copy() =
     new AsyncParser(state, curr, stack, data.clone, len, allocated, offset, done, streamMode)
 
-  final def apply(input: Input): (AsyncParse, AsyncParser) = copy.feed(input)
+  final def apply(input: Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) =
+    copy.feed(input)
 
   protected[this] final def absorb(buf: ByteBuffer): Unit = {
     done = false
@@ -131,7 +132,7 @@ final class AsyncParser protected[jawn] (
     len = need
   }
 
-  // Explanation of the new synthetic states .The parser machinery
+  // Explanation of the new synthetic states. The parser machinery
   // uses positive integers for states while parsing json values. We
   // use these negative states to keep track of the async parser's
   // status between json values.
@@ -157,7 +158,7 @@ final class AsyncParser protected[jawn] (
   @inline private[this] final def ASYNC_POSTVAL = -2
   @inline private[this] final def ASYNC_PREVAL = -1
 
-  protected[jawn] def feed(b: Input): (AsyncParse, AsyncParser) = {
+  protected[jawn] def feed(b: Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) = {
     b match {
       case Done => done = true
       case More(buf) => absorb(buf)
@@ -165,7 +166,7 @@ final class AsyncParser protected[jawn] (
 
     // accumulates errors and results
     val errors = mutable.ArrayBuffer.empty[ParseException]
-    val results = mutable.ArrayBuffer.empty[JValue]
+    val results = mutable.ArrayBuffer.empty[J]
 
     // we rely on exceptions to tell us when we run out of data
     try {
@@ -280,7 +281,7 @@ final class AsyncParser protected[jawn] (
    * arguments are the exact arguments we can pass to rparse to
    * continue where we left off.
    */
-  protected[this] final def checkpoint(state: Int, i: Int, stack: List[Context]) {
+  protected[this] final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {
     this.state = state
     this.curr = i
     this.stack = stack

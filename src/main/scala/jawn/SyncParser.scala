@@ -3,7 +3,7 @@ package jawn
 import scala.annotation.{switch, tailrec}
 import scala.collection.mutable
 
-private[jawn] trait SyncParser extends Parser {
+private[jawn] trait SyncParser[J] extends Parser[J] {
 
   /**
    * Parse the JSON document into a single JSON value.
@@ -12,7 +12,7 @@ private[jawn] trait SyncParser extends Parser {
    * valid, as well as more traditional documents like [1,2,3,4,5]. However,
    * multiple top-level objects are not allowed.
    */
-  final def parse(): JValue = {
+  final def parse()(implicit facade: Facade[J]): J = {
     val (value, i) = parse(0)
     var j = i
     while (!atEof(j)) {
@@ -35,8 +35,8 @@ private[jawn] trait SyncParser extends Parser {
    * JSON objects may only be separated by whitespace. Thus, "top-level" commas
    * and other characters will become parse errors.
    */
-  final def parseMany(): Seq[JValue] = {
-    val results = mutable.ArrayBuffer.empty[JValue]
+  final def parseMany()(implicit facade: Facade[J]): Seq[J] = {
+    val results = mutable.ArrayBuffer.empty[J]
     var i = 0
     while (!atEof(i)) {
       (at(i): @switch) match {

@@ -5,7 +5,7 @@ import scala.annotation.{switch, tailrec}
 /**
  * Trait used when the data to be parsed is in UTF-8.
  */
-private[jawn] trait ByteBasedParser extends Parser {
+private[jawn] trait ByteBasedParser[J] extends Parser[J] {
   protected[this] def byte(i: Int): Byte
 
   /**
@@ -15,7 +15,7 @@ private[jawn] trait ByteBasedParser extends Parser {
    * This method expects the data to be in UTF-8 and accesses it as bytes. Thus
    * we can just ignore any bytes with the highest bit set.
    */
-  protected[this] final def parseStringSimple(i: Int, ctxt: Context): Int = {
+  protected[this] final def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
     var j = i
     var c = byte(j)
     while (c != 34) {
@@ -31,7 +31,7 @@ private[jawn] trait ByteBasedParser extends Parser {
    *
    * This method expects the data to be in UTF-8 and accesses it as bytes.
    */
-  protected[this] final def parseString(i: Int, ctxt: Context): Int = {
+  protected[this] final def parseString(i: Int, ctxt: FContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)
     if (k != -1) {
       ctxt.add(at(i + 1, k - 1))

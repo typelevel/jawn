@@ -1,5 +1,53 @@
 package jawn
 
+import scala.collection.mutable
+
+object Xyz {
+  val Argonaut = new Facade[argonaut.Json] {
+
+    def singleContext() = new FContext[argonaut.Json] {
+      var value: argonaut.Json = null
+      def add(s: String) { value = jstring(s) }
+      def add(v: argonaut.Json) { value = v }
+      def finish: argonaut.Json = value
+      def isObj: Boolean = false
+    }
+
+    def arrayContext() = new FContext[argonaut.Json] {
+      val vs = mutable.ArrayBuffer.empty[argonaut.Json]
+      def add(s: String) { vs.append(jstring(s)) }
+      def add(v: argonaut.Json) { vs.append(v) }
+      def finish: argonaut.Json = argonaut.Json.jArray(vs.toList)
+      def isObj: Boolean = false
+    }
+
+    def objectContext() = new FContext[argonaut.Json] {
+      var key: String = null
+      var vs = scalaz.InsertionMap.empty[String, argonaut.Json]
+      def add(s: String): Unit = if (key == null) {
+        key = s
+      } else {
+        vs = vs ^+^ (key, jstring(s))
+        key = null
+      }
+
+      def add(v: argonaut.Json): Unit = {
+        vs = vs ^+^ (key, v)
+        key = null
+      }
+
+      def finish = argonaut.Json.jObjectMap(vs)
+      def isObj = true
+    }
+
+    def jnull() = argonaut.Json.jNull
+    def jfalse() = argonaut.Json.jFalse
+    def jtrue() = argonaut.Json.jTrue
+    def jnum(s: String) = argonaut.Json.jNumberOrNull(s.toDouble)
+    def jstring(s: String) = argonaut.Json.jString(s)
+  }
+}
+
 object AdHocBenchmarks {
   @inline final def warmups = 2
   @inline final def runs = 5
@@ -42,6 +90,12 @@ object AdHocBenchmarks {
   def jawnParse(path: String) = {
     val file = new java.io.File(path)
     jawn.JParser.parseFromFile(file).right.get
+  }
+
+  def argojawnParse(path: String) = {
+    implicit val facade = Xyz.Argonaut
+    val file = new java.io.File(path)
+    jawn.GenericParser.parseFromFile[argonaut.Json](file).right.get
   }
 
   def test[A](name: String, path:String)(f: String => A): Double = {
@@ -97,6 +151,7 @@ object AdHocBenchmarks {
       run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
       run("jawn", path)(jawnParse)
+      run("argojawn", path)(jawnParse)
     }
   }
 }
