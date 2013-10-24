@@ -17,12 +17,20 @@ any fancy operations to build your own objects for you [1]. It uses
 algebraic data types, following the "sealed-trait + case class"
 pattern of many other JSON libraries in Scala.
 
+([1] Although you can use the new `Facade[J]` type class to construct
+your own AST using Jawn's parser. The benchmark project contains an
+exmaple of this using Argonaut.)
+
 The big speed win has to due with using Scala's `@tailrec`
 optimization as heavily as possible, along with various other hacks,
 and some semblence of an attempt at good IO
 buffering/performance. There isn't really too much code, and profiling
 shows that I'm spending about 50% of my time running
 `java.lang.Double.parseDouble()` so that's something [2].
+
+([2] Actually, Jawn will defer parsing doubles once it has determined
+that they are valid JSON numbers. This comment applied back when Jawn
+was eagerly parsing numbers.)
 
 The `jawn.JValue` objects returned have very few capabilities: you
 must break them open to get at their delicious brains, preferably
@@ -106,10 +114,10 @@ quirky but does seem to work.
 (I also test with very large data sets (100-600M) but for obvious
 reasons I don't distribute this JSON in the project.)
 
-I have comparisons against rojoma, argonaut, smart-json, and jackson
-right now, and will probably add more. I'm happy to get pull requests
-which add new Java/Scala libraries to test against, or which improve
-the methods I'm using to build trees.
+I have comparisons against lift-json, rojoma, argonaut, smart-json,
+jackson, and gson right now. I'm happy to get pull requests which add
+new Java/Scala libraries to test against, or which improve the methods
+I'm using to build trees.
 
 ### Disclaimers
 

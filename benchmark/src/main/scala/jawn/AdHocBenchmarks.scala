@@ -98,6 +98,12 @@ object AdHocBenchmarks {
     jawn.GenericParser.parseFromFile[argonaut.Json](file).right.get
   }
 
+  def gsonParse(path: String) = {
+    val p = new com.google.gson.JsonParser()
+    val r = new java.io.BufferedReader(new java.io.FileReader(path))
+    p.parse(r)
+  }
+
   def test[A](name: String, path:String)(f: String => A): Double = {
     var h = 0
     (0 until warmups).foreach {
@@ -146,10 +152,12 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
+      run("lift-json", path)(liftJsonParse)
       run("rojoma", path)(argonautParse)
       run("argonaut", path)(argonautParse)
       run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
+      run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
       run("argojawn", path)(jawnParse)
     }
