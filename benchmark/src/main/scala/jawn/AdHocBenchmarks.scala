@@ -148,7 +148,7 @@ object AdHocBenchmarks {
     p.parse(r)
   }
 
-  def test[A](name: String, path:String)(f: String => A): Double = {
+  def test[A](name: String, path: String)(f: String => A): Double = {
     var h = 0
     (0 until warmups).foreach { _ =>
       val result = f(path)
@@ -195,18 +195,18 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
-      run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
-      run("json4sNative", path)(json4sNativeParse)
-      run("json4sJackson", path)(json4sJacksonParse)
+      run("json4s-native", path)(json4sNativeParse)
+      run("json4s-jackson", path)(json4sJacksonParse)
       run("play", path)(playParse)
       run("spray", path)(sprayParse)
-      run("rojoma", path)(argonautParse)
+      run("rojoma", path)(rojomaParse)
       run("argonaut", path)(argonautParse)
       run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
       run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
       run("argonaut-jawn", path)(argojawnParse)
+      // run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
     }
   }
 }

@@ -4,10 +4,11 @@
 
 ### Origin
 
-The term "jawn" comes from the Philadelphia area. It conveys about as much
-information as "thing" does. I chose the name because I moved to Montreal so I
-am remembering Philly fondly. Also, there isn't a better way to describe
-objects encoded in JSON than "things". Finally, we get a catchy slogan.
+The term "jawn" comes from the Philadelphia area. It conveys about as
+much information as "thing" does. I chose the name because I moved to
+Montreal so I am remembering Philly fondly. Also, there isn't a better
+way to describe objects encoded in JSON than "things". Finally, we get
+a catchy slogan.
 
 ### Overview
 
@@ -102,8 +103,7 @@ There are some micro-benchmarks using Caliper, as well as some ad-hoc
 benchmarks. From SBT you can run the benchmarks like so:
 
 ```
-> project benchmark
-> run
+> benchmark/run
 ```
 
 Any JSON files you put in `benchmark/src/main/resources` will be
@@ -114,21 +114,44 @@ quirky but does seem to work.
 (I also test with very large data sets (100-600M) but for obvious
 reasons I don't distribute this JSON in the project.)
 
-I have comparisons against lift-json, rojoma, argonaut, smart-json,
-jackson, and gson right now. I'm happy to get pull requests which add
-new Java/Scala libraries to test against, or which improve the methods
-I'm using to build trees.
+Libraries currently being tested in order of average speed on tests
+I've seen:
+
+ * jawn
+ * gson
+ * play
+ * jackson
+ * json4s-jackson
+ * rojoma
+ * argonaut
+ * smart-json
+ * json4s-native
+ * spray
+ * lift-json (broken)
+
+Of course, your mileage may vary, and these results do vary somewhat
+based on file size, file structure, etc. Also note that Jackson
+actually powers many of these libraries (including play, which
+sometimes comes out faster than the explicit jackson test for reasons
+I don't understand.)
+
+I have tried to understand the libraries well enough to write the most
+optimal code for loading a file (given a path) and parsing it to a
+simple JSON AST.  Pull requests to update versions and improve usage
+are welcome.
 
 ### Disclaimers
 
-Jawn only supports UTF-8. This might change in the future, but for now that's
-the target case. If you need full-featured support for character encodings I
-imagine something like Jackson will work better.
+Jawn only supports UTF-8. This might change in the future, but for now
+that's the target case. If you need full-featured support for
+character encodings I imagine something like Jackson or Gson will work
+better.
 
-The library is still very immature so I'm sure there are some bugs. There
-aren't even any formal tests yet! (Test-driven development? What?) No
-liability or warranty is implied or granted. This project was initially
-intended as a proof-of-concept for the underlying design.
+The library is still very immature so I'm sure there are some
+bugs. There aren't even any formal tests yet! (Test-driven
+development? What?) No liability or warranty is implied or
+granted. This project was initially intended as a proof-of-concept for
+the underlying design.
 
 ### Copyright and License
 
