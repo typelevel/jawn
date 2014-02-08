@@ -1,0 +1,100 @@
+{
+  "webapp": {
+    "servlet": [   
+      {
+        "servletname": "cofaxCDS",
+        "servletclass": "org.cofax.cds.CDSServlet",
+        "initparam": {
+          "configGlossaryinstallationAt": "Philadelphia, PA",
+          "configGlossaryadminEmail": "ksm@pobox.com",
+          "configGlossarypoweredBy": "Cofax",
+          "configGlossarypoweredByIcon": "/images/cofax.gif",
+          "configGlossarystaticPath": "/content/static",
+          "templateProcessorClass": "org.cofax.WysiwygTemplate",
+          "templateLoaderClass": "org.cofax.FilesTemplateLoader",
+          "templatePath": "templates",
+          "templateOverridePath": "",
+          "defaultListTemplate": "listTemplate.htm",
+          "defaultFileTemplate": "articleTemplate.htm",
+          "useJSP": false,
+          "jspListTemplate": "listTemplate.jsp",
+          "jspFileTemplate": "articleTemplate.jsp",
+          "cachePackageTagsTrack": 200,
+          "cachePackageTagsStore": 200,
+          "cachePackageTagsRefresh": 60,
+          "cacheTemplatesTrack": 100,
+          "cacheTemplatesStore": 50,
+          "cacheTemplatesRefresh": 15,
+          "cachePagesTrack": 200,
+          "cachePagesStore": 100,
+          "cachePagesRefresh": 10,
+          "cachePagesDirtyRead": 10,
+          "searchEngineListTemplate": "forSearchEnginesList.htm",
+          "searchEngineFileTemplate": "forSearchEngines.htm",
+          "searchEngineRobotsDb": "WEB-INF/robots.db",
+          "useDataStore": true,
+          "dataStoreClass": "org.cofax.SqlDataStore",
+          "redirectionClass": "org.cofax.SqlRedirection",
+          "dataStoreName": "cofax",
+          "dataStoreDriver": "com.microsoft.jdbc.sqlserver.SQLServerDriver",
+          "dataStoreUrl": "jdbc:microsoft:sqlserver://LOCALHOST:1433;DatabaseName=goon",
+          "dataStoreUser": "sa",
+          "dataStorePassword": "dataStoreTestQuery",
+          "dataStoreTestQuery": "SET NOCOUNT ON;select test='test';",
+          "dataStoreLogFile": "/usr/local/tomcat/logs/datastore.log",
+          "dataStoreInitConns": 10,
+          "dataStoreMaxConns": 100,
+          "dataStoreConnUsageLimit": 100,
+          "dataStoreLogLevel": "debug",
+          "maxUrlLength": 500
+        }
+      },
+      {
+        "servletname": "cofaxEmail",
+        "servletclass": "org.cofax.cds.EmailServlet",
+        "initparam": {
+          "mailHost": "mail1",
+          "mailHostOverride": "mail2"
+        }
+      },
+      {
+        "servletname": "cofaxAdmin",
+        "servletclass": "org.cofax.cds.AdminServlet"
+      },
+      {
+        "servletname": "fileServlet",
+        "servletclass": "org.cofax.cds.FileServlet"
+      },
+      {
+        "servletname": "cofaxTools",
+        "servletclass": "org.cofax.cms.CofaxToolsServlet",
+        "initparam": {
+          "templatePath": "toolstemplates/",
+          "log": 1,
+          "logLocation": "/usr/local/tomcat/logs/CofaxTools.log",
+          "logMaxSize": "",
+          "dataLog": 1,
+          "dataLogLocation": "/usr/local/tomcat/logs/dataLog.log",
+          "dataLogMaxSize": "",
+          "removePageCache": "/content/admin/remove?cache=pages&id=",
+          "removeTemplateCache": "/content/admin/remove?cache=templates&id=",
+          "fileTransferFolder": "/usr/local/tomcat/webapps/content/fileTransferFolder",
+          "lookInContext": 1,
+          "adminGroupID": 4,
+          "betaServer": true
+        }
+      }
+    ],
+    "servletmapping": {
+      "cofaxCDS": "/",
+      "cofaxEmail": "/cofaxutil/aemail/*",
+      "cofaxAdmin": "/admin/*",
+      "fileServlet": "/static/*",
+      "cofaxTools": "/tools/*"
+    },
+    "taglib": {
+      "tagliburi": "cofax.tld",
+      "tagliblocation": "/WEB-INF/tlds/cofax.tld"
+    }
+  }
+}
