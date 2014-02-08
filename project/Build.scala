@@ -5,7 +5,8 @@ object MyBuild extends Build {
   override lazy val settings = super.settings ++ Seq(
     name := "jawn",
     version := "0.1.0",
-    scalaVersion := "2.10.2",
+    //scalaVersion := "2.10.2",
+    scalaVersion := "2.10.3",
 
     scalacOptions ++= Seq(
       "-Yinline-warnings",
