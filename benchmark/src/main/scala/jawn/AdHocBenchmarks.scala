@@ -53,8 +53,8 @@ object Xyz {
 }
 
 object AdHocBenchmarks {
-  @inline final def warmups = 5
-  @inline final def runs = 100
+  @inline final def warmups = 2
+  @inline final def runs = 5
 
   def json4sNativeParse(path: String) = {
     import org.json4s._
@@ -150,23 +150,21 @@ object AdHocBenchmarks {
 
   def test[A](name: String, path:String)(f: String => A): Double = {
     var h = 0
-    (0 until warmups).foreach {
-      _ =>
+    (0 until warmups).foreach { _ =>
       val result = f(path)
       h = h ^ result.##
       System.gc()
     }
 
-    var t = 0L
-    (0 until runs).foreach {
-      _ =>
-      val t0 = System.currentTimeMillis()
+    var t = 0.0
+    (0 until runs).foreach { _ =>
+      val t0 = System.nanoTime()
       val result = f(path)
-      t += System.currentTimeMillis - t0
+      t += (System.nanoTime() - t0).toDouble / 1000000
       h = h ^ result.##
       System.gc()
     }
-    t.toDouble / runs
+    t / runs
   }
 
   def run[A](name: String, path: String)(f: String => A) {
@@ -197,7 +195,7 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
-      run("lift-json", path)(liftJsonParse)
+      run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
       run("json4sNative", path)(json4sNativeParse)
       run("json4sJackson", path)(json4sJacksonParse)
       run("play", path)(playParse)
@@ -208,7 +206,7 @@ object AdHocBenchmarks {
       run("jackson", path)(jacksonParse)
       run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
-      run("argojawn", path)(argojawnParse)
+      run("argonaut-jawn", path)(argojawnParse)
     }
   }
 }
