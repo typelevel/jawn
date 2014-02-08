@@ -53,8 +53,48 @@ object Xyz {
 }
 
 object AdHocBenchmarks {
-  @inline final def warmups = 2
-  @inline final def runs = 5
+  @inline final def warmups = 5
+  @inline final def runs = 100
+
+  def json4sNativeParse(path: String) = {
+    import org.json4s._
+    import org.json4s.native.JsonMethods._
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    parse(s)
+  }
+
+  def json4sJacksonParse(path: String) = {
+    import org.json4s._
+    import org.json4s.jackson.JsonMethods._
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    parse(s)
+  }
+
+  def playParse(path: String) = {
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    play.api.libs.json.Json.parse(s)
+  }
+
+  def sprayParse(path: String) = {
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    spray.json.JsonParser(s)
+  }
 
   def rojomaParse(path: String) = {
     val file = new java.io.File(path)
@@ -132,7 +172,7 @@ object AdHocBenchmarks {
   def run[A](name: String, path: String)(f: String => A) {
     try {
       val t = test(name, path)(f)
-      println("  %-18s  %10.1f ms" format (name, t))
+      println("  %-18s  %10.2f ms" format (name, t))
     } catch {
       case e: Exception =>
       println("  %-18s  %10s" format (name, "FAIL"))
@@ -141,7 +181,8 @@ object AdHocBenchmarks {
 
   def main(args: Array[String]) {
     val d = new java.io.File("src/main/resources")
-    val fs = d.listFiles.filter(_.getName.endsWith(".json")).sorted
+    val xs = d.listFiles.filter(_.getName.endsWith(".json")).sorted
+    val fs = if (args.isEmpty) xs else xs.filter(f => args.contains(f.getName))
     
     fs.foreach {
       f =>
@@ -156,12 +197,16 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
-      // run("lift-json", path)(liftJsonParse)
-      // run("rojoma", path)(argonautParse)
+      run("lift-json", path)(liftJsonParse)
+      run("json4sNative", path)(json4sNativeParse)
+      run("json4sJackson", path)(json4sJacksonParse)
+      run("play", path)(playParse)
+      run("spray", path)(sprayParse)
+      run("rojoma", path)(argonautParse)
       run("argonaut", path)(argonautParse)
-      // run("smart-json", path)(smartJsonParse)
-      // run("jackson", path)(jacksonParse)
-      // run("gson", path)(gsonParse)
+      run("smart-json", path)(smartJsonParse)
+      run("jackson", path)(jacksonParse)
+      run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
       run("argojawn", path)(argojawnParse)
     }
