@@ -53,8 +53,8 @@ object Xyz {
 }
 
 object AdHocBenchmarks {
-  @inline final def warmups = 2
-  @inline final def runs = 5
+  def warmups = 2
+  def runs = 5
 
   def json4sNativeParse(path: String) = {
     import org.json4s._
@@ -136,6 +136,15 @@ object AdHocBenchmarks {
     jawn.JParser.parseFromFile(file).right.get
   }
 
+  def jawnStringParse(path: String) = {
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    jawn.JParser.parseFromString(s).right.get
+  }
+
   def argojawnParse(path: String) = {
     implicit val facade = Xyz.Argonaut
     val file = new java.io.File(path)
@@ -182,8 +191,7 @@ object AdHocBenchmarks {
     val xs = d.listFiles.filter(_.getName.endsWith(".json")).sorted
     val fs = if (args.isEmpty) xs else xs.filter(f => args.contains(f.getName))
     
-    fs.foreach {
-      f =>
+    fs.foreach { f =>
       val path = f.getPath
       val bytes = f.length
 
@@ -201,12 +209,14 @@ object AdHocBenchmarks {
       run("spray", path)(sprayParse)
       run("rojoma", path)(rojomaParse)
       run("argonaut", path)(argonautParse)
+      run("argonaut-jawn", path)(argojawnParse)
       run("smart-json", path)(smartJsonParse)
       run("jackson", path)(jacksonParse)
       run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
-      run("argonaut-jawn", path)(argojawnParse)
-      // run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
+      run("jawn-string", path)(jawnStringParse)
+
+      //run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
     }
   }
 }
