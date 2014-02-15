@@ -3,6 +3,7 @@ package jawn
 import scala.annotation.{switch, tailrec}
 import scala.math.max
 import scala.collection.mutable
+import scala.util.control
 import java.nio.ByteBuffer
 
 case class AsyncParse[J](errors: Seq[ParseException], values: Seq[J])
@@ -11,7 +12,7 @@ case class AsyncParse[J](errors: Seq[ParseException], values: Seq[J])
  * This class is used internally by AsyncParser to signal that we've reached
  * the end of the particular input we were given.
  */
-private[jawn] class AsyncException extends Exception
+private[jawn] class AsyncException extends Exception with control.NoStackTrace
 
 private[jawn] class FailureException extends Exception
 

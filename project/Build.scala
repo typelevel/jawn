@@ -5,7 +5,6 @@ object MyBuild extends Build {
   override lazy val settings = super.settings ++ Seq(
     name := "jawn",
     version := "0.1.0",
-    //scalaVersion := "2.10.2",
     scalaVersion := "2.10.3",
 
     scalacOptions ++= Seq(
@@ -16,8 +15,9 @@ object MyBuild extends Build {
     ),
 
     libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-reflect" % "2.10.2",
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test"
+      "org.scala-lang" % "scala-reflect" % "2.10.3" % "provided",
+      "org.scalatest" %% "scalatest" % "2.0" % "test",
+      "org.scalacheck" %% "scalacheck" % "1.10.1" % "test"
     )
   )
 
@@ -58,7 +58,7 @@ object MyBuild extends Build {
 
       "com.google.guava" % "guava" % "r09",
       "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "2.0",
-      "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://n0d.es/jars/caliper-1.0-SNAPSHOT.jar",
+      "com.google.code.caliper" % "caliper" % "1.0-SNAPSHOT" from "http://plastic-idolatry.com/jars/caliper-1.0-SNAPSHOT.jar",
       //"com.google.code.gson" % "gson" % "1.7.1"
       "com.google.code.gson" % "gson" % "2.2.4"
     ),
