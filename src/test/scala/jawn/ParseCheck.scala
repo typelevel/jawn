@@ -60,7 +60,7 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
   implicit lazy val arbJValue: Arbitrary[JValue] =
     Arbitrary(jvalue(0))
 
-  // so its only one property, but it exercises:
+  // so it's only one property, but it exercises:
   //
   // * parsing from strings
   // * rendering jvalues to string
