@@ -1,9 +1,23 @@
 import sbt._
 import sbt.Keys._
 
-object MyBuild extends Build {
-  lazy val root = Project("jawn", file("."))
-  lazy val parser: Project = Project("parser", file("parser")).dependsOn(root)
-  lazy val ast: Project = Project("ast", file("ast")).dependsOn(parser)
-  lazy val benchmark: Project = Project("benchmark", file("benchmark")).dependsOn(ast)
+object JawnBuild extends Build {
+
+  lazy val noPublish = Seq(
+    publish := (),
+    publishLocal := (),
+    publishArtifact := false)
+
+  lazy val parser = Project("parser", file("parser"))
+
+  lazy val ast = Project("ast", file("ast")).
+    dependsOn(parser)
+
+  lazy val benchmark = Project("benchmark", file("benchmark")).
+    dependsOn(ast).
+    settings(noPublish: _*)
+
+  lazy val root = Project("jawn", file(".")).
+    aggregate(parser, ast).
+    settings(noPublish: _*)
 }
