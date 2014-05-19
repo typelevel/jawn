@@ -4,23 +4,39 @@ import scala.annotation.{switch, tailrec}
 import java.lang.Integer.parseInt
 import java.nio.charset.Charset
 
-// underlying parser code adapted from jawn under MIT license.
-// (https://github.com/non/jawn)
-
 case class ParseException(msg: String, index: Int, line: Int, col: Int) extends Exception(msg)
+
 case class IncompleteParseException(msg: String) extends Exception(msg)
 
 /**
- * Parser contains the state machine that does all the work. The only 
+ * Parser implements a state machine for correctly parsing JSON data.
+ * 
+ * The trait relies on a small number of methods which are left
+ * abstract, and which generalize parsing based on whether the input
+ * is in Bytes or Chars, coming from Strings, files, or other input.
+ * All methods provided here are protected, so different parsers can
+ * choose which functionality to expose.
+ * 
+ * Parser is parameterized on J, which is the type of the JSON AST it
+ * will return. Jawn can produce any AST for which a Facade[J] is
+ * available.
+ * 
+ * The parser trait does not hold any state itself, but particular
+ * implementations will usually hold state. Parser instances should
+ * not be reused between parsing runs.
+ * 
+ * For now the parser requires input to be in UTF-8. This requirement
+ * may eventually be relaxed.
  */
-private[jawn] trait Parser[J] {
+trait Parser[J] {
 
   protected[this] final val utf8 = Charset.forName("UTF-8")
 
   /**
    * Read the byte/char at 'i' as a Char.
    *
-   * Note that this should not be used on potential multi-byte sequences.
+   * Note that this should not be used on potential multi-byte
+   * sequences.
    */
   protected[this] def at(i: Int): Char
 
@@ -45,16 +61,17 @@ private[jawn] trait Parser[J] {
   protected[this] final def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
 
   /**
-   * The reset() method is used to signal that we're working from the given
-   * position, and any previous data can be released. Some parsers (e.g.
-   * StringParser) will ignore release, while others (e.g. PathParser) will
-   * need to use this information to release and allocate different areas.
+   * The reset() method is used to signal that we're working from the
+   * given position, and any previous data can be released. Some
+   * parsers (e.g.  StringParser) will ignore release, while others
+   * (e.g. PathParser) will need to use this information to release
+   * and allocate different areas.
    */
   protected[this] def reset(i: Int): Int
 
   /**
-   * The checkpoint() method is used to allow some parsers to store their
-   * progress.
+   * The checkpoint() method is used to allow some parsers to store
+   * their progress.
    */
   protected[this] def checkpoint(state: Int, i: Int, stack: List[FContext[J]]): Unit
 
@@ -79,7 +96,7 @@ private[jawn] trait Parser[J] {
   protected[this] def column(i: Int): Int
 
   /**
-   * Used to generate error messages with character info and byte addresses.
+   * Used to generate error messages with character info and offsets.
    */
   protected[this] def die(i: Int, msg: String) = {
     val y = line() + 1
@@ -90,6 +107,10 @@ private[jawn] trait Parser[J] {
 
   /**
    * Used to generate messages for internal errors.
+   * 
+   * This should only be used in situations where a possible bug in
+   * the parser was detected. For errors in user-provided JSON, use
+   * die().
    */
   protected[this] def error(msg: String) =
     sys.error(msg)
@@ -97,12 +118,11 @@ private[jawn] trait Parser[J] {
   /**
    * Parse the given number, and add it to the given context.
    *
-   * We don't actually instantiate a number here, but rather save the string
-   * for future use. This ends up being way faster and has the nice side-effect
-   * that we know exactly how the user represented the number.
-   *
-   * It would probably be possible to keep track of the whether the number is
-   * expected to be whole, decimal, etc. but we don't do that at the moment.
+   * We don't actually instantiate a number here, but rather pass the
+   * string of for future use. Facades can choose to be lazy and just
+   * store the string. This ends up being way faster and has the nice
+   * side-effect that we know exactly how the user represented the
+   * number.
    */
   protected[this] final def parseNum(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
@@ -141,11 +161,16 @@ private[jawn] trait Parser[J] {
   }
 
   /**
-   * This number parser is a bit slower because it has to be sure it doesn't
-   * run off the end of the input. Normally (when operating in rparse in the
-   * context of an outer array or objedct) we don't have to worry about this
-   * and can just grab characters, because if we run out of characters that
-   * would indicate bad input.
+   * Parse the given number, and add it to the given context.
+   * 
+   * This method is a bit slower than parseNum() because it has to be
+   * sure it doesn't run off the end of the input.
+   * 
+   * Normally (when operating in rparse in the context of an outer
+   * array or object) we don't need to worry about this and can just
+   * grab characters, because if we run out of characters that would
+   * indicate bad input. This is for cases where the number could
+   * possibly be followed by a valid EOF.
    *
    * This method has all the same caveats as the previous method.
    */
@@ -240,8 +265,9 @@ private[jawn] trait Parser[J] {
     if (is(i, i + 4, "null")) facade.jnull else die(i, "expected null")
 
   /**
-   * Parse and return the "next" JSON value as well as the position beyond it.
-   * This method is used by both parse() as well as parseMany().
+   * Parse and return the next JSON value and the position beyond it.
+   * 
+   * This method is used by parse() as well as parseMany().
    */
   protected[this] final def parse(i: Int)(implicit facade: Facade[J]): (J, Int) = try {
     (at(i): @switch) match {
@@ -284,13 +310,16 @@ private[jawn] trait Parser[J] {
   /**
    * Tail-recursive parsing method to do the bulk of JSON parsing.
    *
-   * This single method manages parser states, data, etc. Except for parsing
-   * non-recursive values (like strings, numbers, and constants) all important
-   * work happens in this loop (or in methods it calls, like reset()).
+   * This single method manages parser states, data, etc. Except for
+   * parsing non-recursive values (like strings, numbers, and
+   * constants) all important work happens in this loop (or in methods
+   * it calls, like reset()).
    *
-   * Currently the code is optimized to make use of switch statements. Future
-   * work should consider whether this is better or worse than manually
-   * constructed if/else statements or something else.
+   * Currently the code is optimized to make use of switch
+   * statements. Future work should consider whether this is better or
+   * worse than manually constructed if/else statements or something
+   * else. Also, it may be possible to reorder some cases for speed
+   * improvements.
    */
   @tailrec
   protected[this] final def rparse(state: Int, j: Int, stack: List[FContext[J]])(implicit facade: Facade[J]): (J, Int) = {

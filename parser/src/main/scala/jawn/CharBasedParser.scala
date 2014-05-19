@@ -5,18 +5,26 @@ import java.lang.Character.isHighSurrogate
 
 /**
  * Trait used when the data to be parsed is in UTF-16.
+ * 
+ * This parser provides parseString(). Like ByteBasedParser it has
+ * fast/slow paths for string parsing depending on whether any escapes
+ * are present.
+ * 
+ * It is simpler than ByteBasedParser, although it still has to go to
+ * some trouble to avoid breaking UTF-16's surrogate pairs.
  */
 private[jawn] trait CharBasedParser[J] extends Parser[J] {
 
   /**
-   * See if the string has any escape sequences. If not, return the end of the
-   * string. If so, bail out and return -1.
+   * See if the string has any escape sequences. If not, return the
+   * end of the string. If so, bail out and return -1.
    *
-   * This method expects the data to be in UTF-16 and accesses it as chars.
-   * In a few cases we might bail out incorrectly (by reading the second-half
-   * of a surrogate pair as \\) but for now the belief is that checking every
-   * character would be more expensive. So... in those cases we'll fall back to
-   * the slower (correct) UTF-16 parsing.
+   * This method expects the data to be in UTF-16 and accesses it as
+   * chars.  In a few cases we might bail out incorrectly (by reading
+   * the second-half of a surrogate pair as \\) but for now the belief
+   * is that avoiding this case would actually be more expensive.
+   * So... in those cases we'll fall back to the slower (correct)
+   * UTF-16 parsing.
    */
   protected[this] final def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
     var j = i
@@ -31,11 +39,12 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
   }
 
   /**
-   * Parse the string according to JSON rules, and add to the given context.
+   * Parse the string according to JSON rules, and add to the given
+   * context.
    *
-   * This method expects the data to be in UTF-16, and access it as Char. It
-   * performs the correct checks to make sure that we don't interpret a
-   * multi-char code point incorrectly.
+   * This method expects the data to be in UTF-16, and access it as
+   * Char. It performs the correct checks to make sure that we don't
+   * interpret a multi-char code point incorrectly.
    */
   protected[this] final def parseString(i: Int, ctxt: FContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)

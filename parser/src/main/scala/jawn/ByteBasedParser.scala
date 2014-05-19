@@ -4,6 +4,16 @@ import scala.annotation.{switch, tailrec}
 
 /**
  * Trait used when the data to be parsed is in UTF-8.
+ * 
+ * This parser has to translate input bytes to Chars and Strings. It
+ * provides a byte() method to access individual bytes, and also
+ * parser strings from bytes.
+ *  
+ * Its parseString() implementation has two cases. In the first case
+ * (the hot path) the string has no escape sequences and we can just
+ * UTF-8 decode the entire set of bytes. In the second case, it goes
+ * to some trouble to be sure to de-escape correctly given that the
+ * input data is UTF-8.
  */
 private[jawn] trait ByteBasedParser[J] extends Parser[J] {
   protected[this] def byte(i: Int): Byte
@@ -37,6 +47,10 @@ private[jawn] trait ByteBasedParser[J] extends Parser[J] {
       ctxt.add(at(i + 1, k - 1))
       return k
     }
+
+    // TODO: we might be able to do better by identifying where
+    // escapes occur, and then translating the intermediate strings in
+    // one go.
 
     var j = i + 1
     val sb = new CharBuilder

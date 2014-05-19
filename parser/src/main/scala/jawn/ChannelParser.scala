@@ -9,11 +9,15 @@ object ChannelParser {
     new ChannelParser[J](new FileInputStream(f).getChannel)
 }
 
+// TODO: it is possible that the buffering machinery here is too
+// heavyweight. also, i think there may be rare cases where a
+// super-long string could fail to parse. consider other options.
+
 /**
  * Basic file parser.
  *
- * Given a file name this parser opens it, chunks the data 1M at a time, and
- * parses it. 
+ * Given a file name this parser opens it, chunks the data 256K at a
+ * time, and parses it.
  */
 private[jawn] final class ChannelParser[J](ch: ReadableByteChannel)
 extends SyncParser[J] with ByteBasedParser[J] {
@@ -55,8 +59,9 @@ extends SyncParser[J] with ByteBasedParser[J] {
   }
 
   /**
-   * If the cursor 'i' is past the 'curr' buffer, we want to clear the current
-   * byte buffer, do a swap, load some more data, and continue.
+   * If the cursor 'i' is past the 'curr' buffer, we want to clear the
+   * current byte buffer, do a swap, load some more data, and
+   * continue.
    */
   final def reset(i: Int): Int = {
     if (i >= bufsize) {
@@ -73,8 +78,8 @@ extends SyncParser[J] with ByteBasedParser[J] {
   final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {}
 
   /**
-   * This is a specialized accessor for the case where our underlying data are
-   * bytes not chars.
+   * This is a specialized accessor for the case where our underlying
+   * data are bytes not chars.
    */
   final def byte(i: Int): Byte = if (i < bufsize)
     curr(i)
@@ -82,7 +87,9 @@ extends SyncParser[J] with ByteBasedParser[J] {
     next(i & mask)
 
   /**
-   * Rads
+   * Reads a byte as a single Char. The byte must be valid ASCII (this
+   * method is used to parse JSON values like numbers, constants, or
+   * delimiters, which are known to be within ASCII).
    */
   final def at(i: Int): Char = if (i < bufsize)
     curr(i).toChar
@@ -92,9 +99,9 @@ extends SyncParser[J] with ByteBasedParser[J] {
   /**
    * Access a byte range as a string.
    *
-   * Since the underlying data are UTF-8 encoded, i and k must occur on unicode
-   * boundaries. Also, the resulting String is not guaranteed to have length
-   * (k - i).
+   * Since the underlying data are UTF-8 encoded, i and k must occur
+   * on unicode boundaries. Also, the resulting String is not
+   * guaranteed to have length (k - i).
    */
   final def at(i: Int, k: Int): String = {
     val len = k - i

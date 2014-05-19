@@ -6,51 +6,7 @@ import scala.collection.mutable
 import scala.util.control
 import java.nio.ByteBuffer
 
-case class AsyncParse[J](errors: Seq[ParseException], values: Seq[J])
-
 /**
- * This class is used internally by AsyncParser to signal that we've reached
- * the end of the particular input we were given.
- */
-private[jawn] class AsyncException extends Exception with control.NoStackTrace
-
-private[jawn] class FailureException extends Exception
-
-object AsyncParser {
-  sealed trait Input
-  case class More(buf: ByteBuffer) extends Input
-  case object Done extends Input
-
-  @deprecated("Use AsyncParser.stream() to maintain the current behavior", "1.0")
-  def apply[J](): AsyncParser[J] = stream()
-
-  /**
-   * Asynchronous parser for a stream of (whitespace-delimited) JSON values.
-   */
-  def stream[J](): AsyncParser[J] = 
-    new AsyncParser(state = -1, curr = 0, stack = Nil,
-      data = new Array[Byte](131072), len = 0, allocated = 131072,
-      offset = 0, done = false, streamMode = 0)
-
-  /**
-   * Asynchronous parser for a single JSON value.
-   */
-  def json[J](): AsyncParser[J] =
-    new AsyncParser(state = -1, curr = 0, stack = Nil,
-      data = new Array[Byte](131072), len = 0, allocated = 131072,
-      offset = 0, done = false, streamMode = -1)
-
-  /**
-   * Asynchronous parser which can unwrap a single JSON array into a stream of
-   * values (or return a single value otherwise).
-   */
-  def unwrap[J](): AsyncParser[J] =
-    new AsyncParser(state = -5, curr = 0, stack = Nil,
-      data = new Array[Byte](131072), len = 0, allocated = 131072,
-      offset = 0, done = false, streamMode = 1)
-}
-
-/*
  * AsyncParser is able to parse chunks of data (encoded as
  * Option[ByteBuffer] instances) and parse asynchronously.  You can
  * use the factory methods in the companion object to instantiate an
@@ -98,7 +54,6 @@ final class AsyncParser[J] protected[jawn] (
   protected[jawn] var done: Boolean,
   protected[jawn] var streamMode: Int
 ) extends ByteBasedParser[J] {
-  import AsyncParser._
 
   protected[this] var line = 0
   protected[this] var pos = 0
@@ -108,7 +63,7 @@ final class AsyncParser[J] protected[jawn] (
   protected[this] final def copy() =
     new AsyncParser(state, curr, stack, data.clone, len, allocated, offset, done, streamMode)
 
-  final def apply(input: Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) =
+  final def apply(input: AsyncParser.Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) =
     copy.feed(input)
 
   protected[this] final def absorb(buf: ByteBuffer): Unit = {
@@ -159,10 +114,10 @@ final class AsyncParser[J] protected[jawn] (
   @inline private[this] final def ASYNC_POSTVAL = -2
   @inline private[this] final def ASYNC_PREVAL = -1
 
-  protected[jawn] def feed(b: Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) = {
+  protected[jawn] def feed(b: AsyncParser.Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) = {
     b match {
-      case Done => done = true
-      case More(buf) => absorb(buf)
+      case AsyncParser.Done => done = true
+      case AsyncParser.More(buf) => absorb(buf)
     }
 
     // accumulates errors and results
@@ -325,3 +280,48 @@ final class AsyncParser[J] protected[jawn] (
   // we don't have to do anything special on close.
   protected[this] final def close() = ()
 }
+
+object AsyncParser {
+  sealed trait Input
+  case class More(buf: ByteBuffer) extends Input
+  case object Done extends Input
+
+  /**
+   * Asynchronous parser for a stream of (whitespace-delimited) JSON values.
+   */
+  def stream[J](): AsyncParser[J] = 
+    new AsyncParser(state = -1, curr = 0, stack = Nil,
+      data = new Array[Byte](131072), len = 0, allocated = 131072,
+      offset = 0, done = false, streamMode = 0)
+
+  /**
+   * Asynchronous parser for a single JSON value.
+   */
+  def json[J](): AsyncParser[J] =
+    new AsyncParser(state = -1, curr = 0, stack = Nil,
+      data = new Array[Byte](131072), len = 0, allocated = 131072,
+      offset = 0, done = false, streamMode = -1)
+
+  /**
+   * Asynchronous parser which can unwrap a single JSON array into a stream of
+   * values (or return a single value otherwise).
+   */
+  def unwrap[J](): AsyncParser[J] =
+    new AsyncParser(state = -5, curr = 0, stack = Nil,
+      data = new Array[Byte](131072), len = 0, allocated = 131072,
+      offset = 0, done = false, streamMode = 1)
+}
+
+case class AsyncParse[J](errors: Seq[ParseException], values: Seq[J])
+
+/**
+ * This class is used internally by AsyncParser to signal that we've
+ * reached the end of the particular input we were given.
+ */
+private[jawn] class AsyncException extends Exception with control.NoStackTrace
+
+/**
+ * This is a more prosaic exception which indicates that we've hit a
+ * parsing error.
+ */
+private[jawn] class FailureException extends Exception

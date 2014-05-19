@@ -3,7 +3,15 @@ package jawn
 import scala.annotation.{switch, tailrec}
 import scala.collection.mutable
 
-private[jawn] trait SyncParser[J] extends Parser[J] {
+/**
+ * SyncParser extends Parser to do all parsing synchronously.
+ * 
+ * Most traditional JSON parser are synchronous, and expect to receive
+ * all their input before returning. SyncParser[J] still leaves
+ * Parser[J]'s methods abstract, but adds two public methods for users
+ * to call to actually parse JSON.
+ */
+trait SyncParser[J] extends Parser[J] {
 
   /**
    * Parse the JSON document into a single JSON value.
@@ -28,12 +36,12 @@ private[jawn] trait SyncParser[J] extends Parser[J] {
   }
 
   /**
-   * Parse the given document into a sequence of JSON values. These might be
-   * containers like objects and arrays, or primtitives like numbers and
-   * strings.
+   * Parse the given document into a sequence of JSON values. These
+   * might be containers like objects and arrays, or primtitives like
+   * numbers and strings.
    *
-   * JSON objects may only be separated by whitespace. Thus, "top-level" commas
-   * and other characters will become parse errors.
+   * JSON objects may only be separated by whitespace. Thus,
+   * "top-level" commas and other characters will become parse errors.
    */
   final def parseMany()(implicit facade: Facade[J]): Seq[J] = {
     val results = mutable.ArrayBuffer.empty[J]
