@@ -55,7 +55,7 @@ object GenericParser {
 object JParser {
   type Result[A] = Either[Exception, A]
 
-  implicit val facade = Facade.Jawn
+  implicit val facade = JawnFacade
 
   def parseUnsafe(s: String): JValue = new StringParser(s).parse()
 
