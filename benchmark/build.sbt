@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
   "org.parboiled"     %% "parboiled"      % "2.0-M1",
   "com.rojoma"        %% "rojoma-json" % "2.4.0",
   "io.argonaut"       %% "argonaut" % "6.1-M2",
+  "org.scalastuff" %% "json-parser" % "1.1.1",
   //"net.liftweb"        % "lift-json_2.9.2" % "2.5-M1",
   "net.minidev"        % "json-smart" % "1.1.1",
   "com.fasterxml.jackson.core" % "jackson-annotations" % "2.0.6",

@@ -112,6 +112,16 @@ object AdHocBenchmarks {
     argonaut.Parse.parse(s)
   }
 
+  def scalastuffParse(path: String) = {
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    //argonaut.Parse.parse(s)
+    org.scalastuff.json.spray.SprayJsonParser.parse(s)
+  }
+
   def smartJsonParse(path: String) = {
     val file = new java.io.File(path)
     val reader = new java.io.FileReader(file)
@@ -133,7 +143,7 @@ object AdHocBenchmarks {
 
   def jawnParse(path: String) = {
     val file = new java.io.File(path)
-    jawn.JParser.parseFromFile(file).right.get
+    jawn.JParser.parseFromFile(file).get
   }
 
   def jawnStringParse(path: String) = {
@@ -142,13 +152,13 @@ object AdHocBenchmarks {
     val fis = new java.io.FileInputStream(file)
     fis.read(bytes)
     val s = new String(bytes, "UTF-8")
-    jawn.JParser.parseFromString(s).right.get
+    jawn.JParser.parseFromString(s).get
   }
 
   def argojawnParse(path: String) = {
     implicit val facade = Xyz.Argonaut
     val file = new java.io.File(path)
-    jawn.GenericParser.parseFromFile[argonaut.Json](file).right.get
+    jawn.GenericParser.parseFromFile[argonaut.Json](file).get
   }
 
   def gsonParse(path: String) = {
@@ -213,6 +223,7 @@ object AdHocBenchmarks {
       // run("argonaut", path)(argonautParse)
       // run("argonaut-jawn", path)(argojawnParse)
       // run("smart-json", path)(smartJsonParse)
+      run("scalastuff", path)(scalastuffParse)
       run("jackson", path)(jacksonParse)
       run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
