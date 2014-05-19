@@ -1,0 +1,1 @@
+name := "jawn-parser"

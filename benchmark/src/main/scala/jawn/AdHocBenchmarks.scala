@@ -125,11 +125,11 @@ object AdHocBenchmarks {
     new ObjectMapper().readValue(file, classOf[JsonNode])
   }
 
-  def liftJsonParse(path: String) = {
-    val file = new java.io.File(path)
-    val reader = new java.io.FileReader(file)
-    net.liftweb.json.JsonParser.parse(reader)
-  }
+  // def liftJsonParse(path: String) = {
+  //   val file = new java.io.File(path)
+  //   val reader = new java.io.FileReader(file)
+  //   net.liftweb.json.JsonParser.parse(reader)
+  // }
 
   def jawnParse(path: String) = {
     val file = new java.io.File(path)
@@ -203,6 +203,8 @@ object AdHocBenchmarks {
         (bytes / 1.0, "B")
 
       println("%s (%.1f%s)" format (f.getName, size, units))
+
+      //run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
       run("json4s-native", path)(json4sNativeParse)
       run("json4s-jackson", path)(json4sJacksonParse)
       run("play", path)(playParse)
@@ -215,8 +217,6 @@ object AdHocBenchmarks {
       run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
       run("jawn-string", path)(jawnStringParse)
-
-      //run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
     }
   }
 }
