@@ -3,53 +3,6 @@ package jawn
 import scala.collection.mutable
 
 object Xyz {
-  val Argonaut = new Facade[argonaut.Json] {
-
-    def singleContext() = new FContext[argonaut.Json] {
-      var value: argonaut.Json = null
-      def add(s: String) { value = jstring(s) }
-      def add(v: argonaut.Json) { value = v }
-      def finish: argonaut.Json = value
-      def isObj: Boolean = false
-    }
-
-    def arrayContext() = new FContext[argonaut.Json] {
-      val vs = mutable.ListBuffer.empty[argonaut.Json]
-      def add(s: String) { vs.append(jstring(s)) }
-      def add(v: argonaut.Json) { vs.append(v) }
-      def finish: argonaut.Json = argonaut.Json.jArray(vs.toList)
-      def isObj: Boolean = false
-    }
-
-    def objectContext() = new FContext[argonaut.Json] {
-      var key: String = null
-      var vs = argonaut.JsonObject.empty
-      def add(s: String): Unit = if (key == null) {
-        key = s
-      } else {
-        vs = vs + (key, jstring(s))
-        key = null
-      }
-
-      def add(v: argonaut.Json): Unit = {
-        vs = vs + (key, v)
-        key = null
-      }
-
-      def finish = argonaut.Json.jObject(vs)
-      def isObj = true
-    }
-
-    def jnull() = argonaut.Json.jNull
-    def jfalse() = argonaut.Json.jFalse
-    def jtrue() = argonaut.Json.jTrue
-    def jnum(s: String) = argonaut.Json.jNumberOrNull(java.lang.Double.parseDouble(s))
-    def jint(s: String) = argonaut.Json.jNumberOrNull(java.lang.Integer.parseInt(s))
-    // use the following to simulate deferred parseInt/parseDouble
-    // def jnum(s: String) = jstring(s)
-    // def jint(s: String) = jstring(s)
-    def jstring(s: String) = argonaut.Json.jString(s)
-  }
 }
 
 object AdHocBenchmarks {
@@ -112,13 +65,12 @@ object AdHocBenchmarks {
     argonaut.Parse.parse(s)
   }
 
-  def scalastuffParse(path: String) = {
+  def sprayScalastuffParse(path: String) = {
     val file = new java.io.File(path)
     val bytes = new Array[Byte](file.length.toInt)
     val fis = new java.io.FileInputStream(file)
     fis.read(bytes)
     val s = new String(bytes, "UTF-8")
-    //argonaut.Parse.parse(s)
     org.scalastuff.json.spray.SprayJsonParser.parse(s)
   }
 
@@ -155,10 +107,22 @@ object AdHocBenchmarks {
     jawn.JParser.parseFromString(s).get
   }
 
-  def argojawnParse(path: String) = {
-    implicit val facade = Xyz.Argonaut
+  def argonautJawnParse(path: String) = {
+    implicit val facade = Argonaut
     val file = new java.io.File(path)
     jawn.GenericParser.parseFromFile[argonaut.Json](file).get
+  }
+
+  def sprayJawnParse(path: String) = {
+    implicit val facade = Spray
+    val file = new java.io.File(path)
+    jawn.GenericParser.parseFromFile[spray.json.JsValue](file).get
+  }
+
+  def rojomaJawnParse(path: String) = {
+    implicit val facade = Rojoma
+    val file = new java.io.File(path)
+    jawn.GenericParser.parseFromFile[com.rojoma.json.ast.JValue](file).get
   }
 
   def gsonParse(path: String) = {
@@ -214,20 +178,22 @@ object AdHocBenchmarks {
 
       println("%s (%.1f%s)" format (f.getName, size, units))
 
-      //run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
+      // run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
+      // run("smart-json", path)(smartJsonParse)
       // run("json4s-native", path)(json4sNativeParse)
       // run("json4s-jackson", path)(json4sJacksonParse)
       // run("play", path)(playParse)
+      run("rojoma", path)(rojomaParse)
+      run("rojoma-jawn", path)(rojomaJawnParse)
+      run("argonaut", path)(argonautParse)
+      run("argonaut-jawn", path)(argonautJawnParse)
       // run("spray", path)(sprayParse)
-      // run("rojoma", path)(rojomaParse)
-      // run("argonaut", path)(argonautParse)
-      // run("argonaut-jawn", path)(argojawnParse)
-      // run("smart-json", path)(smartJsonParse)
-      run("scalastuff", path)(scalastuffParse)
-      run("jackson", path)(jacksonParse)
-      run("gson", path)(gsonParse)
+      run("spray-scalastuff", path)(sprayScalastuffParse)
+      run("spray-jawn", path)(sprayJawnParse)
+      // run("jackson", path)(jacksonParse)
+      // run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
-      run("jawn-string", path)(jawnStringParse)
+      // run("jawn-string", path)(jawnStringParse)
     }
   }
 }

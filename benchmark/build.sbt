@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   "org.json4s"        %% "json4s-jackson" % "3.2.6",
   "org.json4s"        %% "json4s-native"  % "3.2.6",
   "org.parboiled"     %% "parboiled"      % "2.0-M1",
-  "com.rojoma"        %% "rojoma-json" % "2.4.0",
+  "com.rojoma"        %% "rojoma-json" % "2.4.3",
   "io.argonaut"       %% "argonaut" % "6.1-M2",
   "org.scalastuff" %% "json-parser" % "1.1.1",
   //"net.liftweb"        % "lift-json_2.9.2" % "2.5-M1",
