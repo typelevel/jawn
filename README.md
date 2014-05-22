@@ -1,48 +1,114 @@
 ## Jawn
 
-"Jawn is for reading jay-sawn."
+"Jawn is for parsing jay-sawn."
 
 ### Origin
 
 The term "jawn" comes from the Philadelphia area. It conveys about as
-much information as "thing" does. I chose the name because I moved to
-Montreal so I am remembering Philly fondly. Also, there isn't a better
-way to describe objects encoded in JSON than "things". Finally, we get
-a catchy slogan.
+much information as "thing" does. I chose the name because I had moved
+to Montreal so I was remembering Philly fondly. Also, there isn't a
+better way to describe objects encoded in JSON than "things". Finally,
+we get a catchy slogan.
+
+Jawn was designed to parse JSON into an AST as quickly as possible.
 
 ### Overview
 
-Jawn is designed to try to parse JSON into one large DOM-esque object
-as fast as possible. There is a minimum of boxing, and there aren't
-any fancy operations to build your own objects for you [1]. It uses
-algebraic data types, following the "sealed-trait + case class"
-pattern of many other JSON libraries in Scala.
+Jawn consists of two parts:
 
-([1] Although you can use the new `Facade[J]` type class to construct
-your own AST using Jawn's parser. The benchmark project contains an
-exmaple of this using Argonaut.)
+1. A fast, generic JSON parser
+2. A small, somewhat anemic AST
 
-The big speed win has to due with using Scala's `@tailrec`
-optimization as heavily as possible, along with various other hacks,
-and some semblence of an attempt at good IO
-buffering/performance. There isn't really too much code, and profiling
-shows that I'm spending about 50% of my time running
-`java.lang.Double.parseDouble()` so that's something [2].
+Currently Jawn is competitive with the fastest Java JSON libraries
+(GSON and Jackson) and in the author's benchmarks it often wins. It
+seems to be faster than any other Scala parser that exists (as of May
+2014).
 
-([2] Actually, Jawn will defer parsing doubles once it has determined
-that they are valid JSON numbers. This comment applied back when Jawn
-was eagerly parsing numbers.)
+Given the plethora of really nice JSON libraries for Scala, the
+expectation is that you are here for (1) and not (2).
 
-The `jawn.JValue` objects returned have very few capabilities: you
-must break them open to get at their delicious brains, preferably
-using pattern matching.  There's no reason that they can't have a
-useful API but I haven't written one yet.
+### Parsing
 
-Jawn also lacks many other nice features, like keeping track of
-whitespace or maintaining key/value order for JSON objects. This would
-not be a hard feature to add but it isn't necessary in the general
-case and would slow things down a bit. There also isn't any kind of
-SAX-like API.
+Jawn's parser is both fast and relatively featureful. Assuming you
+want to get back an AST of type `J` and you have a `Facade[J]`
+defined, you can use the following `parse` signatures:
+
+```scala
+Parser.parseUnsafe[J](String) → J
+Parser.parseFromString[J](String) → Try[J]
+Parser.parsefromPath[J](String) → Try[J]
+Parser.parseFromFile[J](File) → Try[J]
+Parser.parseFromByteBuffer[J](ByteBuffer) → Try[J]
+```
+
+Some systems use streams of JSON values separated by whitespace. Jawn
+can support this operation using the `parseMany` family of methods:
+
+```scala
+Parser.parseManyFromString[J](String) → Try[Seq[J]]
+Parser.parseManyFromFile[J](File) → Try[Seq[J]]
+Parser.parseManyFromByteBuffer[J](ByteBuffer) → Try[Seq[J]]
+```
+
+Finally, Jawn supports asynchronous parsing, which allows users to
+feed the parser with data as it is available. There are three
+constructors:
+
+* `AsyncParser.json` waits to return a single `J` value once parsing is done.
+* `AsyncParser.unwrap` if the top-level element is an array, return values as they become available.
+* `AsyncParser.stream` same semantics as parseMany.
+
+
+
+Here's an example:
+
+```scala
+val p0 = AsyncParser.unwrap[J]
+val bb0: ByteBuffer = ...
+val bb1: ByteBuffer = ...
+val (AsyncParse(errors, values), p1) = p0(More(bb0))
+val (AsyncParse(errors, values), p2) = p1(More(bb1))
+val (AsyncParse(errors, values), _) = p2(Done)
+```
+
+### Do-It-Yourself Parsing
+
+Jawn supports building any JSON AST you need via type classes. You
+benefit from Jawn's fast parser while still using your favorite Scala
+JSON library.
+
+To include Jawn's parser in your project, add the following
+snippet to your `build.sbt` file:
+
+```scala
+resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
+
+libraryDependencies += "jawn" %% "jawn-parser" % "0.4.0"
+```
+
+To support your AST of choice, you'll want to define a
+`jawn.Facade[J]` instance, where the `J` type parameter represents the
+base of your JSON AST. For example, here's a facade that supports
+Spray:
+
+```scala
+import spray.json._
+object Spray extends SimpleFacade[JsValue] {
+  def jnull() = JsNull
+  def jfalse() = JsFalse
+  def jtrue() = JsTrue
+  def jnum(s: String) = JsNumber(s)
+  def jint(s: String) = JsNumber(s)
+  def jstring(s: String) = JsString(s)
+  def jarray(vs: List[JsValue]) = JsArray(vs)
+  def jobject(vs: Map[String, JsValue]) = JsObject(vs)
+}
+```
+
+Most ASTs will be easy to define using the `SimpleFacade` or
+`MutableFacade` traits. However, if an ASTs object or array instances
+do more than just wrap a Scala collection, it may still make sense to
+extend `Facade` directly.
 
 ### Examples
 

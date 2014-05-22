@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
  * The parser makes absolute calls to the ByteBuffer, which will not
  * update its own mutable position fields.
  */
-private[jawn] final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with ByteBasedParser[J] {
+final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with ByteBasedParser[J] {
   final val start = src.position
   final val limit = src.limit - start
 
@@ -21,13 +21,13 @@ private[jawn] final class ByteBufferParser[J](src: ByteBuffer) extends SyncParse
   protected[this] final def newline(i: Int) { line += 1 }
   protected[this] final def column(i: Int) = i
 
-  final def close() { src.position(src.limit) }
-  final def reset(i: Int): Int = i
-  final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {}
-  final def byte(i: Int): Byte = src.get(i + start)
-  final def at(i: Int): Char = src.get(i + start).toChar
+  protected[this] final def close() { src.position(src.limit) }
+  protected[this] final def reset(i: Int): Int = i
+  protected[this] final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {}
+  protected[this] final def byte(i: Int): Byte = src.get(i + start)
+  protected[this] final def at(i: Int): Char = src.get(i + start).toChar
 
-  final def at(i: Int, k: Int): String = {
+  protected[this] final def at(i: Int, k: Int): String = {
     val len = k - i
     val arr = new Array[Byte](len)
     src.position(i + start)
@@ -36,5 +36,5 @@ private[jawn] final class ByteBufferParser[J](src: ByteBuffer) extends SyncParse
     new String(arr, utf8)
   }
 
-  final def atEof(i: Int) = i >= limit
+  protected[this] final def atEof(i: Int) = i >= limit
 }

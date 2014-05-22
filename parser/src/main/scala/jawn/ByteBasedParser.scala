@@ -15,7 +15,7 @@ import scala.annotation.{switch, tailrec}
  * to some trouble to be sure to de-escape correctly given that the
  * input data is UTF-8.
  */
-private[jawn] trait ByteBasedParser[J] extends Parser[J] {
+trait ByteBasedParser[J] extends Parser[J] {
   protected[this] def byte(i: Int): Byte
 
   /**

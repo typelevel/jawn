@@ -30,7 +30,7 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
     var j = i
     var c = at(j)
     while (c != '"') {
-      if (c < ' ') die(j, "control char in string")
+      if (c < ' ') die(j, "control char (%d) in string" format c.toInt)
       if (c == '\\') return -1
       j += 1
       c = at(j)

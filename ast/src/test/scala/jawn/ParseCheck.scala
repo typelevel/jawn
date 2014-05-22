@@ -9,6 +9,7 @@ import Gen._
 import Arbitrary.arbitrary
 
 import scala.collection.mutable
+import scala.util.{Try, Success}
 
 class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
 
@@ -47,8 +48,8 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
     Gen.containerOf[List, (String, JValue)](jitem(lvl + 1)).map(JObject.fromSeq)
 
   def jvalue(lvl: Int): Gen[JValue] =
-    if (lvl < 10) {
-      Gen.frequency((8, 'ato), (1, 'arr), (2, 'obj)).flatMap {
+    if (lvl < 3) {
+      Gen.frequency((16, 'ato), (1, 'arr), (2, 'obj)).flatMap {
         case 'ato => jatom
         case 'arr => jarray(lvl)
         case 'obj => jobject(lvl)
@@ -69,10 +70,21 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
   // not bad.
   property("idempotent parsing/rendering") {
     forAll { value1: JValue =>
-      val json = value1.j
-      val result = JParser.parseFromString(json)
-      result shouldBe Right(value1)
-      result.right.map(_.j) shouldBe Right(json)
+      val json1 = value1.pretty(unicode = true)
+      val value2 = JParser.parseFromString(json1).get
+      val json2 = value2.pretty(unicode = true)
+      json2 shouldBe json1
+    }
+  }
+
+  property("string encoding/decoding") {
+    forAll { s: String =>
+      val jstr1 = JString(s)
+      val json1 = jstr1.pretty(unicode = true)
+      val jstr2 = JParser.parseFromString(json1).get
+      val json2 = jstr2.pretty(unicode = true)
+      jstr2 shouldBe jstr1
+      json2 shouldBe json1
     }
   }
 }

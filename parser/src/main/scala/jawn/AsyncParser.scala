@@ -31,14 +31,11 @@ import java.nio.ByteBuffer
  * apply(None) is called.
  * 
  * The streamMode parameter controls how the asynchronous parser will
- * be handling multiple values. There are three states:
+ * be handling multiple values. There are two states:
  * 
  *    1: An array is being unwrapped. Normal JSON array rules apply
  *       (Note that if the outer value observed is not an array, this
  *       mode will toggle to the -1 mode).
- *
- *    0: A JSON stream is being parsed. JSON values will be separated
- *       by optional whitespace
  *
  *   -1: No streaming is occuring. Only a single JSON value is
  *       allowed.
@@ -285,14 +282,6 @@ object AsyncParser {
   sealed trait Input
   case class More(buf: ByteBuffer) extends Input
   case object Done extends Input
-
-  /**
-   * Asynchronous parser for a stream of (whitespace-delimited) JSON values.
-   */
-  def stream[J](): AsyncParser[J] = 
-    new AsyncParser(state = -1, curr = 0, stack = Nil,
-      data = new Array[Byte](131072), len = 0, allocated = 131072,
-      offset = 0, done = false, streamMode = 0)
 
   /**
    * Asynchronous parser for a single JSON value.

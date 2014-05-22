@@ -21,7 +21,7 @@ private[jawn] final class CharBuilder {
   def resizeIfNecessary(goal: Int) {
     if (goal <= capacity) return ()
     var cap = capacity
-    while (goal > capacity) cap *= 2
+    while (goal > cap && cap > 0) cap *= 2
     if (cap > capacity) {
       val ncs = new Array[Char](cap)
       System.arraycopy(cs, 0, ncs, 0, capacity)
@@ -35,8 +35,9 @@ private[jawn] final class CharBuilder {
   def extend(s: String) {
     val tlen = len + s.length
     resizeIfNecessary(tlen)
-    var i = len
-    while (i < tlen) { cs(i) = s.charAt(i); i += 1 }
+    var i = 0
+    var j = len
+    while (i < s.length) { cs(j) = s.charAt(i); i += 1; j += 1 }
   }
 
   def append(c: Char) {

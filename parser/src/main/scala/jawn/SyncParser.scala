@@ -34,29 +34,4 @@ trait SyncParser[J] extends Parser[J] {
     close()
     value
   }
-
-  /**
-   * Parse the given document into a sequence of JSON values. These
-   * might be containers like objects and arrays, or primtitives like
-   * numbers and strings.
-   *
-   * JSON objects may only be separated by whitespace. Thus,
-   * "top-level" commas and other characters will become parse errors.
-   */
-  final def parseMany()(implicit facade: Facade[J]): Seq[J] = {
-    val results = mutable.ArrayBuffer.empty[J]
-    var i = 0
-    while (!atEof(i)) {
-      (at(i): @switch) match {
-        case '\n' => newline(i); i += 1
-        case ' ' | '\t' | '\r' => i += 1 
-        case _ =>
-          val (value, j) = parse(i)
-          results.append(value)
-          i = j
-      }
-    }
-    close()
-    results
-  }
 }

@@ -12,8 +12,7 @@ package jawn
  * memory at once. So this limit will probably not be a problem in
  * practice.
  */
-private[jawn] final class StringParser[J](s: String)
-extends SyncParser[J] with CharBasedParser[J] {
+private[jawn] final class StringParser[J](s: String) extends SyncParser[J] with CharBasedParser[J] {
   var line = 0
   final def column(i: Int) = i
   final def newline(i: Int) { line += 1 }

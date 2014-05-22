@@ -1,8 +1,11 @@
 package jawn
 
-import scala.annotation.{switch, tailrec}
+import java.io.File
 import java.lang.Integer.parseInt
+import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import scala.annotation.{switch, tailrec}
+import scala.util.Try
 
 case class ParseException(msg: String, index: Int, line: Int, col: Int) extends Exception(msg)
 
@@ -478,4 +481,31 @@ trait Parser[J] {
       }
     }
   }
+}
+
+
+object Parser {
+  def parseUnsafe[J](s: String)(implicit facade: Facade[J]): J =
+    new StringParser(s).parse()
+
+  def parseFromString[J](s: String)(implicit facade: Facade[J]): Try[J] =
+    Try(new StringParser[J](s).parse)
+
+  def parseFromPath[J](file: File)(implicit facade: Facade[J]): Try[J] =
+    Try(ChannelParser.fromFile[J](file).parse)
+
+  def parseFromFile[J](file: File)(implicit facade: Facade[J]): Try[J] =
+    Try(ChannelParser.fromFile[J](file).parse)
+
+  def parseFromByteBuffer[J](buf: ByteBuffer)(implicit facade: Facade[J]): Try[J] =
+    Try(new ByteBufferParser[J](buf).parse)
+
+  // def parseManyFromString[J](str: String)(implicit facade: Facade[J]): Try[Seq[J]] =
+  //   Try(new StringParser[J](str).parseMany)
+  // 
+  // def parseManyFromFile[J](file: File)(implicit facade: Facade[J]): Try[Seq[J]] =
+  //   Try(ChannelParser.fromFile[J](file).parseMany)
+  // 
+  // def parseManyFromByteBuffer[J](buf: ByteBuffer)(implicit facade: Facade[J]): Try[Seq[J]] =
+  //   Try(new ByteBufferParser[J](buf).parseMany)
 }

@@ -8,16 +8,24 @@ object JawnBuild extends Build {
     publishLocal := (),
     publishArtifact := false)
 
-  lazy val parser = Project("parser", file("parser"))
+  lazy val testDeps =
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % "2.1.6" % "test",
+      "org.scalacheck" %% "scalacheck" % "1.11.4" % "test"
+    )
+
+  lazy val parser = Project("parser", file("parser")).
+    settings(testDeps)
 
   lazy val ast = Project("ast", file("ast")).
+    settings(testDeps).
     dependsOn(parser)
 
   lazy val benchmark = Project("benchmark", file("benchmark")).
-    dependsOn(ast).
-    settings(noPublish: _*)
+    settings(noPublish: _*).
+    dependsOn(ast)
 
   lazy val root = Project("jawn", file(".")).
-    aggregate(parser, ast).
-    settings(noPublish: _*)
+    settings(noPublish: _*).
+    aggregate(parser, ast)
 }

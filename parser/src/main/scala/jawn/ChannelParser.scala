@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 
 object ChannelParser {
-  private[jawn] def fromFile[J](f: File): ChannelParser[J] =
+  def fromFile[J](f: File): ChannelParser[J] =
     new ChannelParser[J](new FileInputStream(f).getChannel)
 }
 
@@ -19,31 +19,30 @@ object ChannelParser {
  * Given a file name this parser opens it, chunks the data 256K at a
  * time, and parses it.
  */
-private[jawn] final class ChannelParser[J](ch: ReadableByteChannel)
-extends SyncParser[J] with ByteBasedParser[J] {
+final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with ByteBasedParser[J] {
 
   // 256K buffers: arrived at via a bit of testing
   @inline final def bufsize = 262144
   @inline final def mask = bufsize - 1
 
   // these are the actual byte arrays we'll use
-  var curr = new Array[Byte](bufsize)
-  var next = new Array[Byte](bufsize)
+  private var curr = new Array[Byte](bufsize)
+  private var next = new Array[Byte](bufsize)
 
   // these are the bytebuffers used to load the data
-  var bcurr = ByteBuffer.wrap(curr)
-  var bnext = ByteBuffer.wrap(next)
+  private var bcurr = ByteBuffer.wrap(curr)
+  private var bnext = ByteBuffer.wrap(next)
 
   // these are the bytecounts for each array
-  var ncurr = ch.read(bcurr)
-  var nnext = ch.read(bnext)
+  private var ncurr = ch.read(bcurr)
+  private var nnext = ch.read(bnext)
 
   var line = 0
-  var pos = 0
+  private var pos = 0
   protected[this] final def newline(i: Int) { line += 1; pos = i }
   protected[this] final def column(i: Int) = i - pos
 
-  final def close() = ch.close()
+  protected[this] final def close(): Unit = ch.close()
 
   /**
    * Swap the curr and next arrays/buffers/counts.
@@ -52,7 +51,7 @@ extends SyncParser[J] with ByteBasedParser[J] {
    * the index provided to reset is no longer in the 'curr' buffer, we want to
    * clear that data and swap the buffers.
    */
-  final def swap() {
+  protected[this] final def swap(): Unit = {
     var tmp = curr; curr = next; next = tmp
     var btmp = bcurr; bcurr = bnext; bnext = btmp
     var ntmp = ncurr; ncurr = nnext; nnext = ntmp
@@ -63,7 +62,7 @@ extends SyncParser[J] with ByteBasedParser[J] {
    * current byte buffer, do a swap, load some more data, and
    * continue.
    */
-  final def reset(i: Int): Int = {
+  protected[this] final def reset(i: Int): Int = {
     if (i >= bufsize) {
       bcurr.clear()
       swap()
@@ -75,26 +74,22 @@ extends SyncParser[J] with ByteBasedParser[J] {
     }
   }
 
-  final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {}
+  protected[this] final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]): Unit = ()
 
   /**
    * This is a specialized accessor for the case where our underlying
    * data are bytes not chars.
    */
-  final def byte(i: Int): Byte = if (i < bufsize)
-    curr(i)
-  else
-    next(i & mask)
+  protected[this] final def byte(i: Int): Byte =
+    if (i < bufsize) curr(i) else next(i & mask)
 
   /**
    * Reads a byte as a single Char. The byte must be valid ASCII (this
    * method is used to parse JSON values like numbers, constants, or
    * delimiters, which are known to be within ASCII).
    */
-  final def at(i: Int): Char = if (i < bufsize)
-    curr(i).toChar
-  else
-    next(i & mask).toChar
+  protected[this] final def at(i: Int): Char =
+    if (i < bufsize) curr(i).toChar else next(i & mask).toChar
 
   /**
    * Access a byte range as a string.
@@ -103,7 +98,7 @@ extends SyncParser[J] with ByteBasedParser[J] {
    * on unicode boundaries. Also, the resulting String is not
    * guaranteed to have length (k - i).
    */
-  final def at(i: Int, k: Int): String = {
+  protected[this] final def at(i: Int, k: Int): String = {
     val len = k - i
 
     if (k <= bufsize) {
@@ -117,5 +112,6 @@ extends SyncParser[J] with ByteBasedParser[J] {
     }
   }
 
-  final def atEof(i: Int) = if (i < bufsize) i >= ncurr else (i - bufsize) >= nnext
+  protected[this] final def atEof(i: Int) =
+    if (i < bufsize) i >= ncurr else (i - bufsize) >= nnext
 }

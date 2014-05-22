@@ -110,19 +110,19 @@ object AdHocBenchmarks {
   def argonautJawnParse(path: String) = {
     implicit val facade = Argonaut
     val file = new java.io.File(path)
-    jawn.GenericParser.parseFromFile[argonaut.Json](file).get
+    jawn.Parser.parseFromFile[argonaut.Json](file).get
   }
 
   def sprayJawnParse(path: String) = {
     implicit val facade = Spray
     val file = new java.io.File(path)
-    jawn.GenericParser.parseFromFile[spray.json.JsValue](file).get
+    jawn.Parser.parseFromFile[spray.json.JsValue](file).get
   }
 
   def rojomaJawnParse(path: String) = {
     implicit val facade = Rojoma
     val file = new java.io.File(path)
-    jawn.GenericParser.parseFromFile[com.rojoma.json.ast.JValue](file).get
+    jawn.Parser.parseFromFile[com.rojoma.json.ast.JValue](file).get
   }
 
   def gsonParse(path: String) = {
