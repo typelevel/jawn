@@ -3,6 +3,7 @@ package jawn
 import java.io.File
 import java.lang.Integer.parseInt
 import java.nio.ByteBuffer
+import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
 import scala.annotation.{switch, tailrec}
 import scala.util.Try
@@ -269,8 +270,6 @@ trait Parser[J] {
 
   /**
    * Parse and return the next JSON value and the position beyond it.
-   * 
-   * This method is used by parse() as well as parseMany().
    */
   protected[this] final def parse(i: Int)(implicit facade: Facade[J]): (J, Int) = try {
     (at(i): @switch) match {
@@ -497,15 +496,9 @@ object Parser {
   def parseFromFile[J](file: File)(implicit facade: Facade[J]): Try[J] =
     Try(ChannelParser.fromFile[J](file).parse)
 
+  def parseFromChannel[J](ch: ReadableByteChannel)(implicit facade: Facade[J]): Try[J] =
+    Try(ChannelParser.fromChannel[J](ch).parse)
+
   def parseFromByteBuffer[J](buf: ByteBuffer)(implicit facade: Facade[J]): Try[J] =
     Try(new ByteBufferParser[J](buf).parse)
-
-  // def parseManyFromString[J](str: String)(implicit facade: Facade[J]): Try[Seq[J]] =
-  //   Try(new StringParser[J](str).parseMany)
-  // 
-  // def parseManyFromFile[J](file: File)(implicit facade: Facade[J]): Try[Seq[J]] =
-  //   Try(ChannelParser.fromFile[J](file).parseMany)
-  // 
-  // def parseManyFromByteBuffer[J](buf: ByteBuffer)(implicit facade: Facade[J]): Try[Seq[J]] =
-  //   Try(new ByteBufferParser[J](buf).parseMany)
 }

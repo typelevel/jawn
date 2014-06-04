@@ -1,4 +1,5 @@
 package jawn
+package ast
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest._
@@ -25,7 +26,7 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
   val jstring = arbitrary[String].map(JString(_))
 
   // totally unscientific atom frequencies
-  val jatom: Gen[Atom] =
+  val jatom: Gen[JAtom] =
     Gen.frequency((1, 'n), (5, 'f), (5, 't), (8, 'l), (8, 'd), (16, 's)).flatMap {
       case 'n => jnull
       case 'f => jfalse
@@ -70,9 +71,9 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
   // not bad.
   property("idempotent parsing/rendering") {
     forAll { value1: JValue =>
-      val json1 = value1.pretty(unicode = true)
+      val json1 = CanonicalRenderer.render(value1)
       val value2 = JParser.parseFromString(json1).get
-      val json2 = value2.pretty(unicode = true)
+      val json2 = CanonicalRenderer.render(value2)
       json2 shouldBe json1
     }
   }
@@ -80,9 +81,9 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
   property("string encoding/decoding") {
     forAll { s: String =>
       val jstr1 = JString(s)
-      val json1 = jstr1.pretty(unicode = true)
+      val json1 = CanonicalRenderer.render(jstr1)
       val jstr2 = JParser.parseFromString(json1).get
-      val json2 = jstr2.pretty(unicode = true)
+      val json2 = CanonicalRenderer.render(jstr2)
       jstr2 shouldBe jstr1
       json2 shouldBe json1
     }

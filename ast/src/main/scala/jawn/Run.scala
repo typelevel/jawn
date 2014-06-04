@@ -1,4 +1,4 @@
-package jawn
+package jawn.ast
 
 import java.io.File
 

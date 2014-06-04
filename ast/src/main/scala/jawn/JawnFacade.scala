@@ -1,4 +1,5 @@
 package jawn
+package ast
 
 import scala.collection.mutable
 

@@ -7,6 +7,9 @@ import java.nio.channels.ReadableByteChannel
 object ChannelParser {
   def fromFile[J](f: File): ChannelParser[J] =
     new ChannelParser[J](new FileInputStream(f).getChannel)
+
+  def fromChannel[J](ch: ReadableByteChannel): ChannelParser[J] =
+    new ChannelParser[J](ch)
 }
 
 // TODO: it is possible that the buffering machinery here is too
