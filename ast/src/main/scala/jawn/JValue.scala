@@ -70,13 +70,7 @@ case class JArray(vs: Array[JValue]) extends JContainer {
     }
 }
 
-case class JObject(vs: mutable.Map[String, JValue]) extends JContainer {
-  override def equals(that: Any): Boolean =
-    that match {
-      case JObject(vs2) => vs == vs2
-      case _ => false
-    }
-}
+case class JObject(vs: mutable.Map[String, JValue]) extends JContainer
 
 object JArray {
   def fromSeq(js: Seq[JValue]): JArray = JArray(js.toArray)
