@@ -57,11 +57,11 @@ final class AsyncParser[J] protected[jawn] (
   protected[this] final def newline(i: Int) { line += 1; pos = i + 1 }
   protected[this] final def column(i: Int) = i - pos
 
-  protected[this] final def copy() =
+  final def copy() =
     new AsyncParser(state, curr, stack, data.clone, len, allocated, offset, done, streamMode)
 
-  final def apply(input: AsyncParser.Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) =
-    copy.feed(input)
+  final def apply(input: AsyncParser.Input)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] =
+    feed(input)
 
   protected[this] final def absorb(buf: ByteBuffer): Unit = {
     done = false
@@ -85,40 +85,41 @@ final class AsyncParser[J] protected[jawn] (
     len = need
   }
 
-  // Explanation of the new synthetic states. The parser machinery
-  // uses positive integers for states while parsing json values. We
-  // use these negative states to keep track of the async parser's
-  // status between json values.
-  //
-  // ASYNC_PRESTART: We haven't seen any non-whitespace yet. We
-  // could be parsing an array, or not. We are waiting for valid
-  // JSON.
-  // 
-  // ASYNC_START: We've seen an array and have begun unwrapping
-  // it. We could see a ] if the array is empty, or valid JSON.
-  // 
-  // ASYNC_END: We've parsed an array and seen the final ]. At this
-  // point we should only see whitespace or an EOF.
-  // 
-  // ASYNC_POSTVAL: We just parsed a value from inside the array. We
-  // expect to see whitespace, a comma, or an EOF.
-  // 
-  // ASYNC_PREVAL: We are in an array and we just saw a comma. We
-  // expect to see whitespace or a JSON value.
+  /**
+   * Explanation of the new synthetic states. The parser machinery
+   * uses positive integers for states while parsing json values. We
+   * use these negative states to keep track of the async parser's
+   * status between json values.
+   *
+   * ASYNC_PRESTART: We haven't seen any non-whitespace yet. We
+   * could be parsing an array, or not. We are waiting for valid
+   * JSON.
+   * 
+   * ASYNC_START: We've seen an array and have begun unwrapping
+   * it. We could see a ] if the array is empty, or valid JSON.
+   * 
+   * ASYNC_END: We've parsed an array and seen the final ]. At this
+   * point we should only see whitespace or an EOF.
+   * 
+   * ASYNC_POSTVAL: We just parsed a value from inside the array. We
+   * expect to see whitespace, a comma, or an EOF.
+   * 
+   * ASYNC_PREVAL: We are in an array and we just saw a comma. We
+   * expect to see whitespace or a JSON value.
+   */
   @inline private[this] final def ASYNC_PRESTART = -5
   @inline private[this] final def ASYNC_START = -4
   @inline private[this] final def ASYNC_END = -3
   @inline private[this] final def ASYNC_POSTVAL = -2
   @inline private[this] final def ASYNC_PREVAL = -1
 
-  protected[jawn] def feed(b: AsyncParser.Input)(implicit facade: Facade[J]): (AsyncParse[J], AsyncParser[J]) = {
+  protected[jawn] def feed(b: AsyncParser.Input)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
     b match {
       case AsyncParser.Done => done = true
       case AsyncParser.More(buf) => absorb(buf)
     }
 
     // accumulates errors and results
-    val errors = mutable.ArrayBuffer.empty[ParseException]
     val results = mutable.ArrayBuffer.empty[J]
 
     // we rely on exceptions to tell us when we run out of data
@@ -204,12 +205,13 @@ final class AsyncParser[J] protected[jawn] (
     } catch {
       case e: AsyncException =>
         // we ran out of data, so return what we have so far
+        Right(results)
 
       case e: ParseException =>
         // we hit a parser error, so return that error and results so far
-        errors.append(e)
+        Left(e)
     }
-    (AsyncParse(errors, results), this)
+    Right(results)
   }
 
   // every 1M we shift our array back by 1M.
@@ -300,8 +302,6 @@ object AsyncParser {
       data = new Array[Byte](131072), len = 0, allocated = 131072,
       offset = 0, done = false, streamMode = 1)
 }
-
-case class AsyncParse[J](errors: Seq[ParseException], values: Seq[J])
 
 /**
  * This class is used internally by AsyncParser to signal that we've
