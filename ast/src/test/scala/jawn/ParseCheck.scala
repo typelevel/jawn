@@ -58,6 +58,12 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
     } else {
       jatom
     }
+
+  implicit lazy val arbJAtom: Arbitrary[JAtom] =
+    Arbitrary(jatom)
+
+  // implicit lazy val arbJArray: Arbitrary[JArray] =
+  //   Arbitrary(jarray(3))
   
   implicit lazy val arbJValue: Arbitrary[JValue] =
     Arbitrary(jvalue(0))
@@ -86,6 +92,51 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
       val json2 = CanonicalRenderer.render(jstr2)
       jstr2 shouldBe jstr1
       json2 shouldBe json1
+    }
+  }
+
+  implicit val facade = JawnFacade
+
+  val percs = List(0.0, 0.2, 0.4, 0.8, 1.0)
+
+  def checkRight(r: Either[ParseException, Seq[JValue]]): Seq[JValue] = {
+    r.isRight shouldBe true
+    val Right(vs) = r
+    vs
+  }
+
+  def splitIntoSegments(json: String): List[String] = 
+    if (json.length >= 8) {
+      val offsets = percs.map(n => (json.length * n).toInt)
+      val pairs = offsets zip offsets.drop(1)
+      pairs.map { case (i, j) => json.substring(i, j) }
+    } else {
+      json :: Nil
+    }
+
+  def parseSegments(p: AsyncParser[JValue], segments: List[String]): Seq[JValue] =
+    segments.foldLeft(List.empty[JValue]) { (rs, s) =>
+      rs ++ checkRight(p.absorb(s))
+    } ++ checkRight(p.finish())
+
+  import AsyncParser.{UnwrapArray, ValueStream, SingleValue}
+
+  property("async parsing") {
+    forAll { (v: JValue) =>
+      val json = CanonicalRenderer.render(v)
+      val segments = splitIntoSegments(json)
+      parseSegments(AsyncParser[JValue](SingleValue), segments) shouldBe List(v)
+    }
+  }
+
+  property("async unwrapping") {
+    //forAll { (vs: List[JAtom]) =>
+    forAll { (vs0: List[Int]) =>
+      val vs = vs0.map(LongNum(_))
+      val arr = JArray(vs.toArray)
+      val json = CanonicalRenderer.render(arr)
+      val segments = splitIntoSegments(json)
+      parseSegments(AsyncParser[JValue](UnwrapArray), segments) shouldBe vs
     }
   }
 }

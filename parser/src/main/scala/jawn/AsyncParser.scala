@@ -6,9 +6,22 @@ import scala.collection.mutable
 import scala.util.control
 import java.nio.ByteBuffer
 
+object AsyncParser {
+
+  sealed abstract class Mode(val start: Int, val value: Int)
+  case object UnwrapArray extends Mode(-5, 1)
+  case object ValueStream extends Mode(-1, 0)
+  case object SingleValue extends Mode(-1, -1)
+
+  def apply[J](mode: Mode = SingleValue): AsyncParser[J] =
+    new AsyncParser(state = mode.start, curr = 0, stack = Nil,
+      data = new Array[Byte](131072), len = 0, allocated = 131072,
+      offset = 0, done = false, streamMode = mode.value)
+}
+
 /**
  * AsyncParser is able to parse chunks of data (encoded as
- * Option[ByteBuffer] instances) and parse asynchronously.  You can
+ * Option[ByteBuffer] instances) and parse asynchronously. You can
  * use the factory methods in the companion object to instantiate an
  * async parser.
  * 
@@ -31,11 +44,15 @@ import java.nio.ByteBuffer
  * apply(None) is called.
  * 
  * The streamMode parameter controls how the asynchronous parser will
- * be handling multiple values. There are two states:
+ * be handling multiple values. There are three states:
  * 
  *    1: An array is being unwrapped. Normal JSON array rules apply
  *       (Note that if the outer value observed is not an array, this
  *       mode will toggle to the -1 mode).
+ * 
+ *    0: A stream of individual JSON elements separated by whitespace
+ *       are being parsed. We can return each complete element as we
+ *       parse it.
  *
  *   -1: No streaming is occuring. Only a single JSON value is
  *       allowed.
@@ -60,15 +77,28 @@ final class AsyncParser[J] protected[jawn] (
   final def copy() =
     new AsyncParser(state, curr, stack, data.clone, len, allocated, offset, done, streamMode)
 
-  final def apply(input: AsyncParser.Input)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] =
-    feed(input)
-
-  protected[this] final def absorb(buf: ByteBuffer): Unit = {
+  final def absorb(buf: ByteBuffer)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
     done = false
-    val free = allocated - len
     val buflen = buf.limit - buf.position
     val need = len + buflen
+    resizeIfNecessary(need)
+    buf.get(data, len, buflen)
+    len = need
+    churn()
+  }
 
+  final def absorb(bytes: Array[Byte])(implicit facade: Facade[J]): Either[ParseException, Seq[J]] =
+    absorb(ByteBuffer.wrap(bytes))
+
+  final def absorb(s: String)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] =
+    absorb(ByteBuffer.wrap(s.getBytes(utf8)))
+
+  final def finish()(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
+    done = true
+    churn()
+  }
+
+  protected[this] final def resizeIfNecessary(need: Int): Unit = {
     // if we don't have enough free space available we'll need to grow our
     // data array. we never shrink the data array, assuming users will call
     // feed with similarly-sized buffers.
@@ -80,9 +110,6 @@ final class AsyncParser[J] protected[jawn] (
       data = newdata
       allocated = newsize
     }
-
-    buf.get(data, len, buflen)
-    len = need
   }
 
   /**
@@ -113,13 +140,9 @@ final class AsyncParser[J] protected[jawn] (
   @inline private[this] final def ASYNC_POSTVAL = -2
   @inline private[this] final def ASYNC_PREVAL = -1
 
-  protected[jawn] def feed(b: AsyncParser.Input)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
-    b match {
-      case AsyncParser.Done => done = true
-      case AsyncParser.More(buf) => absorb(buf)
-    }
+  protected[jawn] def churn()(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
 
-    // accumulates errors and results
+    // accumulates json values
     val results = mutable.ArrayBuffer.empty[J]
 
     // we rely on exceptions to tell us when we run out of data
@@ -278,29 +301,6 @@ final class AsyncParser[J] protected[jawn] (
 
   // we don't have to do anything special on close.
   protected[this] final def close() = ()
-}
-
-object AsyncParser {
-  sealed trait Input
-  case class More(buf: ByteBuffer) extends Input
-  case object Done extends Input
-
-  /**
-   * Asynchronous parser for a single JSON value.
-   */
-  def json[J](): AsyncParser[J] =
-    new AsyncParser(state = -1, curr = 0, stack = Nil,
-      data = new Array[Byte](131072), len = 0, allocated = 131072,
-      offset = 0, done = false, streamMode = -1)
-
-  /**
-   * Asynchronous parser which can unwrap a single JSON array into a stream of
-   * values (or return a single value otherwise).
-   */
-  def unwrap[J](): AsyncParser[J] =
-    new AsyncParser(state = -5, curr = 0, stack = Nil,
-      data = new Array[Byte](131072), len = 0, allocated = 131072,
-      offset = 0, done = false, streamMode = 1)
 }
 
 /**

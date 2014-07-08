@@ -11,7 +11,7 @@ import Arbitrary.arbitrary
 
 import scala.util.Success
 
-class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
+class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   sealed trait J {
     def build: String = this match {
