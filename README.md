@@ -41,7 +41,7 @@ resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 libraryDependencies += "org.jsawn" %% "jawn-parser" % "0.5.0"
 
 // use this if you want to use jawn's parser and ast
-libraryDependencies += "org.jsawn" %% "jawn-ast % "0.5.0"
+libraryDependencies += "org.jsawn" %% "jawn-ast" % "0.5.0"
 ```
 
 If you want to use Jawn's fast parser with another project's AST, see
@@ -110,16 +110,15 @@ Each of these subprojects provides a `Parser` object (an instance of
 `SupportParser[J]`) that is parameterized on the given project's
 AST (`J`). The following methods are available:
 
-  * `parseUnsafe(s: String): J`
-  * `parseFromString(s: String): Try[J]`
-  * `parseFromPath(file: File): Try[J]`
-  * `parseFromFile(file: File): Try[J]`
-  * `parseFromChannel(ch: ReadableByteChannel): Try[J]`
-  * `parseFromByteBuffer(buf: ByteBuffer): Try[J]`
-  * `async(mode: AsyncParser.Mode): AsyncParser[J]`
+```scala
+Parser.parseUnsafe(String) → J
+Parser.parseFromString(String) → Try[J]
+Parser.parsefromPath(String) → Try[J]
+Parser.parseFromFile(File) → Try[J]
+Parser.parseFromByteBuffer(ByteBuffer) → Try[J]
+```
   
-These methods function the same as the methods from `jawn.Parser`, but
-pre-parameterize the type (and provide the required facade instance).
+These methods parallel those provided by `jawn.Parser`.
 
 For the following snippets, `XYZ` is one of (`argonaut`, `rojoma`, or `spray`):
 
@@ -133,7 +132,7 @@ libraryDependencies += "org.jsawn" %% "XYZ-support" % "0.5.0"
 
 This is an example of how you might use the parser into your code:
 
-```
+```scala
 import jawn.support.XYZ.Parser
 
 val myResult = Parser.parseFromString(myString)
