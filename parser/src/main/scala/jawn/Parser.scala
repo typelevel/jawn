@@ -490,8 +490,8 @@ object Parser {
   def parseFromString[J](s: String)(implicit facade: Facade[J]): Try[J] =
     Try(new StringParser[J](s).parse)
 
-  def parseFromPath[J](file: File)(implicit facade: Facade[J]): Try[J] =
-    Try(ChannelParser.fromFile[J](file).parse)
+  def parseFromPath[J](path: String)(implicit facade: Facade[J]): Try[J] =
+    Try(ChannelParser.fromFile[J](new File(path)).parse)
 
   def parseFromFile[J](file: File)(implicit facade: Facade[J]): Try[J] =
     Try(ChannelParser.fromFile[J](file).parse)

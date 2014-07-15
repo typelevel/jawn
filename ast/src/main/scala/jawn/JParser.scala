@@ -3,6 +3,7 @@ package ast
 
 import java.io.File
 import java.nio.ByteBuffer
+import java.nio.channels.ReadableByteChannel
 import scala.util.Try
 
 object JParser {
@@ -14,11 +15,14 @@ object JParser {
   def parseFromString(s: String): Try[JValue] =
     Try(new StringParser[JValue](s).parse)
 
+  def parseFromPath(path: String): Try[JValue] =
+    parseFromFile(new File(path))
+
   def parseFromFile(file: File): Try[JValue] =
     Try(ChannelParser.fromFile[JValue](file).parse)
 
-  def parseFromPath(path: String): Try[JValue] =
-    parseFromFile(new File(path))
+  def parseFromChannel(ch: ReadableByteChannel): Try[JValue] =
+    Try(ChannelParser.fromChannel(ch).parse)
 
   def parseFromByteBuffer(buf: ByteBuffer): Try[JValue] =
     Try(new ByteBufferParser[JValue](buf).parse)

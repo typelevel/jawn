@@ -14,8 +14,8 @@ trait SupportParser[J] {
   def parseFromString(s: String): Try[J] =
     Try(new StringParser[J](s).parse)
 
-  def parseFromPath(file: File): Try[J] =
-    Try(ChannelParser.fromFile[J](file).parse)
+  def parseFromPath(path: String): Try[J] =
+    Try(ChannelParser.fromFile[J](new File(path)).parse)
 
   def parseFromFile(file: File): Try[J] =
     Try(ChannelParser.fromFile[J](file).parse)
