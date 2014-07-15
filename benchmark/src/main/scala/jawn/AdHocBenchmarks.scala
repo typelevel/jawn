@@ -161,6 +161,7 @@ object AdHocBenchmarks {
     } catch {
       case e: Exception =>
       println("  %-18s  %10s" format (name, "FAIL"))
+      println(e)
     }
   }
 
@@ -183,6 +184,7 @@ object AdHocBenchmarks {
       println("%s (%.1f%s)" format (f.getName, size, units))
 
       // run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
+
       run("smart-json", path)(smartJsonParse)
       run("json4s-native", path)(json4sNativeParse)
       run("json4s-jackson", path)(json4sJacksonParse)

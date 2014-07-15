@@ -44,15 +44,21 @@ libraryDependencies += "org.jsawn" %% "jawn-parser" % "0.5.0"
 libraryDependencies += "org.jsawn" %% "jawn-ast" % "0.5.0"
 ```
 
-If you want to use Jawn's fast parser with another project's AST, see
-the "Supporting external ASTs with Jawn" section. For example, with
-Spray you would say:
+If you want to use Jawn's parser with another project's AST, see the
+"Supporting external ASTs with Jawn" section. For example, with Spray
+you would say:
 
 ```scala
 resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 
 libraryDependencies += "org.jsawn" %% "support-spray % "0.5.0"
 ```
+
+There are a few reasons you might want to do this:
+
+ * The library's built-in parser is significantly slower than Jawn
+ * Jawn supports more input types (ByteBuffer, File, etc.)
+ * You need asynchronous JSON parsing
 
 ### Parsing
 
@@ -65,6 +71,7 @@ Parser.parseUnsafe[J](String) → J
 Parser.parseFromString[J](String) → Try[J]
 Parser.parsefromPath[J](String) → Try[J]
 Parser.parseFromFile[J](File) → Try[J]
+Parser.parseFromChannel[J](ReadableByteChannel) → Try[J]
 Parser.parseFromByteBuffer[J](ByteBuffer) → Try[J]
 ```
 
@@ -100,9 +107,11 @@ arbitrary data type.
 
 ### Supporting external ASTs with Jawn
 
-Jawn currently supports three external ASTs directly:
+Jawn currently supports five external ASTs directly:
 
  * Argonaut (6.0.4)
+ * Json4s (3.2.10)
+ * Play (2.2.1)
  * Rojoma (2.4.3)
  * Spray (1.2.6)
 
@@ -115,12 +124,14 @@ Parser.parseUnsafe(String) → J
 Parser.parseFromString(String) → Try[J]
 Parser.parsefromPath(String) → Try[J]
 Parser.parseFromFile(File) → Try[J]
+Parser.parseFromChannel(ReadableByteChannel) → Try[J]
 Parser.parseFromByteBuffer(ByteBuffer) → Try[J]
 ```
   
 These methods parallel those provided by `jawn.Parser`.
 
-For the following snippets, `XYZ` is one of (`argonaut`, `rojoma`, or `spray`):
+For the following snippets, `XYZ` is one of (`argonaut`, `json4s`,
+`play`, `rojoma`, or `spray`):
 
 This is how you would include the subproject in build.sbt:
 
@@ -178,16 +189,9 @@ Most ASTs will be easy to define using the `SimpleFacade` or
 do more than just wrap a Scala collection, it may be necessary to
 extend `Facade` directly.
 
-### Examples
-
-Jawn can parse JSON from many different sources:
-
- * `parseFromString(data: String)`
- * `parseFromFile(file: File)`
- * `parseFromPath(path: String)`
- * `parseFromByteBuffer(bb: ByteBuffer)`
-
-Parsing returns `Either[Exception, JValue]`.
+You can also look at the facades used by the support projects to help
+you create your own. This could also be useful if you wanted to
+use an older version of a supported library.
 
 ### Dependencies
 
