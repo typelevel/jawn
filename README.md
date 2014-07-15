@@ -111,7 +111,7 @@ Jawn currently supports five external ASTs directly:
 
  * Argonaut (6.0.4)
  * Json4s (3.2.10)
- * Play (2.2.1)
+ * Play (2.2.1) (**not currently released due to problems with 2.11**)
  * Rojoma (2.4.3)
  * Spray (1.2.6)
 
@@ -237,10 +237,7 @@ I've seen:
  * lift-json (broken)
 
 Of course, your mileage may vary, and these results do vary somewhat
-based on file size, file structure, etc. Also note that Jackson
-actually powers many of these libraries (including play, which
-sometimes comes out faster than the explicit jackson test for reasons
-I don't understand.)
+based on file size, file structure, etc.
 
 I have tried to understand the libraries well enough to write the most
 optimal code for loading a file (given a path) and parsing it to a

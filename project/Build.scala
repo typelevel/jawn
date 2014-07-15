@@ -5,7 +5,7 @@ object JawnBuild extends Build {
 
   override lazy val settings = super.settings ++ Seq(
     organization := "org.jsawn",
-    version := "0.5.0",
+    version := "0.5.1",
 
     scalaVersion := "2.10.4",
     crossScalaVersions := Seq("2.10.4", "2.11.1"),
@@ -46,9 +46,10 @@ object JawnBuild extends Build {
     settings(testDeps).
     dependsOn(parser)
 
-  lazy val supportPlay = Project("support-play", file("support/play")).
-    settings(testDeps).
-    dependsOn(parser)
+  // not available for 2.11 ???
+  // lazy val supportPlay = Project("support-play", file("support/play")).
+  //   settings(testDeps).
+  //   dependsOn(parser)
 
   lazy val supportRojoma = Project("support-rojoma", file("support/rojoma")).
     settings(testDeps).
@@ -60,9 +61,10 @@ object JawnBuild extends Build {
 
   lazy val benchmark = Project("benchmark", file("benchmark")).
     settings(noPublish: _*).
-    dependsOn(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportSpray)
+    dependsOn(parser, ast, supportArgonaut, supportJson4s, /*supportPlay, */supportRojoma, supportSpray)
+
 
   lazy val root = Project("jawn", file(".")).
     settings(noPublish: _*).
-    aggregate(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportSpray)
+    aggregate(parser, ast, supportArgonaut, supportJson4s, /*supportPlay, */supportRojoma, supportSpray)
 }
