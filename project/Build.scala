@@ -3,6 +3,23 @@ import sbt.Keys._
 
 object JawnBuild extends Build {
 
+  override lazy val settings = super.settings ++ Seq(
+    organization := "org.spire-math",
+    version := "0.5.0",
+
+    scalaVersion := "2.10.4",
+    crossScalaVersions := Seq("2.10.4", "2.11.1"),
+
+    scalacOptions ++= Seq(
+      "-Yinline-warnings",
+      "-deprecation",
+      "-optimize",
+      "-unchecked"
+    ),
+
+    licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
+  )
+
   lazy val noPublish = Seq(
     publish := (),
     publishLocal := (),
