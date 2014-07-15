@@ -38,7 +38,7 @@ shows you how to depend on Jawn for your project:
 resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.jsawn" %% "jawn-parser % "0.5.0"
+libraryDependencies += "org.jsawn" %% "jawn-parser" % "0.5.0"
 
 // use this if you want to use jawn's parser and ast
 libraryDependencies += "org.jsawn" %% "jawn-ast % "0.5.0"
