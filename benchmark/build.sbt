@@ -11,8 +11,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "io.spray"          %% "spray-json"     % "1.2.5",
-  "io.spray"          %% "spray-json"     % "1.2.5",
+  "io.spray"          %% "spray-json"     % "1.2.6",
   "com.typesafe.play" %% "play-json"      % "2.2.1",
   "org.json4s"        %% "json4s-jackson" % "3.2.6",
   "org.json4s"        %% "json4s-native"  % "3.2.6",
