@@ -95,7 +95,7 @@ object AdHocBenchmarks {
 
   def jawnParse(path: String) = {
     val file = new java.io.File(path)
-    jawn.JParser.parseFromFile(file).get
+    jawn.ast.JParser.parseFromFile(file).get
   }
 
   def jawnStringParse(path: String) = {
@@ -104,25 +104,22 @@ object AdHocBenchmarks {
     val fis = new java.io.FileInputStream(file)
     fis.read(bytes)
     val s = new String(bytes, "UTF-8")
-    jawn.JParser.parseFromString(s).get
+    jawn.ast.JParser.parseFromString(s).get
   }
 
   def argonautJawnParse(path: String) = {
-    implicit val facade = Argonaut
     val file = new java.io.File(path)
-    jawn.Parser.parseFromFile[argonaut.Json](file).get
+    jawn.support.argonaut.Parser.parseFromFile(file).get
   }
 
   def sprayJawnParse(path: String) = {
-    implicit val facade = Spray
     val file = new java.io.File(path)
-    jawn.Parser.parseFromFile[spray.json.JsValue](file).get
+    jawn.support.spray.Parser.parseFromFile(file).get
   }
 
   def rojomaJawnParse(path: String) = {
-    implicit val facade = Rojoma
     val file = new java.io.File(path)
-    jawn.Parser.parseFromFile[com.rojoma.json.ast.JValue](file).get
+    jawn.support.rojoma.Parser.parseFromFile(file).get
   }
 
   def gsonParse(path: String) = {
@@ -179,21 +176,21 @@ object AdHocBenchmarks {
       println("%s (%.1f%s)" format (f.getName, size, units))
 
       // run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
-      // run("smart-json", path)(smartJsonParse)
-      // run("json4s-native", path)(json4sNativeParse)
-      // run("json4s-jackson", path)(json4sJacksonParse)
-      // run("play", path)(playParse)
+      run("smart-json", path)(smartJsonParse)
+      run("json4s-native", path)(json4sNativeParse)
+      run("json4s-jackson", path)(json4sJacksonParse)
+      run("play", path)(playParse)
       run("rojoma", path)(rojomaParse)
       run("rojoma-jawn", path)(rojomaJawnParse)
       run("argonaut", path)(argonautParse)
       run("argonaut-jawn", path)(argonautJawnParse)
-      // run("spray", path)(sprayParse)
+      run("spray", path)(sprayParse)
       run("spray-scalastuff", path)(sprayScalastuffParse)
       run("spray-jawn", path)(sprayJawnParse)
-      // run("jackson", path)(jacksonParse)
-      // run("gson", path)(gsonParse)
+      run("jackson", path)(jacksonParse)
+      run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
-      // run("jawn-string", path)(jawnStringParse)
+      run("jawn-string", path)(jawnStringParse)
     }
   }
 }

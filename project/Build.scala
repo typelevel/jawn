@@ -21,11 +21,23 @@ object JawnBuild extends Build {
     settings(testDeps).
     dependsOn(parser)
 
+  lazy val supportArgonaut = Project("support-argonaut", file("support/argonaut")).
+    settings(testDeps).
+    dependsOn(parser)
+
+  lazy val supportRojoma = Project("support-rojoma", file("support/rojoma")).
+    settings(testDeps).
+    dependsOn(parser)
+
+  lazy val supportSpray = Project("support-spray", file("support/spray")).
+    settings(testDeps).
+    dependsOn(parser)
+
   lazy val benchmark = Project("benchmark", file("benchmark")).
     settings(noPublish: _*).
-    dependsOn(ast)
+    dependsOn(ast, supportArgonaut, supportRojoma, supportSpray)
 
   lazy val root = Project("jawn", file(".")).
     settings(noPublish: _*).
-    aggregate(parser, ast)
+    aggregate(parser, ast, supportArgonaut, supportRojoma, supportSpray)
 }
