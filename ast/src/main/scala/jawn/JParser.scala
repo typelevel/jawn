@@ -22,4 +22,7 @@ object JParser {
 
   def parseFromByteBuffer(buf: ByteBuffer): Try[JValue] =
     Try(new ByteBufferParser[JValue](buf).parse)
+
+  def async(mode: AsyncParser.Mode): AsyncParser[JValue] =
+    AsyncParser(mode)
 }

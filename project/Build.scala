@@ -4,7 +4,7 @@ import sbt.Keys._
 object JawnBuild extends Build {
 
   override lazy val settings = super.settings ++ Seq(
-    organization := "org.spire-math",
+    organization := "org.jsawn",
     version := "0.5.0",
 
     scalaVersion := "2.10.4",

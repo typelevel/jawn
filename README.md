@@ -14,18 +14,45 @@ Jawn was designed to parse JSON into an AST as quickly as possible.
 
 ### Overview
 
-Jawn consists of two parts:
+Jawn consists of three parts:
 
 1. A fast, generic JSON parser
 2. A small, somewhat anemic AST
+3. Support packages which parse to third-party ASTs
 
 Currently Jawn is competitive with the fastest Java JSON libraries
 (GSON and Jackson) and in the author's benchmarks it often wins. It
-seems to be faster than any other Scala parser that exists (as of May
+seems to be faster than any other Scala parser that exists (as of July
 2014).
 
 Given the plethora of really nice JSON libraries for Scala, the
-expectation is that you are here for (1) and not (2).
+expectation is that you are here for (1) and (3) not (2).
+
+### Quick Start
+
+Jawn supports Scala 2.10 and 2.11. Here's a `build.sbt` snippet that
+shows you how to depend on Jawn for your project:
+
+```scala
+// required for all uses
+resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
+
+// use this if you just want jawn's parser, and will implement your own facade
+libraryDependencies += "org.jsawn" %% "jawn-parser % "0.5.0"
+
+// use this if you want to use jawn's parser and ast
+libraryDependencies += "org.jsawn" %% "jawn-ast % "0.5.0"
+```
+
+If you want to use Jawn's fast parser with another project's AST, see
+the "Supporting external ASTs with Jawn" section. For example, with
+Spray you would say:
+
+```scala
+resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
+
+libraryDependencies += "org.jsawn" %% "support-spray % "0.5.0"
+```
 
 ### Parsing
 
@@ -41,41 +68,83 @@ Parser.parseFromFile[J](File) → Try[J]
 Parser.parseFromByteBuffer[J](ByteBuffer) → Try[J]
 ```
 
-Some systems use streams of JSON values separated by whitespace. Jawn
-can support this operation using the `parseMany` family of methods:
+Jawn also supports asynchronous parsing, which allows users to feed
+the parser with data as it is available. There are three modes:
 
-```scala
-Parser.parseManyFromString[J](String) → Try[Seq[J]]
-Parser.parseManyFromFile[J](File) → Try[Seq[J]]
-Parser.parseManyFromByteBuffer[J](ByteBuffer) → Try[Seq[J]]
-```
-
-Finally, Jawn supports asynchronous parsing, which allows users to
-feed the parser with data as it is available. There are three
-constructors:
-
-* `AsyncParser.json` waits to return a single `J` value once parsing is done.
-* `AsyncParser.unwrap` if the top-level element is an array, return values as they become available.
-* `AsyncParser.stream` same semantics as parseMany.
-
-
+* `SingleValue` waits to return a single `J` value once parsing is done.
+* `UnwrapArray` if the top-level element is an array, return values as they become available.
+* `ValueStream` parser one-or-more json values separated by whitespace
 
 Here's an example:
 
 ```scala
-val p0 = AsyncParser.unwrap[J]
-val bb0: ByteBuffer = ...
-val bb1: ByteBuffer = ...
-val (AsyncParse(errors, values), p1) = p0(More(bb0))
-val (AsyncParse(errors, values), p2) = p1(More(bb1))
-val (AsyncParse(errors, values), _) = p2(Done)
+import jawn.ast
+import jawn.AsyncParser
+
+val p = ast.JParser.async(mode = AsyncParser.UnwrapArray)
+
+def chunks: Stream[String] = ...
+def sink(j: ast.JValue): Unit = ...
+
+def loop(st: Stream[String]): Either[ParseException, Unit] =
+  st match {
+    case Stream.End => p.finish().fold(e => e, js => js.foreach(sink))
+    case s #:: tail => p.absorb(s).fold(e => e, { js => js.foreach(sink); loop(tail) })
+  }
+  
+loop(chunks)
+```
+
+You can also call `jawn.Parser.async[J]` to use async parsing with an
+arbitrary data type.
+
+### Supporting external ASTs with Jawn
+
+Jawn currently supports three external ASTs directly:
+
+ * Argonaut (6.0.4)
+ * Rojoma (2.4.3)
+ * Spray (1.2.6)
+
+Each of these subprojects provides a `Parser` object (an instance of
+`SupportParser[J]`) that is parameterized on the given project's
+AST (`J`). The following methods are available:
+
+  * `parseUnsafe(s: String): J`
+  * `parseFromString(s: String): Try[J]`
+  * `parseFromPath(file: File): Try[J]`
+  * `parseFromFile(file: File): Try[J]`
+  * `parseFromChannel(ch: ReadableByteChannel): Try[J]`
+  * `parseFromByteBuffer(buf: ByteBuffer): Try[J]`
+  * `async(mode: AsyncParser.Mode): AsyncParser[J]`
+  
+These methods function the same as the methods from `jawn.Parser`, but
+pre-parameterize the type (and provide the required facade instance).
+
+For the following snippets, `XYZ` is one of (`argonaut`, `rojoma`, or `spray`):
+
+This is how you would include the subproject in build.sbt:
+
+```scala
+resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
+
+libraryDependencies += "org.jsawn" %% "XYZ-support" % "0.5.0"
+```
+
+This is an example of how you might use the parser into your code:
+
+```
+import jawn.support.XYZ.Parser
+
+val myResult = Parser.parseFromString(myString)
 ```
 
 ### Do-It-Yourself Parsing
 
 Jawn supports building any JSON AST you need via type classes. You
 benefit from Jawn's fast parser while still using your favorite Scala
-JSON library.
+JSON library. This mechanism is also what allows Jawn to provide
+"support" for other libraries' ASTs.
 
 To include Jawn's parser in your project, add the following
 snippet to your `build.sbt` file:
@@ -83,7 +152,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 
-libraryDependencies += "jawn" %% "jawn-parser" % "0.4.0"
+libraryDependencies += "jawn" %% "jawn-parser" % "0.5.0"
 ```
 
 To support your AST of choice, you'll want to define a
@@ -107,7 +176,7 @@ object Spray extends SimpleFacade[JsValue] {
 
 Most ASTs will be easy to define using the `SimpleFacade` or
 `MutableFacade` traits. However, if an ASTs object or array instances
-do more than just wrap a Scala collection, it may still make sense to
+do more than just wrap a Scala collection, it may be necessary to
 extend `Facade` directly.
 
 ### Examples
@@ -121,64 +190,33 @@ Jawn can parse JSON from many different sources:
 
 Parsing returns `Either[Exception, JValue]`.
 
-### Async Parsing
-
-Jawn also supports async parsing. It's a bit complicated to set up,
-but it works like a charm, and can be really useful in non-blocking
-contexts.
-
-```scala
-import jawn.AsyncParser
-import AsyncParser.{More, Done}
-
-var parser1 = AsyncParser.json[JValue]
-
-val bb1: ByteBuffer = ... // some input
-val result1 = parser1(More(bb1))
-val (AsyncParse(errors1, values1), parser2) = result1
-
-...
-
-val bb2: ByteBuffer = ... // more input
-val result2 = parser2(More(bb2))
-val (AsyncParse(errors2, values2), parser3) = result2
-
-...
-
-val result3 = parse3(Done)
-val (AsyncParse(errors3, values3), _) = result3
-```
-
-(This really needs to be cleaned up. I'm just documenting the current
-state of this feature.)
-
-If you instantiate the parser via `AsyncParser.unwrap[JValue]` then it
-will unwrap an outer array (this works really well when an array
-really represents a large stream of simple JSON events.)
-
 ### Dependencies
 
-Jawn currently depends on Scala 2.10. If you build it using SBT things
-should just work.
+*jawn-parser* has no dependencies other than Scala itself.
 
-There are some benchmarks and tests which have their own dependencies.
+*jawn-ast* depends on [Spire](http://github.com/non/spire) in order to
+ provide type class instances.
+
+The various support projects (e.g. *argonaut-support*) depend on the
+library they are supporting.
 
 ### Profiling
 
-There are some micro-benchmarks using Caliper, as well as some ad-hoc
-benchmarks. From SBT you can run the benchmarks like so:
+Jawn provides benchmarks to help compare various JSON parsers on a
+wide range of input files. You can run the benchmarks from SBT with:
 
 ```
 > benchmark/run
 ```
 
 Any JSON files you put in `benchmark/src/main/resources` will be
-included in the ad-hoc benchmark. There is a Python script I've been
-using to generate random JSON data called `randjson.py` which is a bit
-quirky but does seem to work.
+included in the ad-hoc benchmark. There is a Python script I've used
+to generate random JSON data called `randjson.py` which is a bit
+quirky but does seem to work. I test on this random JSON as well as
+data from projects I've worked on.
 
-(I also test with very large data sets (100-600M) but for obvious
-reasons I don't distribute this JSON in the project.)
+(I also test with larger data sets (100-600M) but for obvious reasons
+I don't distribute this JSON in the project.)
 
 Libraries currently being tested in order of average speed on tests
 I've seen:
@@ -213,15 +251,13 @@ that's the target case. If you need full-featured support for
 character encodings I imagine something like Jackson or Gson will work
 better.
 
-The library is still very immature so I'm sure there are some
-bugs. There aren't even any formal tests yet! (Test-driven
-development? What?) No liability or warranty is implied or
-granted. This project was initially intended as a proof-of-concept for
-the underlying design.
+The library is still very immature so I'm sure there are some bugs. No
+liability or warranty is implied or granted. This project was
+initially intended as a proof-of-concept for the underlying design.
 
 ### Copyright and License
 
 All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
-Copyright Erik Osheim, 2012-2013.
+Copyright Erik Osheim, 2012-2014.

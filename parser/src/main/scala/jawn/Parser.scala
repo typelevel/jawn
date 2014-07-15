@@ -501,4 +501,7 @@ object Parser {
 
   def parseFromByteBuffer[J](buf: ByteBuffer)(implicit facade: Facade[J]): Try[J] =
     Try(new ByteBufferParser[J](buf).parse)
+
+  def async[J](mode: AsyncParser.Mode)(implicit facade: Facade[J]): AsyncParser[J] =
+    AsyncParser[J](mode)
 }
