@@ -42,6 +42,14 @@ object JawnBuild extends Build {
     settings(testDeps).
     dependsOn(parser)
 
+  lazy val supportJson4s = Project("support-json4s", file("support/json4s")).
+    settings(testDeps).
+    dependsOn(parser)
+
+  lazy val supportPlay = Project("support-play", file("support/play")).
+    settings(testDeps).
+    dependsOn(parser)
+
   lazy val supportRojoma = Project("support-rojoma", file("support/rojoma")).
     settings(testDeps).
     dependsOn(parser)
@@ -52,9 +60,9 @@ object JawnBuild extends Build {
 
   lazy val benchmark = Project("benchmark", file("benchmark")).
     settings(noPublish: _*).
-    dependsOn(ast, supportArgonaut, supportRojoma, supportSpray)
+    dependsOn(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportSpray)
 
   lazy val root = Project("jawn", file(".")).
     settings(noPublish: _*).
-    aggregate(parser, ast, supportArgonaut, supportRojoma, supportSpray)
+    aggregate(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportSpray)
 }

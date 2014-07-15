@@ -2,9 +2,6 @@ package jawn
 
 import scala.collection.mutable
 
-object Xyz {
-}
-
 object AdHocBenchmarks {
   def warmups = 2
   def runs = 5
@@ -31,6 +28,11 @@ object AdHocBenchmarks {
     parse(s)
   }
 
+  def json4sJawnParse(path: String) = {
+    val file = new java.io.File(path)
+    jawn.support.json4s.Parser.parseFromFile(file).get
+  }
+
   def playParse(path: String) = {
     val file = new java.io.File(path)
     val bytes = new Array[Byte](file.length.toInt)
@@ -38,6 +40,11 @@ object AdHocBenchmarks {
     fis.read(bytes)
     val s = new String(bytes, "UTF-8")
     play.api.libs.json.Json.parse(s)
+  }
+
+  def playJawnParse(path: String) = {
+    val file = new java.io.File(path)
+    jawn.support.play.Parser.parseFromFile(file).get
   }
 
   def sprayParse(path: String) = {
@@ -179,7 +186,9 @@ object AdHocBenchmarks {
       run("smart-json", path)(smartJsonParse)
       run("json4s-native", path)(json4sNativeParse)
       run("json4s-jackson", path)(json4sJacksonParse)
+      run("json4s-jawn", path)(json4sJawnParse)
       run("play", path)(playParse)
+      run("play-jawn", path)(playJawnParse)
       run("rojoma", path)(rojomaParse)
       run("rojoma-jawn", path)(rojomaJawnParse)
       run("argonaut", path)(argonautParse)
