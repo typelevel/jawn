@@ -1,4 +1,5 @@
 package jawn
+package benchmark
 
 import scala.collection.mutable
 
@@ -42,10 +43,10 @@ object AdHocBenchmarks {
     play.api.libs.json.Json.parse(s)
   }
 
-  def playJawnParse(path: String) = {
-    val file = new java.io.File(path)
-    jawn.support.play.Parser.parseFromFile(file).get
-  }
+  // def playJawnParse(path: String) = {
+  //   val file = new java.io.File(path)
+  //   jawn.support.play.Parser.parseFromFile(file).get
+  // }
 
   def sprayParse(path: String) = {
     val file = new java.io.File(path)
@@ -85,6 +86,15 @@ object AdHocBenchmarks {
     val file = new java.io.File(path)
     val reader = new java.io.FileReader(file)
     net.minidev.json.JSONValue.parse(reader)
+  }
+
+  def parboiledJsonParse(path: String) = {
+    val file = new java.io.File(path)
+    val bytes = new Array[Byte](file.length.toInt)
+    val fis = new java.io.FileInputStream(file)
+    fis.read(bytes)
+    val s = new String(bytes, "UTF-8")
+    new ParboiledParser(s).Json.run().get
   }
 
   def jacksonParse(path: String) = {
@@ -185,12 +195,13 @@ object AdHocBenchmarks {
 
       // run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
 
+      run("parboiled-json", path)(parboiledJsonParse)
       run("smart-json", path)(smartJsonParse)
       run("json4s-native", path)(json4sNativeParse)
       run("json4s-jackson", path)(json4sJacksonParse)
       run("json4s-jawn", path)(json4sJawnParse)
       run("play", path)(playParse)
-      run("play-jawn", path)(playJawnParse)
+      //run("play-jawn", path)(playJawnParse)
       run("rojoma", path)(rojomaParse)
       run("rojoma-jawn", path)(rojomaJawnParse)
       run("argonaut", path)(argonautParse)
