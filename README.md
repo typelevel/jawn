@@ -51,7 +51,7 @@ you would say:
 ```scala
 resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
 
-libraryDependencies += "org.jsawn" %% "support-spray % "0.5.1"
+libraryDependencies += "org.jsawn" %% "support-spray" % "0.5.1"
 ```
 
 There are a few reasons you might want to do this:
