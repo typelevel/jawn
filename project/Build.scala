@@ -17,7 +17,15 @@ object JawnBuild extends Build {
       "-unchecked"
     ),
 
-    licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
+    licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
+
+    resolvers ++= Seq(
+      "mth.io snapshots" at "http://repo.mth.io/snapshots",
+      "mth.io releases" at "http://repo.mth.io/releases",
+      "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
+      "releases"  at "http://oss.sonatype.org/content/repositories/releases",
+      "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"
+    )
   )
 
   lazy val noPublish = Seq(
@@ -46,10 +54,9 @@ object JawnBuild extends Build {
     settings(testDeps).
     dependsOn(parser)
 
-  // not available for 2.11 ???
-  // lazy val supportPlay = Project("support-play", file("support/play")).
-  //   settings(testDeps).
-  //   dependsOn(parser)
+  lazy val supportPlay = Project("support-play", file("support/play")).
+    settings(testDeps).
+    dependsOn(parser)
 
   lazy val supportRojoma = Project("support-rojoma", file("support/rojoma")).
     settings(testDeps).
@@ -61,10 +68,10 @@ object JawnBuild extends Build {
 
   lazy val benchmark = Project("benchmark", file("benchmark")).
     settings(noPublish: _*).
-    dependsOn(parser, ast, supportArgonaut, supportJson4s, /*supportPlay, */supportRojoma, supportSpray)
+    dependsOn(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportSpray)
 
 
   lazy val root = Project("jawn", file(".")).
     settings(noPublish: _*).
-    aggregate(parser, ast, supportArgonaut, supportJson4s, /*supportPlay, */supportRojoma, supportSpray)
+    aggregate(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportSpray)
 }

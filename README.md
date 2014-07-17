@@ -111,7 +111,7 @@ Jawn currently supports five external ASTs directly:
 
  * Argonaut (6.0.4)
  * Json4s (3.2.10)
- * Play (2.2.1) (**not currently released due to problems with 2.11**)
+ * Play (2.3.0)
  * Rojoma (2.4.3)
  * Spray (1.2.6)
 
@@ -220,21 +220,6 @@ data from projects I've worked on.
 
 (I also test with larger data sets (100-600M) but for obvious reasons
 I don't distribute this JSON in the project.)
-
-Libraries currently being tested in order of average speed on tests
-I've seen:
-
- * jawn
- * gson
- * play
- * jackson
- * json4s-jackson
- * rojoma
- * argonaut
- * smart-json
- * json4s-native
- * spray
- * lift-json (broken)
 
 Of course, your mileage may vary, and these results do vary somewhat
 based on file size, file structure, etc.

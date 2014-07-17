@@ -43,10 +43,10 @@ object AdHocBenchmarks {
     play.api.libs.json.Json.parse(s)
   }
 
-  // def playJawnParse(path: String) = {
-  //   val file = new java.io.File(path)
-  //   jawn.support.play.Parser.parseFromFile(file).get
-  // }
+  def playJawnParse(path: String) = {
+    val file = new java.io.File(path)
+    jawn.support.play.Parser.parseFromFile(file).get
+  }
 
   def sprayParse(path: String) = {
     val file = new java.io.File(path)
@@ -201,7 +201,7 @@ object AdHocBenchmarks {
       run("json4s-jackson", path)(json4sJacksonParse)
       run("json4s-jawn", path)(json4sJawnParse)
       run("play", path)(playParse)
-      //run("play-jawn", path)(playJawnParse)
+      run("play-jawn", path)(playJawnParse)
       run("rojoma", path)(rojomaParse)
       run("rojoma-jawn", path)(rojomaJawnParse)
       run("argonaut", path)(argonautParse)

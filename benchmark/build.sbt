@@ -2,23 +2,15 @@ name := "jawn-benchmarks"
 
 javaOptions in run += "-Xmx6G"
 
-resolvers ++= Seq(
-  "mth.io snapshots" at "http://repo.mth.io/snapshots",
-  "mth.io releases" at "http://repo.mth.io/releases",
-  "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
-  "releases"  at "http://oss.sonatype.org/content/repositories/releases",
-  "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"
-)
-
 libraryDependencies ++= Seq(
   // support deps
   "io.argonaut" %% "argonaut" % "6.0.4",
   "org.json4s" %% "json4s-native" % "3.2.10",
-  "com.typesafe.play" %% "play-json" % "2.2.1",
+  "com.typesafe.play" %% "play-json" % "2.3.0",
   "com.rojoma" %% "rojoma-json" % "2.4.3",
   "io.spray" %% "spray-json" % "1.2.6",
   // other deps
-  "org.json4s"        %% "json4s-jackson" % "3.2.6",
+  "org.json4s"        %% "json4s-jackson" % "3.2.10",
   "org.parboiled"     %% "parboiled"      % "2.0.0",
   "org.scalastuff"    %% "json-parser" % "1.1.1",
   "net.minidev"        % "json-smart" % "1.1.1",
