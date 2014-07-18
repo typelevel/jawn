@@ -64,6 +64,13 @@ object AdHocBenchmarks {
     com.rojoma.json.io.JsonReader(br).read()
   }
 
+  def rojomaFastParse(path: String) = {
+    val file = new java.io.File(path)
+    val r = new java.io.FileReader(file)
+    val events = new com.rojoma.json.io.FusedBlockJsonEventIterator(r, blockSize = 100000)
+    com.rojoma.json.io.JsonReader.fromEvents(events)
+  }
+
   def argonautParse(path: String) = {
     val file = new java.io.File(path)
     val bytes = new Array[Byte](file.length.toInt)
@@ -195,22 +202,23 @@ object AdHocBenchmarks {
 
       // run("lift-json", path)(liftJsonParse) // buggy, fails to parse, etc
 
-      run("parboiled-json", path)(parboiledJsonParse)
-      run("smart-json", path)(smartJsonParse)
-      run("json4s-native", path)(json4sNativeParse)
-      run("json4s-jackson", path)(json4sJacksonParse)
-      run("json4s-jawn", path)(json4sJawnParse)
-      run("play", path)(playParse)
-      run("play-jawn", path)(playJawnParse)
+      // run("parboiled-json", path)(parboiledJsonParse)
+      // run("smart-json", path)(smartJsonParse)
+      // run("json4s-native", path)(json4sNativeParse)
+      // run("json4s-jackson", path)(json4sJacksonParse)
+      // run("json4s-jawn", path)(json4sJawnParse)
+      // run("play", path)(playParse)
+      // run("play-jawn", path)(playJawnParse)
       run("rojoma", path)(rojomaParse)
+      run("rojoma-fast", path)(rojomaFastParse)
       run("rojoma-jawn", path)(rojomaJawnParse)
-      run("argonaut", path)(argonautParse)
-      run("argonaut-jawn", path)(argonautJawnParse)
-      run("spray", path)(sprayParse)
-      run("spray-scalastuff", path)(sprayScalastuffParse)
-      run("spray-jawn", path)(sprayJawnParse)
-      run("jackson", path)(jacksonParse)
-      run("gson", path)(gsonParse)
+      // run("argonaut", path)(argonautParse)
+      // run("argonaut-jawn", path)(argonautJawnParse)
+      // run("spray", path)(sprayParse)
+      // run("spray-scalastuff", path)(sprayScalastuffParse)
+      // run("spray-jawn", path)(sprayJawnParse)
+      // run("jackson", path)(jacksonParse)
+      // run("gson", path)(gsonParse)
       run("jawn", path)(jawnParse)
       run("jawn-string", path)(jawnStringParse)
     }
