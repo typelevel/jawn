@@ -231,14 +231,13 @@ are welcome.
 
 ### Disclaimers
 
-Jawn only supports UTF-8. This might change in the future, but for now
-that's the target case. If you need full-featured support for
-character encodings I imagine something like Jackson or Gson will work
-better.
+Jawn only supports UTF-8 when parsing bytes. This might change in the
+future, but for now that's the target case. You can always decode your
+data to a string, and handle the character set decoding using Java's
+standard tools.
 
-The library is still very immature so I'm sure there are some bugs. No
-liability or warranty is implied or granted. This project was
-initially intended as a proof-of-concept for the underlying design.
+Jawn's AST is intended to be a proof of concept of a very lightweight
+AST. It lacks most of the fancy operators and DSLs of other libraries.
 
 ### Copyright and License
 
