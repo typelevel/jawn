@@ -1,6 +1,7 @@
 package jawn
 package support.argonaut
 
+import scala.collection.mutable
 import argonaut._
 
 object Parser extends SupportParser[Json] {
@@ -22,10 +23,10 @@ object Parser extends SupportParser[Json] {
       }
 
       def arrayContext() = new FContext[Json] {
-        var vs = List.empty[Json]
-        def add(s: String) { vs = jstring(s) :: vs }
-        def add(v: Json) { vs = v :: vs }
-        def finish: Json = Json.jArray(vs)
+        val vs = mutable.ListBuffer.empty[Json]
+        def add(s: String) { vs += jstring(s) }
+        def add(v: Json) { vs += v }
+        def finish: Json = Json.jArray(vs.toList)
         def isObj: Boolean = false
       }
 

@@ -1,6 +1,7 @@
 package jawn
 package support.play
 
+import scala.collection.mutable
 import play.api.libs.json._
 
 object Parser extends SupportParser[JsValue] {
@@ -25,10 +26,10 @@ object Parser extends SupportParser[JsValue] {
 
       def arrayContext() =
         new FContext[JsValue] {
-          var vs = List.empty[JsValue]
-          def add(s: String) { vs = jstring(s) :: vs }
-          def add(v: JsValue) { vs = v :: vs }
-          def finish: JsValue = JsArray(vs)
+          val vs = mutable.ListBuffer.empty[JsValue]
+          def add(s: String) { vs += jstring(s) }
+          def add(v: JsValue) { vs += v }
+          def finish: JsValue = JsArray(vs.toList)
           def isObj: Boolean = false
         }
 

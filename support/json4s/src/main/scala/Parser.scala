@@ -1,6 +1,7 @@
 package jawn
 package support.json4s
 
+import scala.collection.mutable
 import org.json4s._
 
 object Parser extends SupportParser[JValue] {
@@ -25,10 +26,10 @@ object Parser extends SupportParser[JValue] {
 
       def arrayContext() =
         new FContext[JValue] {
-          var vs = List.empty[JValue]
-          def add(s: String) { vs = jstring(s) :: vs }
-          def add(v: JValue) { vs = v :: vs }
-          def finish: JValue = JArray(vs)
+          val vs = mutable.ListBuffer.empty[JValue]
+          def add(s: String) { vs += jstring(s) }
+          def add(v: JValue) { vs += v }
+          def finish: JValue = JArray(vs.toList)
           def isObj: Boolean = false
         }
 

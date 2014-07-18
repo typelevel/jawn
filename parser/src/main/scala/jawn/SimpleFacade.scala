@@ -1,5 +1,7 @@
 package jawn
 
+import scala.collection.mutable
+
 /**
  * Facade is a type class that describes how Jawn should construct
  * JSON AST elements of type J.
@@ -20,10 +22,10 @@ trait SimpleFacade[J] extends Facade[J] {
   }
 
   def arrayContext() = new FContext[J] {
-    var vs = List.empty[J]
-    def add(s: String) { vs = jstring(s) :: vs }
-    def add(v: J) { vs = v :: vs }
-    def finish: J = jarray(vs)
+    val vs = mutable.ListBuffer.empty[J]
+    def add(s: String) { vs += jstring(s) }
+    def add(v: J) { vs += v }
+    def finish: J = jarray(vs.toList)
     def isObj: Boolean = false
   }
 
