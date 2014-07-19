@@ -71,6 +71,12 @@ object AdHocBenchmarks {
     com.rojoma.json.io.JsonReader.fromEvents(events)
   }
 
+  def rojomaV3Parse(path: String) = {
+    val file = new java.io.File(path)
+    val r = new java.io.FileReader(file)
+    com.rojoma.json.v3.io.JsonReader.fromReader(r, blockSize = 100000)
+  }
+
   def argonautParse(path: String) = {
     val file = new java.io.File(path)
     val bytes = new Array[Byte](file.length.toInt)
@@ -146,6 +152,11 @@ object AdHocBenchmarks {
     jawn.support.rojoma.Parser.parseFromFile(file).get
   }
 
+  def rojomaV3JawnParse(path: String) = {
+    val file = new java.io.File(path)
+    jawn.support.rojoma.v3.Parser.parseFromFile(file).get
+  }
+
   def gsonParse(path: String) = {
     val p = new com.google.gson.JsonParser()
     val r = new java.io.BufferedReader(new java.io.FileReader(path))
@@ -212,6 +223,8 @@ object AdHocBenchmarks {
       run("rojoma", path)(rojomaParse)
       run("rojoma-fast", path)(rojomaFastParse)
       run("rojoma-jawn", path)(rojomaJawnParse)
+      run("rojoma-v3", path)(rojomaV3Parse)
+      run("rojoma-v3-jawn", path)(rojomaV3JawnParse)
       // run("argonaut", path)(argonautParse)
       // run("argonaut-jawn", path)(argonautJawnParse)
       // run("spray", path)(sprayParse)
