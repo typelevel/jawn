@@ -8,8 +8,8 @@ object Parser extends SupportParser[JValue] {
   implicit val facade: Facade[JValue] =
     new MutableFacade[JValue] {
       def jnull() = JNull
-      def jfalse() = JBoolean(false)
-      def jtrue() = JBoolean(true)
+      def jfalse() = JBoolean.canonicalFalse
+      def jtrue() = JBoolean.canonicalTrue
       def jnum(s: String) = JNumber(BigDecimal(s))
       def jint(s: String) = JNumber(BigDecimal(s))
       def jstring(s: String) = JString(s)
