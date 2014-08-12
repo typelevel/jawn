@@ -68,11 +68,14 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
           case 'r' => { sb.append('\r'); j += 2 }
           case 't' => { sb.append('\t'); j += 2 }
 
+          case '"' => { sb.append('"'); j += 2 }
+          case '/' => { sb.append('/'); j += 2 }
+          case '\\' => { sb.append('\\'); j += 2 }
+
           // if there's a problem then descape will explode
           case 'u' => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
 
-          // permissive: let any escaped char through, not just ", / and \
-          case c2 => { sb.append(c2); j += 2 }
+          case _ => die(j, "illegal escape sequence")
         }
       } else if (isHighSurrogate(c)) {
         // this case dodges the situation where we might incorrectly parse the

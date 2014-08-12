@@ -29,6 +29,7 @@ trait ByteBasedParser[J] extends Parser[J] {
     var j = i
     var c = byte(j)
     while (c != 34) {
+      if (c < 32) die(j, "control char (%d) in string" format c.toInt)
       if (c == 92) return -1
       j += 1
       c = byte(j)
@@ -65,11 +66,14 @@ trait ByteBasedParser[J] extends Parser[J] {
           case 114 => { sb.append('\r'); j += 2 }
           case 116 => { sb.append('\t'); j += 2 }
 
+          case 34 => { sb.append('"'); j += 2 }
+          case 47 => { sb.append('/'); j += 2 }
+          case 92 => { sb.append('\\'); j += 2 }
+
           // if there's a problem then descape will explode
           case 117 => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
 
-          // permissive: let any escaped char through, not just ", / and \
-          case c2 => { sb.append(c2.toChar); j += 2 }
+          case _ => die(j, "invalid escape sequence")
         }
       } else if (c < 128) {
         // 1-byte UTF-8 sequence

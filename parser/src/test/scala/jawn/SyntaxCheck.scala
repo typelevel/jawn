@@ -9,7 +9,7 @@ import org.scalacheck._
 import Gen._
 import Arbitrary.arbitrary
 
-import scala.util.Success
+import scala.util.{Try, Success, Failure}
 
 class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
 
@@ -60,9 +60,34 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
   implicit lazy val arbJValue: Arbitrary[J] =
     Arbitrary(jvalue(0))
 
-  property("syntax-checking") {
-    forAll { j: J =>
-      Parser.parseFromString(j.build)(NullFacade) shouldBe Success(())
-    }
+  import java.nio.ByteBuffer
+  println()
+
+  def isValidSyntax(s: String): Boolean = {
+    val r1 = Parser.parseFromString(s)(NullFacade).isSuccess
+    val bb = ByteBuffer.wrap(s.getBytes("UTF-8"))
+    val r2 = Parser.parseFromByteBuffer(bb)(NullFacade).isSuccess
+    if (r1 == r2) r1 else sys.error(s"String/ByteBuffer parsing disagree($r1, $r2): $s")
   }
+
+  property("syntax-checking") {
+    forAll { j: J => isValidSyntax(j.build) shouldBe true }
+  }
+
+  def qs(s: String): String = "\"" + s + "\""
+
+  property("literal TAB is invalid") { isValidSyntax(qs("\t")) shouldBe false }
+  property("literal NL is invalid") { isValidSyntax(qs("\n")) shouldBe false }
+  property("literal CR is invalid") { isValidSyntax(qs("\r")) shouldBe false }
+  property("literal NUL is invalid") { isValidSyntax(qs("\u0000")) shouldBe false }
+
+  property("literal BS TAB is invalid") { isValidSyntax(qs("\\\t")) shouldBe false }
+  property("literal BS NL is invalid") { isValidSyntax(qs("\\\n")) shouldBe false }
+  property("literal BS CR is invalid") { isValidSyntax(qs("\\\r")) shouldBe false }
+  property("literal BS NUL is invalid") { isValidSyntax(qs("\\\u0000")) shouldBe false }
+  property("literal BS ZERO is invalid") { isValidSyntax(qs("\\0")) shouldBe false }
+  property("literal BS X is invalid") { isValidSyntax(qs("\\x")) shouldBe false }
+
+  property("0e is invalid") { isValidSyntax("0e") shouldBe false }
+
 }
