@@ -5,7 +5,7 @@ object JawnBuild extends Build {
 
   override lazy val settings = super.settings ++ Seq(
     organization := "org.jsawn",
-    version := "0.5.4",
+    version := "0.5.5",
 
     scalaVersion := "2.10.4",
     crossScalaVersions := Seq("2.10.4", "2.11.1"),
