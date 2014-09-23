@@ -12,6 +12,8 @@ object JawnBuild extends Build {
     scalaVersion := "2.10.4",
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
 
+    homepage := Some(url("http://github.com/non/jawn/")),
+
     scalacOptions ++= Seq(
       "-Yinline-warnings",
       "-deprecation",
