@@ -34,14 +34,11 @@ Jawn supports Scala 2.10 and 2.11. Here's a `build.sbt` snippet that
 shows you how to depend on Jawn for your project:
 
 ```scala
-// required for all uses
-resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
-
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.jsawn" %% "jawn-parser" % "0.5.5"
+libraryDependencies += "org.jsawn" %% "jawn-parser" % "0.6.0"
 
 // use this if you want to use jawn's parser and ast
-libraryDependencies += "org.jsawn" %% "jawn-ast" % "0.5.5"
+libraryDependencies += "org.jsawn" %% "jawn-ast" % "0.6.0"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -49,9 +46,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
-
-libraryDependencies += "org.jsawn" %% "support-spray" % "0.5.5"
+libraryDependencies += "org.jsawn" %% "support-spray" % "0.6.0"
 ```
 
 There are a few reasons you might want to do this:
@@ -107,12 +102,13 @@ arbitrary data type.
 
 ### Supporting external ASTs with Jawn
 
-Jawn currently supports five external ASTs directly:
+Jawn currently supports six external ASTs directly:
 
  * Argonaut (6.0.4)
  * Json4s (3.2.10)
  * Play (2.3.0)
  * Rojoma (2.4.3)
+ * Rojoma-v3 (3.0.0)
  * Spray (1.2.6)
 
 Each of these subprojects provides a `Parser` object (an instance of
@@ -131,14 +127,12 @@ Parser.parseFromByteBuffer(ByteBuffer) → Try[J]
 These methods parallel those provided by `jawn.Parser`.
 
 For the following snippets, `XYZ` is one of (`argonaut`, `json4s`,
-`play`, `rojoma`, or `spray`):
+`play`, `rojoma`, `rojoma-v3` or `spray`):
 
 This is how you would include the subproject in build.sbt:
 
 ```scala
-resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
-
-libraryDependencies += "org.jsawn" %% "XYZ-support" % "0.5.5"
+libraryDependencies += "org.jsawn" %% "XYZ-support" % "0.6.0"
 ```
 
 This is an example of how you might use the parser into your code:
@@ -160,9 +154,7 @@ To include Jawn's parser in your project, add the following
 snippet to your `build.sbt` file:
 
 ```scala
-resolvers += "bintray/non" at "http://dl.bintray.com/non/maven"
-
-libraryDependencies += "jawn" %% "jawn-parser" % "0.5.5"
+libraryDependencies += "jawn" %% "jawn-parser" % "0.6.0"
 ```
 
 To support your AST of choice, you'll want to define a
