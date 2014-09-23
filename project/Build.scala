@@ -1,14 +1,16 @@
 import sbt._
 import sbt.Keys._
 
+import org.typelevel.sbt.Developer
+import org.typelevel.sbt.TypelevelPlugin._
+
 object JawnBuild extends Build {
 
-  override lazy val settings = super.settings ++ Seq(
-    organization := "org.jsawn",
-    version := "0.5.5",
+  lazy val standardSettings = Seq(
+    organization := "org.spire-math",
 
     scalaVersion := "2.10.4",
-    crossScalaVersions := Seq("2.10.4", "2.11.1"),
+    crossScalaVersions := Seq("2.10.4", "2.11.2"),
 
     scalacOptions ++= Seq(
       "-Yinline-warnings",
@@ -19,63 +21,72 @@ object JawnBuild extends Build {
 
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
 
-    resolvers ++= Seq(
-      "mth.io snapshots" at "http://repo.mth.io/snapshots",
-      "mth.io releases" at "http://repo.mth.io/releases",
-      "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
-      "releases"  at "http://oss.sonatype.org/content/repositories/releases",
-      "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"
-    )
+    resolvers += Resolver.sonatypeRepo("releases")
+  ) ++ typelevelDefaultSettings ++ Seq(
+    TypelevelKeys.signArtifacts := true,
+    TypelevelKeys.githubDevs += Developer("Erik Osheim", "non"),
+    TypelevelKeys.githubProject := ("non", "jawn")
   )
 
   lazy val noPublish = Seq(
     publish := (),
     publishLocal := (),
-    publishArtifact := false)
+    publishArtifact := false
+  )
 
-  lazy val testDeps =
-    libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "2.1.6" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.11.4" % "test"
+  lazy val testDeps = Seq(
+    "org.scalatest" %% "scalatest" % "2.1.6" % "test",
+    "org.scalacheck" %% "scalacheck" % "1.11.4" % "test"
+  )
+
+  lazy val parser = Project(
+    id = "parser",
+    base = file("parser"),
+    settings = standardSettings ++ Seq(
+      libraryDependencies ++= testDeps
     )
+  )
 
-  lazy val parser = Project("parser", file("parser")).
-    settings(testDeps)
+  lazy val ast = Project(
+    id = "ast",
+    base = file("ast"),
+    settings = standardSettings ++ Seq(
+      libraryDependencies ++= testDeps
+    ),
+    dependencies = Seq(parser)
+  )
 
-  lazy val ast = Project("ast", file("ast")).
-    settings(testDeps).
-    dependsOn(parser)
+  def support(name: String) = Project(
+    id = name,
+    base = file(s"support/$name"),
+    settings = standardSettings ++ Seq(
+      libraryDependencies ++= testDeps
+    ),
+    dependencies = Seq(parser)
+  )
 
-  lazy val supportArgonaut = Project("support-argonaut", file("support/argonaut")).
-    settings(testDeps).
-    dependsOn(parser)
+  lazy val supportArgonaut = support("argonaut")
+  lazy val supportJson4s = support("json4s")
+  lazy val supportPlay = support("play")
+  lazy val supportRojoma = support("rojoma")
+  lazy val supportRojomaV3 = support("rojoma-v3")
+  lazy val supportSpray = support("spray")
 
-  lazy val supportJson4s = Project("support-json4s", file("support/json4s")).
-    settings(testDeps).
-    dependsOn(parser)
+  lazy val all =
+    Seq(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportRojomaV3, supportSpray)
 
-  lazy val supportPlay = Project("support-play", file("support/play")).
-    settings(testDeps).
-    dependsOn(parser)
+  lazy val benchmark = Project(
+    id = "benchmark",
+    base = file("benchmark"),
+    settings = standardSettings ++ noPublish,
+    dependencies = all.map(Project.classpathDependency[Project])
+  )
 
-  lazy val supportRojoma = Project("support-rojoma", file("support/rojoma")).
-    settings(testDeps).
-    dependsOn(parser)
+  lazy val root = Project(
+    id = "jawn",
+    base = file("."),
+    settings = standardSettings ++ noPublish,
+    aggregate = all.map(Project.projectToRef)
+  )
 
-  lazy val supportRojomaV3 = Project("support-rojoma-v3", file("support/rojoma-v3")).
-    settings(testDeps).
-    dependsOn(parser)
-
-  lazy val supportSpray = Project("support-spray", file("support/spray")).
-    settings(testDeps).
-    dependsOn(parser)
-
-  lazy val benchmark = Project("benchmark", file("benchmark")).
-    settings(noPublish: _*).
-    dependsOn(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportRojomaV3, supportSpray)
-
-
-  lazy val root = Project("jawn", file(".")).
-    settings(noPublish: _*).
-    aggregate(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportSpray)
 }
