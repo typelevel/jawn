@@ -10,7 +10,7 @@ object JawnBuild extends Build {
     organization := "org.spire-math",
 
     scalaVersion := "2.10.4",
-    crossScalaVersions := Seq("2.10.4", "2.11.1"),
+    crossScalaVersions := Seq("2.10.4", "2.11.2"),
 
     scalacOptions ++= Seq(
       "-Yinline-warnings",
