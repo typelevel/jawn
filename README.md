@@ -35,10 +35,10 @@ shows you how to depend on Jawn for your project:
 
 ```scala
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.jsawn" %% "jawn-parser" % "0.6.0"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.6.0"
 
 // use this if you want to use jawn's parser and ast
-libraryDependencies += "org.jsawn" %% "jawn-ast" % "0.6.0"
+libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.6.0"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -46,7 +46,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.jsawn" %% "support-spray" % "0.6.0"
+libraryDependencies += "org.spire-math" %% "spray-support" % "0.6.0"
 ```
 
 There are a few reasons you might want to do this:
