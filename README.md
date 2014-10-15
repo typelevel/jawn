@@ -132,7 +132,7 @@ For the following snippets, `XYZ` is one of (`argonaut`, `json4s`,
 This is how you would include the subproject in build.sbt:
 
 ```scala
-libraryDependencies += "org.jsawn" %% "XYZ-support" % "0.6.0"
+libraryDependencies += "org.spire-math" %% "XYZ-support" % "0.6.0"
 ```
 
 This is an example of how you might use the parser into your code:
@@ -154,7 +154,7 @@ To include Jawn's parser in your project, add the following
 snippet to your `build.sbt` file:
 
 ```scala
-libraryDependencies += "jawn" %% "jawn-parser" % "0.6.0"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.6.0"
 ```
 
 To support your AST of choice, you'll want to define a
