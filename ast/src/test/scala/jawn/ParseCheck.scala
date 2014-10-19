@@ -139,4 +139,10 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
       parseSegments(AsyncParser[JValue](UnwrapArray), segments) shouldBe vs
     }
   }
+
+  property("unicode string round-trip") {
+    forAll { (s: String) =>
+      JParser.parseFromString(JString(s).render(FastRenderer)) shouldBe Success(JString(s))
+    }
+  }
 }

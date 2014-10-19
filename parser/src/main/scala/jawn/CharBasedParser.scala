@@ -1,7 +1,6 @@
 package jawn
 
 import scala.annotation.{switch, tailrec}
-import java.lang.Character.isHighSurrogate
 
 /**
  * Trait used when the data to be parsed is in UTF-16.
@@ -10,8 +9,7 @@ import java.lang.Character.isHighSurrogate
  * fast/slow paths for string parsing depending on whether any escapes
  * are present.
  * 
- * It is simpler than ByteBasedParser, although it still has to go to
- * some trouble to avoid breaking UTF-16's surrogate pairs.
+ * It is simpler than ByteBasedParser.
  */
 private[jawn] trait CharBasedParser[J] extends Parser[J] {
 
@@ -20,11 +18,7 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
    * end of the string. If so, bail out and return -1.
    *
    * This method expects the data to be in UTF-16 and accesses it as
-   * chars.  In a few cases we might bail out incorrectly (by reading
-   * the second-half of a surrogate pair as \\) but for now the belief
-   * is that avoiding this case would actually be more expensive.
-   * So... in those cases we'll fall back to the slower (correct)
-   * UTF-16 parsing.
+   * chars.
    */
   protected[this] final def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
     var j = i
@@ -77,14 +71,12 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
 
           case _ => die(j, "illegal escape sequence")
         }
-      } else if (isHighSurrogate(c)) {
-        // this case dodges the situation where we might incorrectly parse the
-        // second Char of a unicode code point.
-        sb.append(c)
-        sb.append(at(j + 1))
-        j += 2
       } else {
         // this case is for "normal" code points that are just one Char.
+        //
+        // we don't have to worry about surrogate pairs, since those
+        // will all be in the ranges D800–DBFF (high surrogates) or
+        // DC00–DFFF (low surrogates).
         sb.append(c)
         j += 1
       }
