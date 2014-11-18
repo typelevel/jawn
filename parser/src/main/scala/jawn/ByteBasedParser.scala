@@ -27,12 +27,12 @@ trait ByteBasedParser[J] extends Parser[J] {
    */
   protected[this] final def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
     var j = i
-    var c = byte(j)
+    var c: Int = byte(j) & 0xff
     while (c != 34) {
-      if (c < 32) die(j, "control char (%d) in string" format c.toInt)
+      if (c < 32) die(j, "control char (%d) in string" format c)
       if (c == 92) return -1
       j += 1
-      c = byte(j)
+      c = byte(j) & 0xff
     }
     j + 1
   }
@@ -56,7 +56,7 @@ trait ByteBasedParser[J] extends Parser[J] {
     var j = i + 1
     val sb = new CharBuilder
       
-    var c = byte(j)
+    var c: Int = byte(j) & 0xff
     while (c != 34) { // "
       if (c == 92) { // \
         (byte(j + 1): @switch) match {
@@ -75,6 +75,8 @@ trait ByteBasedParser[J] extends Parser[J] {
 
           case _ => die(j, "invalid escape sequence")
         }
+      } else if (c < 32) {
+        die(j, "control char (%d) in string" format c)
       } else if (c < 128) {
         // 1-byte UTF-8 sequence
         sb.append(c.toChar)
@@ -94,7 +96,7 @@ trait ByteBasedParser[J] extends Parser[J] {
       } else {
         die(j, "invalid UTF-8 encoding")
       }
-      c = byte(j)
+      c = byte(j) & 0xff
     }
     ctxt.add(sb.makeString)
     j + 1

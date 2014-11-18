@@ -76,6 +76,12 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
 
   def qs(s: String): String = "\"" + s + "\""
 
+  property("unicode is ok") {
+    isValidSyntax(qs("ö")) shouldBe true
+    isValidSyntax(qs("ö\\\\")) shouldBe true
+    isValidSyntax(qs("\\\\ö")) shouldBe true
+  }
+
   property("literal TAB is invalid") { isValidSyntax(qs("\t")) shouldBe false }
   property("literal NL is invalid") { isValidSyntax(qs("\n")) shouldBe false }
   property("literal CR is invalid") { isValidSyntax(qs("\r")) shouldBe false }
