@@ -105,11 +105,11 @@ arbitrary data type.
 Jawn currently supports six external ASTs directly:
 
  * Argonaut (6.0.4)
- * Json4s (3.2.10)
- * Play (2.3.0)
+ * Json4s (3.2.11)
+ * Play (2.3.6)
  * Rojoma (2.4.3)
- * Rojoma-v3 (3.0.0)
- * Spray (1.2.6)
+ * Rojoma-v3 (3.2.1)
+ * Spray (1.3.1)
 
 Each of these subprojects provides a `Parser` object (an instance of
 `SupportParser[J]`) that is parameterized on the given project's
