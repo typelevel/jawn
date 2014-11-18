@@ -12,7 +12,7 @@ object Parser extends SupportParser[JsValue] {
       def jnum(s: String) = JsNumber(s)
       def jint(s: String) = JsNumber(s)
       def jstring(s: String) = JsString(s)
-      def jarray(vs: List[JsValue]) = JsArray(vs)
+      def jarray(vs: List[JsValue]) = JsArray(vs: _*)
       def jobject(vs: Map[String, JsValue]) = JsObject(vs)
     }
 }
