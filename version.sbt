@@ -4,4 +4,4 @@ import org.typelevel.sbt.Version._
 
 TypelevelKeys.series in ThisBuild := ReleaseSeries(0,7)
 
-TypelevelKeys.relativeVersion in ThisBuild := Relative(0,Snapshot)
+TypelevelKeys.relativeVersion in ThisBuild := Relative(1,Snapshot)
