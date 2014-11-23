@@ -12,7 +12,7 @@ import Arbitrary.arbitrary
 import scala.collection.mutable
 import scala.util.{Try, Success}
 
-class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
+class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   // in theory we could test larger number values than longs, but meh?
   // we need to exclude nan, +inf, and -inf from our doubles
@@ -81,6 +81,7 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
       val value2 = JParser.parseFromString(json1).get
       val json2 = CanonicalRenderer.render(value2)
       json2 shouldBe json1
+      json2.## shouldBe json1.##
     }
   }
 
@@ -92,6 +93,7 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
       val json2 = CanonicalRenderer.render(jstr2)
       jstr2 shouldBe jstr1
       json2 shouldBe json1
+      json2.## shouldBe json1.##
     }
   }
 
@@ -143,6 +145,14 @@ class ParseCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChec
   property("unicode string round-trip") {
     forAll { (s: String) =>
       JParser.parseFromString(JString(s).render(FastRenderer)) shouldBe Success(JString(s))
+    }
+  }
+
+  property("if x == y, then x.## == y.##") {
+    forAll { (x: JValue, y: JValue) =>
+      if (x == y) {
+        x.## shouldBe y.##
+      }
     }
   }
 }

@@ -2,8 +2,7 @@ package jawn
 package ast
 
 import scala.collection.mutable
-import scala.annotation.switch
-import scala.util.Sorting
+import scala.util.hashing.MurmurHash3
 
 import spire.algebra.{BooleanAlgebra, Field, IsReal, Monoid, NRoot, Order}
 import spire.std.double._
@@ -37,43 +36,50 @@ case class JString(s: String) extends JAtom {
 }
 
 sealed trait JNum extends JAtom {
-  def toDouble: Double = this match {
-    case LongNum(n) => n.toDouble
-    case DoubleNum(n) => n
-    case DeferNum(s) => s.toDouble
-  }
+  def toDouble: Double
 }
 
 case class LongNum(n: Long) extends JNum {
+  def toDouble: Double = n.toDouble
+  override def hashCode: Int = n.##
   override def equals(that: Any): Boolean =
     that match {
       case LongNum(n2) => n == n2
       case DoubleNum(n2) => n == n2
       case DeferNum(s) => n.toString == s
+      case _ => false
     }
 }
 
 case class DoubleNum(n: Double) extends JNum {
+  def toDouble: Double = n
+  override def hashCode: Int = n.##
   override def equals(that: Any): Boolean =
     that match {
       case LongNum(n2) => n == n2
       case DoubleNum(n2) => n == n2
       case DeferNum(s) => n.toString == s
+      case _ => false
     }
 }
 
 case class DeferNum(s: String) extends JNum {
+  lazy val toDouble: Double = s.toDouble
+  override def hashCode: Int = toDouble.##
   override def equals(that: Any): Boolean =
     that match {
       case LongNum(n2) => s == n2.toString
       case DoubleNum(n2) => s == n2.toString
       case DeferNum(s2) => s == s2
+      case _ => false
     }
 }
 
 case class JArray(vs: Array[JValue]) extends JContainer {
   def get(i: Int): JValue =
     if (0 <= i && i < vs.length) vs(i) else JNull
+
+  override def hashCode: Int = MurmurHash3.arrayHash(vs)
 
   override def equals(that: Any): Boolean =
     that match {
