@@ -225,6 +225,7 @@ final class AsyncParser[J] protected[jawn] (
           results.append(value)
         }
       }
+      Right(results)
     } catch {
       case e: AsyncException =>
         // we ran out of data, so return what we have so far
@@ -234,7 +235,6 @@ final class AsyncParser[J] protected[jawn] (
         // we hit a parser error, so return that error and results so far
         Left(e)
     }
-    Right(results)
   }
 
   // every 1M we shift our array back by 1M.
