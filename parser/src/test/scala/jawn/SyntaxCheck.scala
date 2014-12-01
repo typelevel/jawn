@@ -68,6 +68,10 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
     val bb = ByteBuffer.wrap(s.getBytes("UTF-8"))
     val r2 = Parser.parseFromByteBuffer(bb)(NullFacade).isSuccess
     if (r1 == r2) r1 else sys.error(s"String/ByteBuffer parsing disagree($r1, $r2): $s")
+
+    val async = AsyncParser[Unit](AsyncParser.SingleValue)
+    val r3 = async.absorb(s)(NullFacade).isRight && async.finish()(NullFacade).isRight
+    if (r1 == r3) r1 else sys.error(s"Sync/Async parsing disagree($r1, $r3): $s")
   }
 
   property("syntax-checking") {
@@ -95,5 +99,5 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
   property("literal BS X is invalid") { isValidSyntax(qs("\\x")) shouldBe false }
 
   property("0e is invalid") { isValidSyntax("0e") shouldBe false }
-
+  property("123e is invalid") { isValidSyntax("123e") shouldBe false }
 }
