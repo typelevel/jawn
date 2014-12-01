@@ -228,8 +228,14 @@ final class AsyncParser[J] protected[jawn] (
       Right(results)
     } catch {
       case e: AsyncException =>
-        // we ran out of data, so return what we have so far
-        Right(results)
+        if (done) {
+          // if we are done, make sure we ended at a good stopping point
+          if (state == ASYNC_PREVAL || state == ASYNC_END) Right(results)
+          else Left(ParseException("exhausted input", -1, -1, -1))
+        } else {
+          // we ran out of data, so return what we have so far
+          Right(results)
+        }
 
       case e: ParseException =>
         // we hit a parser error, so return that error and results so far
