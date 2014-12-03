@@ -155,4 +155,25 @@ class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks
       }
     }
   }
+
+  property("ignore trailing zeros") {
+    forAll { (n: Int) =>
+      val s = n.toString
+      val n1 = LongNum(n)
+      val n2 = DoubleNum(n)
+      val n3 = DeferNum(s + ".00")
+
+      def check(j: JValue) {
+        j shouldBe n1; n1 shouldBe j
+        j shouldBe n2; n2 shouldBe j
+      }
+
+      check(DeferNum(s))
+      check(DeferNum(s + ".0"))
+      check(DeferNum(s + ".00"))
+      check(DeferNum(s + ".000"))
+      check(DeferNum(s + "e0"))
+      check(DeferNum(s + ".0e0"))
+    }
+  }
 }

@@ -46,7 +46,7 @@ case class LongNum(n: Long) extends JNum {
     that match {
       case LongNum(n2) => n == n2
       case DoubleNum(n2) => n == n2
-      case DeferNum(s) => n.toString == s
+      case j: DeferNum => n == j.toDouble
       case _ => false
     }
 }
@@ -58,7 +58,7 @@ case class DoubleNum(n: Double) extends JNum {
     that match {
       case LongNum(n2) => n == n2
       case DoubleNum(n2) => n == n2
-      case DeferNum(s) => n.toString == s
+      case j: DeferNum => n == j.toDouble
       case _ => false
     }
 }
@@ -68,9 +68,7 @@ case class DeferNum(s: String) extends JNum {
   override def hashCode: Int = toDouble.##
   override def equals(that: Any): Boolean =
     that match {
-      case LongNum(n2) => s == n2.toString
-      case DoubleNum(n2) => s == n2.toString
-      case DeferNum(s2) => s == s2
+      case rhs: JNum => toDouble == rhs.toDouble
       case _ => false
     }
 }
