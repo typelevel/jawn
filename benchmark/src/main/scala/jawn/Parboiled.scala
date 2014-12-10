@@ -18,7 +18,7 @@ package jawn.benchmark
 
 import scala.annotation.switch
 import org.parboiled2._
-import spray.json._
+import spray.json.{ParserInput => _, _}
 
 /**
  * This is a feature-complete JSON parser implementation that almost directly
