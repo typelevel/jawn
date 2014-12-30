@@ -10,8 +10,8 @@ object Parser extends SupportParser[Json] {
       def jnull() = Json.jNull
       def jfalse() = Json.jFalse
       def jtrue() = Json.jTrue
-      def jnum(s: String) = Json.jNumber(java.lang.Double.parseDouble(s))
-      def jint(s: String) = Json.jNumber(java.lang.Double.parseDouble(s))
+      def jnum(s: String) = Json.jNumberOrNull(java.lang.Double.parseDouble(s))
+      def jint(s: String) = Json.jNumberOrNull(java.lang.Double.parseDouble(s))
       def jstring(s: String) = Json.jString(s)
 
       def singleContext() = new FContext[Json] {
