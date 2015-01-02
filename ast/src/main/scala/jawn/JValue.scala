@@ -4,7 +4,7 @@ package ast
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
 
-import spire.algebra.{BooleanAlgebra, Field, IsReal, Monoid, NRoot, Order}
+import spire.algebra.{Bool, Field, IsReal, Monoid, NRoot, Order}
 import spire.std.double._
 import spire.syntax.field._
 import spire.syntax.isReal._
@@ -137,7 +137,7 @@ object JBool {
 
   def apply(b: Boolean): JBool = if (b) JTrue else JFalse
 
-  implicit val booleanAlgebra = new BooleanAlgebra[JBool] {
+  implicit val booleanAlgebra = new Bool[JBool] {
     def zero: JBool = JFalse
     def one: JBool = JTrue
     def and(x: JBool, y: JBool): JBool = JBool(x.toBoolean && y.toBoolean)
