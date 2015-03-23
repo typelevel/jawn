@@ -9,8 +9,8 @@ object JawnBuild extends Build {
   lazy val standardSettings = Seq(
     organization := "org.spire-math",
 
-    scalaVersion := "2.11.4",
-    crossScalaVersions := Seq("2.10.4", "2.11.4"),
+    scalaVersion := "2.11.6",
+    crossScalaVersions := Seq("2.10.5", "2.11.6"),
 
     homepage := Some(url("http://github.com/non/jawn/")),
 
@@ -37,8 +37,8 @@ object JawnBuild extends Build {
   )
 
   lazy val testDeps = Seq(
-    "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.11.6" % "test"
+    "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+    "org.scalacheck" %% "scalacheck" % "1.12.2" % "test"
   )
 
   lazy val parser = Project(
