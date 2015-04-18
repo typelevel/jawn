@@ -191,7 +191,7 @@ trait Parser[J] {
     while ('0' <= c && c <= '9') {
       j += 1
       if (atEof(j)) {
-        ctxt.add(facade.jnum(at(i, j)))
+        ctxt.add(facade.jint(at(i, j)))
         return j
       }
       c = at(j)
