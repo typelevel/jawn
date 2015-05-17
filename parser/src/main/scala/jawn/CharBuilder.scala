@@ -1,20 +1,22 @@
 package jawn
 
-// TODO: consider adding a reset() method and only instantiating one
-// of these things.
-
 /**
  * CharBuilder is a specialized way to build Strings.
- * 
+ *
  * It wraps a (growable) array of characters, and can accept
  * additional String or Char data to be added to its buffer.
  */
 private[jawn] final class CharBuilder {
-  @inline final def INITIALSIZE = 8
+  @inline final def INITIALSIZE = 32
 
   private var cs = new Array[Char](INITIALSIZE)
   private var capacity = INITIALSIZE
   private var len = 0
+
+  def reset(): CharBuilder = {
+    len = 0
+    this
+  }
 
   def makeString: String = new String(cs, 0, len)
 

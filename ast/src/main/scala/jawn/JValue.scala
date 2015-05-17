@@ -4,82 +4,228 @@ package ast
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
 
-import spire.algebra.{Bool, Field, IsReal, Monoid, NRoot, Order}
-import spire.std.double._
-import spire.syntax.field._
-import spire.syntax.isReal._
-import spire.syntax.nroot._
-import spire.syntax.order._
+class WrongValueException(e: String, g: String) extends Exception(s"expected $e, got $g")
 
-sealed trait JValue {
-  def isNull: Boolean = this == JNull
-  def orElse(v: JValue): JValue = if (this == JNull) v else this
+sealed abstract class JValue {
 
-  def render(r: Renderer): String = r.render(this)
-  override def toString: String = CanonicalRenderer.render(this)
+  def valueType: String
+
+  def getBoolean: Option[Boolean] = None
+  def getString: Option[String] = None
+  def getLong: Option[Long] = None
+  def getDouble: Option[Double] = None
+  def getBigInt: Option[BigInt] = None
+  def getBigDecimal: Option[BigDecimal] = None
+
+  def asBoolean: Boolean = throw new WrongValueException("boolean", valueType)
+  def asString: String = throw new WrongValueException("string", valueType)
+  def asLong: Long = throw new WrongValueException("number", valueType)
+  def asDouble: Double = throw new WrongValueException("number", valueType)
+  def asBigInt: BigInt = throw new WrongValueException("number", valueType)
+  def asBigDecimal: BigDecimal = throw new WrongValueException("number", valueType)
+
+  def get(i: Int): JValue = JNull
+  def set(i: Int, v: JValue): Unit = throw new WrongValueException("array", valueType)
+
+  def get(s: String): JValue = JNull
+  def set(s: String, v: JValue): Unit = throw new WrongValueException("object", valueType)
+  def remove(s: String): Option[JValue] = None
+
+  final def atomic: Option[JAtom] =
+    this match {
+      case v: JAtom => Some(v)
+      case _ => None
+    }
+
+  final def isNull: Boolean =
+    this == JNull
+
+  final def nonNull: Boolean =
+    this != JNull
+
+  final def render(): String =
+    CanonicalRenderer.render(this)
+
+  final def render(r: Renderer): String =
+    r.render(this)
+
+  override def toString: String =
+    CanonicalRenderer.render(this)
 }
 
-sealed trait JAtom extends JValue
-sealed trait JContainer extends JValue
+object JValue {
+  implicit val facade: Facade[JValue] = JawnFacade
+}
 
-case object JNull extends JAtom
+sealed abstract class JAtom extends JValue {
+  def fold[A](f1: String => A, f2: Double => A, f3: Boolean => A, f4: => A): A =
+    this match {
+      case JString(s) => f1(s)
+      case v: JNum => f2(v.asDouble)
+      case JTrue => f3(true)
+      case JFalse => f3(false)
+      case JNull => f4
+    }
+}
 
-sealed trait JBool extends JAtom {
-  def toBoolean: Boolean = this == JTrue
+case object JNull extends JAtom {
+  final def valueType: String = "null"
+}
+
+sealed abstract class JBool extends JAtom {
+  final def valueType: String = "boolean"
+  final override def getBoolean: Option[Boolean] = Some(this == JTrue)
+  final override def asBoolean: Boolean = this == JTrue
+}
+
+object JBool {
+  final val True: JBool = JTrue
+  final val False: JBool = JFalse
+
+  final def apply(b: Boolean): JBool = if (b) JTrue else JFalse
 }
 
 case object JTrue extends JBool
 case object JFalse extends JBool
 
 case class JString(s: String) extends JAtom {
-  def +(that: JString): JString = JString(this.s + that.s)
+  final def valueType: String = "string"
+  final override def getString: Option[String] = Some(s)
+  final override def asString: String = s
 }
 
-sealed trait JNum extends JAtom {
-  def toDouble: Double
+object JString {
+  final val empty = JString("")
+}
+
+sealed abstract class JNum extends JAtom {
+  final def valueType: String = "number"
+}
+
+object JNum { self =>
+  final def apply(n: Long): JNum = LongNum(n)
+  final def apply(n: Double): JNum = DoubleNum(n)
+  final def apply(s: String): JNum = DeferNum(s)
+
+  final def hybridEq(x: Long, y: Double): Boolean = {
+    val z = x.toDouble
+    y == z && z.toLong == x
+  }
+
+  final val zero: JNum = LongNum(0)
+  final val one: JNum = LongNum(1)
 }
 
 case class LongNum(n: Long) extends JNum {
-  def toDouble: Double = n.toDouble
-  override def hashCode: Int = n.##
-  override def equals(that: Any): Boolean =
+
+  final override def getLong: Option[Long] = Some(n)
+  final override def getDouble: Option[Double] = Some(n.toDouble)
+  final override def getBigInt: Option[BigInt] = Some(BigInt(n))
+  final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(n))
+
+  final override def asLong: Long = n
+  final override def asDouble: Double = n.toDouble
+  final override def asBigInt: BigInt = BigInt(n)
+  final override def asBigDecimal: BigDecimal = BigDecimal(n)
+
+  final override def hashCode: Int = n.##
+
+  final override def equals(that: Any): Boolean =
     that match {
       case LongNum(n2) => n == n2
-      case DoubleNum(n2) => n == n2
-      case j: DeferNum => n == j.toDouble
+      case DoubleNum(n2) => JNum.hybridEq(n, n2)
+      case jn: JNum => jn == this
       case _ => false
     }
 }
 
 case class DoubleNum(n: Double) extends JNum {
-  def toDouble: Double = n
-  override def hashCode: Int = n.##
-  override def equals(that: Any): Boolean =
+
+  final override def getLong: Option[Long] = Some(n.toLong)
+  final override def getDouble: Option[Double] = Some(n)
+  final override def getBigInt: Option[BigInt] = Some(BigDecimal(n).toBigInt)
+  final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(n))
+
+  final override def asLong: Long = n.toLong
+  final override def asDouble: Double = n
+  final override def asBigInt: BigInt = BigDecimal(n).toBigInt
+  final override def asBigDecimal: BigDecimal = BigDecimal(n)
+
+  final override def hashCode: Int = n.##
+
+  final override def equals(that: Any): Boolean =
+    that match {
+      case LongNum(n2) => JNum.hybridEq(n2, n)
+      case DoubleNum(n2) => n == n2
+      case jn: JNum => jn == this
+      case _ => false
+    }
+}
+
+case class DeferLong(s: String) extends JNum {
+
+  lazy val n: Long = java.lang.Long.parseLong(s)
+
+  final override def getLong: Option[Long] = Some(n)
+  final override def getDouble: Option[Double] = Some(n.toDouble)
+  final override def getBigInt: Option[BigInt] = Some(BigInt(s))
+  final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(s))
+
+  final override def asLong: Long = n
+  final override def asDouble: Double = n.toDouble
+  final override def asBigInt: BigInt = BigInt(s)
+  final override def asBigDecimal: BigDecimal = BigDecimal(s)
+
+  final override def hashCode: Int = n.##
+
+  final override def equals(that: Any): Boolean =
     that match {
       case LongNum(n2) => n == n2
-      case DoubleNum(n2) => n == n2
-      case j: DeferNum => n == j.toDouble
+      case DoubleNum(n2) => JNum.hybridEq(n, n2)
+      case jn: DeferLong => n == jn.asLong
+      case jn: DeferNum => JNum.hybridEq(n, jn.asDouble)
       case _ => false
     }
 }
 
 case class DeferNum(s: String) extends JNum {
-  lazy val toDouble: Double = s.toDouble
-  override def hashCode: Int = toDouble.##
-  override def equals(that: Any): Boolean =
+
+  lazy val n: Double = java.lang.Double.parseDouble(s)
+
+  final override def getLong: Option[Long] = Some(n.toLong)
+  final override def getDouble: Option[Double] = Some(n)
+  final override def getBigInt: Option[BigInt] = Some(BigDecimal(s).toBigInt)
+  final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(s))
+
+  final override def asLong: Long = n.toLong
+  final override def asDouble: Double = n
+  final override def asBigInt: BigInt = BigDecimal(s).toBigInt
+  final override def asBigDecimal: BigDecimal = BigDecimal(s)
+
+  final override def hashCode: Int = n.##
+
+  final override def equals(that: Any): Boolean =
     that match {
-      case rhs: JNum => toDouble == rhs.toDouble
+      case LongNum(n2) => JNum.hybridEq(n2, n)
+      case DoubleNum(n2) => n == n2
+      case jn: DeferLong => JNum.hybridEq(jn.asLong, n)
+      case jn: DeferNum => n == jn.asDouble
       case _ => false
     }
 }
 
-case class JArray(vs: Array[JValue]) extends JContainer {
-  def get(i: Int): JValue =
+case class JArray(vs: Array[JValue]) extends JValue {
+  final def valueType: String = "array"
+
+  final override def get(i: Int): JValue =
     if (0 <= i && i < vs.length) vs(i) else JNull
 
-  override def hashCode: Int = MurmurHash3.arrayHash(vs)
+  final override def set(i: Int, v: JValue): Unit =
+    vs(i) = v
 
-  override def equals(that: Any): Boolean =
+  final override def hashCode: Int = MurmurHash3.arrayHash(vs)
+
+  final override def equals(that: Any): Boolean =
     that match {
       case JArray(vs2) =>
         if (vs.length != vs2.length) return false
@@ -94,130 +240,31 @@ case class JArray(vs: Array[JValue]) extends JContainer {
     }
 }
 
-case class JObject(vs: mutable.Map[String, JValue]) extends JContainer {
-  def get(k: String): JValue = vs.getOrElse(k, JNull)
-}
-
-object JValue {
-  implicit val monoid = new Monoid[JValue] {
-    val id: JValue = JNull
-    def op(x: JValue, y: JValue): JValue = {
-      if (x == JNull || y == JNull) return JNull
-
-      x match {
-        case j1: JNum => y match {
-          case j2: JNum => DoubleNum(j1.toDouble + j2.toDouble)
-          case _ => JNull
-        }
-        case j1: JString => y match {
-          case j2: JString => j1 + j2
-          case _ => JNull
-        }
-        case j1: JBool => y match {
-          case j2: JBool => JBool(j1.toBoolean && j2.toBoolean)
-          case _ => JNull
-        }
-        case JArray(js1) => y match {
-          case JArray(js2) => JArray(js1 ++ js2)
-          case _ => JNull
-        }
-        case JObject(js1) => y match {
-          case JObject(js2) => JObject(js1 ++ js2)
-          case _ => JNull
-        }
-        case JNull => JNull
-      }
-    }
-  }
-}
-
-object JBool {
-  val True: JBool = JTrue
-  val False: JBool = JFalse
-
-  def apply(b: Boolean): JBool = if (b) JTrue else JFalse
-
-  implicit val booleanAlgebra = new Bool[JBool] {
-    def zero: JBool = JFalse
-    def one: JBool = JTrue
-    def and(x: JBool, y: JBool): JBool = JBool(x.toBoolean && y.toBoolean)
-    def complement(x: JBool): JBool = JBool(!x.toBoolean)
-    def or(x: JBool, y: JBool): JBool = JBool(x.toBoolean || y.toBoolean)
-  }
-
-  implicit val monoid = new Monoid[JBool] {
-    def id: JBool = JTrue
-    def op(x: JBool, y: JBool): JBool = JBool(x.toBoolean && y.toBoolean)
-  }
-}
-
-object JNum { self =>
-  def apply(n: Long): JNum = LongNum(n)
-  def apply(n: Double): JNum = DoubleNum(n)
-  def apply(s: String): JNum = DeferNum(s)
-
-  val zero: JNum = LongNum(0)
-  val one: JNum = LongNum(1)
-
-  implicit val algebra = new Field[JNum] with IsReal[JNum] with NRoot[JNum] with Order[JNum] {
-    def zero: JNum = self.zero
-    def one: JNum = self.one
-
-    def abs(x: JNum): JNum = DoubleNum(x.toDouble)
-    def compare(x: JNum, y: JNum): Int = x.toDouble compare y.toDouble
-    def signum(x: JNum): Int = x.toDouble.signum
-
-    def negate(x: JNum): JNum = DoubleNum(-x.toDouble)
-    override def reciprocal(x: JNum): JNum = DoubleNum(1.0 / x.toDouble)
-    def plus(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble + y.toDouble)
-    override def minus(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble - y.toDouble)
-    def times(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble * y.toDouble)
-    def div(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble / y.toDouble)
-    def mod(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble % y.toDouble)
-    def quot(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble /~ y.toDouble)
-    def gcd(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble gcd y.toDouble)
-
-    def ceil(x: JNum): JNum = DoubleNum(x.toDouble.ceil)
-    def floor(x: JNum): JNum = DoubleNum(x.toDouble.floor)
-    def round(x: JNum): JNum = DoubleNum(x.toDouble.round)
-    def isWhole(x: JNum): Boolean = x.toDouble.isWhole
-    def toDouble(x: JNum): Double = x.toDouble
-
-    def fpow(x: JNum, y: JNum): JNum = DoubleNum(x.toDouble fpow y.toDouble)
-    def nroot(x: JNum, k: Int): JNum = DoubleNum(x.toDouble nroot k)
-  }
-}
-
-object JString {
-
-  val empty = JString("")
-
-  implicit val monoid = new Monoid[JString] {
-    def id: JString = empty
-    def op(x: JString, y: JString): JString = x + y
-  }
-}
-
 object JArray { self =>
+  final def empty: JArray =
+    JArray(new Array[JValue](0))
 
-  val empty = JArray(new Array[JValue](0))
+  final def fromSeq(js: Seq[JValue]): JArray =
+    JArray(js.toArray)
+}
 
-  implicit val monoid = new Monoid[JArray] {
-    def id: JArray = self.empty
-    def op(x: JArray, y: JArray): JArray = JArray(x.vs ++ y.vs)
-  }
+case class JObject(vs: mutable.Map[String, JValue]) extends JValue {
+  final def valueType: String = "object"
 
-  def fromSeq(js: Seq[JValue]): JArray = JArray(js.toArray)
+  final override def get(k: String): JValue =
+    vs.getOrElse(k, JNull)
+
+  final override def set(k: String, v: JValue): Unit =
+    vs.put(k, v)
+
+  final override def remove(k: String): Option[JValue] =
+    vs.remove(k)
 }
 
 object JObject { self =>
+  final def empty: JObject =
+    JObject(mutable.Map.empty)
 
-  def empty = JObject(mutable.Map.empty)
-
-  implicit val monoid = new Monoid[JObject] {
-    def id: JObject = self.empty
-    def op(x: JObject, y: JObject): JObject = JObject(x.vs ++ y.vs)
-  }
-
-  def fromSeq(js: Seq[(String, JValue)]): JObject = JObject(mutable.Map(js: _*))
+  final def fromSeq(js: Seq[(String, JValue)]): JObject =
+    JObject(mutable.Map(js: _*))
 }

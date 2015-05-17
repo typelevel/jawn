@@ -2,7 +2,7 @@ package jawn
 
 /**
  * Basic in-memory string parsing.
- * 
+ *
  * This is probably the simplest Parser implementation, since there is
  * no UTF-8 decoding, and the data is already fully available.
  *

@@ -4,11 +4,11 @@ import scala.annotation.{switch, tailrec}
 
 /**
  * Trait used when the data to be parsed is in UTF-16.
- * 
+ *
  * This parser provides parseString(). Like ByteBasedParser it has
  * fast/slow paths for string parsing depending on whether any escapes
  * are present.
- * 
+ *
  * It is simpler than ByteBasedParser.
  */
 private[jawn] trait CharBasedParser[J] extends Parser[J] {
@@ -24,7 +24,7 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
     var j = i
     var c = at(j)
     while (c != '"') {
-      if (c < ' ') die(j, "control char (%d) in string" format c.toInt)
+      if (c < ' ') return die(j, s"control char (${c.toInt}) in string")
       if (c == '\\') return -1
       j += 1
       c = at(j)
@@ -33,27 +33,16 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
   }
 
   /**
-   * Parse the string according to JSON rules, and add to the given
-   * context.
-   *
-   * This method expects the data to be in UTF-16, and access it as
-   * Char. It performs the correct checks to make sure that we don't
-   * interpret a multi-char code point incorrectly.
+   * Parse a string that is known to have escape sequences.
    */
-  protected[this] final def parseString(i: Int, ctxt: FContext[J]): Int = {
-    val k = parseStringSimple(i + 1, ctxt)
-    if (k != -1) {
-      ctxt.add(at(i + 1, k - 1))
-      return k
-    }
-
+  protected[this] final def parseStringComplex(i: Int, ctxt: FContext[J]): Int = {
     var j = i + 1
-    val sb = new CharBuilder
-      
+    val sb = charBuilder.reset()
+
     var c = at(j)
     while (c != '"') {
       if (c < ' ') {
-        die(j, "control char in string")
+        die(j, s"control char (${c.toInt}) in string")
       } else if (c == '\\') {
         (at(j + 1): @switch) match {
           case 'b' => { sb.append('\b'); j += 2 }
@@ -69,7 +58,7 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
           // if there's a problem then descape will explode
           case 'u' => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
 
-          case _ => die(j, "illegal escape sequence")
+          case c => die(j, s"illegal escape sequence (\\$c)")
         }
       } else {
         // this case is for "normal" code points that are just one Char.
@@ -85,5 +74,23 @@ private[jawn] trait CharBasedParser[J] extends Parser[J] {
     }
     ctxt.add(sb.makeString)
     j + 1
+  }
+
+  /**
+   * Parse the string according to JSON rules, and add to the given
+   * context.
+   *
+   * This method expects the data to be in UTF-16, and access it as
+   * Char. It performs the correct checks to make sure that we don't
+   * interpret a multi-char code point incorrectly.
+   */
+  protected[this] final def parseString(i: Int, ctxt: FContext[J]): Int = {
+    val k = parseStringSimple(i + 1, ctxt)
+    if (k != -1) {
+      ctxt.add(at(i + 1, k - 1))
+      k
+    } else {
+      parseStringComplex(i, ctxt)
+    }
   }
 }

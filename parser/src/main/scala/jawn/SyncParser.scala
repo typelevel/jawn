@@ -5,13 +5,13 @@ import scala.collection.mutable
 
 /**
  * SyncParser extends Parser to do all parsing synchronously.
- * 
+ *
  * Most traditional JSON parser are synchronous, and expect to receive
  * all their input before returning. SyncParser[J] still leaves
- * Parser[J]'s methods abstract, but adds two public methods for users
+ * Parser[J]'s methods abstract, but adds a public methods for users
  * to call to actually parse JSON.
  */
-trait SyncParser[J] extends Parser[J] {
+abstract class SyncParser[J] extends Parser[J] {
 
   /**
    * Parse the JSON document into a single JSON value.

@@ -4,11 +4,11 @@ import scala.annotation.{switch, tailrec}
 
 /**
  * Trait used when the data to be parsed is in UTF-8.
- * 
+ *
  * This parser has to translate input bytes to Chars and Strings. It
  * provides a byte() method to access individual bytes, and also
  * parser strings from bytes.
- *  
+ *
  * Its parseString() implementation has two cases. In the first case
  * (the hot path) the string has no escape sequences and we can just
  * UTF-8 decode the entire set of bytes. In the second case, it goes
@@ -29,7 +29,7 @@ trait ByteBasedParser[J] extends Parser[J] {
     var j = i
     var c: Int = byte(j) & 0xff
     while (c != 34) {
-      if (c < 32) die(j, "control char (%d) in string" format c)
+      if (c < 32) return die(j, s"control char ($c) in string" format c)
       if (c == 92) return -1
       j += 1
       c = byte(j) & 0xff
@@ -55,7 +55,7 @@ trait ByteBasedParser[J] extends Parser[J] {
 
     var j = i + 1
     val sb = new CharBuilder
-      
+
     var c: Int = byte(j) & 0xff
     while (c != 34) { // "
       if (c == 92) { // \
@@ -73,10 +73,10 @@ trait ByteBasedParser[J] extends Parser[J] {
           // if there's a problem then descape will explode
           case 117 => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
 
-          case _ => die(j, "invalid escape sequence")
+          case c => die(j, s"invalid escape sequence (\\${c.toChar})")
         }
       } else if (c < 32) {
-        die(j, "control char (%d) in string" format c)
+        die(j, s"control char ($c) in string")
       } else if (c < 128) {
         // 1-byte UTF-8 sequence
         sb.append(c.toChar)

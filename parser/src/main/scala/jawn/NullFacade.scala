@@ -2,11 +2,11 @@ package jawn
 
 /**
  * NullFacade discards all JSON AST information.
- * 
+ *
  * This is the simplest possible facade. It could be useful for
  * checking JSON for correctness (via parsing) without worrying about
  * saving the data.
- * 
+ *
  * It will always return () on any successful parse, no matter the
  * content.
  */

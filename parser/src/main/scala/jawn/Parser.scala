@@ -1,7 +1,6 @@
 package jawn
 
 import java.io.File
-import java.lang.Integer.parseInt
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 import java.nio.charset.Charset
@@ -14,27 +13,29 @@ case class IncompleteParseException(msg: String) extends Exception(msg)
 
 /**
  * Parser implements a state machine for correctly parsing JSON data.
- * 
+ *
  * The trait relies on a small number of methods which are left
  * abstract, and which generalize parsing based on whether the input
  * is in Bytes or Chars, coming from Strings, files, or other input.
  * All methods provided here are protected, so different parsers can
  * choose which functionality to expose.
- * 
+ *
  * Parser is parameterized on J, which is the type of the JSON AST it
  * will return. Jawn can produce any AST for which a Facade[J] is
  * available.
- * 
+ *
  * The parser trait does not hold any state itself, but particular
  * implementations will usually hold state. Parser instances should
  * not be reused between parsing runs.
- * 
+ *
  * For now the parser requires input to be in UTF-8. This requirement
  * may eventually be relaxed.
  */
-trait Parser[J] {
+abstract class Parser[J] {
 
   protected[this] final val utf8 = Charset.forName("UTF-8")
+
+  protected[this] final val charBuilder = new CharBuilder()
 
   /**
    * Read the byte/char at 'i' as a Char.
@@ -99,6 +100,15 @@ trait Parser[J] {
   protected[this] def line(): Int
   protected[this] def column(i: Int): Int
 
+  protected[this] final val HexChars: Array[Int] = {
+    val arr = new Array[Int](128)
+    var i = 0
+    while (i < 10) { arr(i + '0') = i; i += 1 }
+    i = 0
+    while (i < 16) { arr(i + 'a') = 10 + i; arr(i + 'A') = 10 + i; i += 1 }
+    arr
+  }
+
   /**
    * Used to generate error messages with character info and offsets.
    */
@@ -111,7 +121,7 @@ trait Parser[J] {
 
   /**
    * Used to generate messages for internal errors.
-   * 
+   *
    * This should only be used in situations where a possible bug in
    * the parser was detected. For errors in user-provided JSON, use
    * die().
@@ -166,10 +176,10 @@ trait Parser[J] {
 
   /**
    * Parse the given number, and add it to the given context.
-   * 
+   *
    * This method is a bit slower than parseNum() because it has to be
    * sure it doesn't run off the end of the input.
-   * 
+   *
    * Normally (when operating in rparse in the context of an outer
    * array or object) we don't need to worry about this and can just
    * grab characters, because if we run out of characters that would
@@ -243,7 +253,16 @@ trait Parser[J] {
    * NOTE: This is only capable of generating characters from the basic plane.
    * This is why it can only return Char instead of Int.
    */
-  protected[this] final def descape(s: String) = parseInt(s, 16).toChar
+  protected[this] final def descape(s: String): Char = {
+    val hc = HexChars
+    var i = 0
+    var x = 0
+    while (i < 4) {
+      x = (x << 4) | hc(s.charAt(i))
+      i += 1
+    }
+    x.toChar
+  }
 
   /**
    * Parse the JSON string starting at 'i' and save it into 'ctxt'.
@@ -278,29 +297,29 @@ trait Parser[J] {
       case '\t' => parse(i + 1)
       case '\r' => parse(i + 1)
       case '\n' => newline(i); parse(i + 1)
-  
+
       // if we have a recursive top-level structure, we'll delegate the parsing
       // duties to our good friend rparse().
       case '[' => rparse(ARRBEG, i + 1, facade.arrayContext() :: Nil)
       case '{' => rparse(OBJBEG, i + 1, facade.objectContext() :: Nil)
-  
+
       // we have a single top-level number
       case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
         val ctxt = facade.singleContext()
         val j = parseNumSlow(i, ctxt)
         (ctxt.finish, j)
-  
+
       // we have a single top-level string
       case '"' =>
         val ctxt = facade.singleContext()
         val j = parseString(i, ctxt)
         (ctxt.finish, j)
-  
+
       // we have a single top-level constant
       case 't' => (parseTrue(i), i + 4)
       case 'f' => (parseFalse(i), i + 5)
       case 'n' => (parseNull(i), i + 4)
-  
+
       // invalid
       case _ => die(i, "expected json value")
     }
@@ -329,161 +348,169 @@ trait Parser[J] {
     checkpoint(state, i, stack)
     (state: @switch) match {
       // we are inside an object or array expecting to see data
-      case DATA => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\r' => rparse(state, i + 1, stack)
-        case '\n' => newline(i); rparse(state, i + 1, stack)
+      case DATA =>
+        (at(i): @switch) match {
+          case '[' => rparse(ARRBEG, i + 1, facade.arrayContext() :: stack)
+          case '{' => rparse(OBJBEG, i + 1, facade.objectContext() :: stack)
 
-        case '[' => rparse(ARRBEG, i + 1, facade.arrayContext() :: stack)
-        case '{' => rparse(OBJBEG, i + 1, facade.objectContext() :: stack)
+          case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
+            val ctxt = stack.head
+            val j = parseNum(i, ctxt)
+            rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
 
-        case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
-          val ctxt = stack.head
-          val j = parseNum(i, ctxt)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          case '"' =>
+            val ctxt = stack.head
+            val j = parseString(i, ctxt)
+            rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
 
-        case '"' =>
-          val ctxt = stack.head
-          val j = parseString(i, ctxt)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          case 't' =>
+            val ctxt = stack.head
+            ctxt.add(parseTrue(i))
+            rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
 
-        case 't' =>
-          val ctxt = stack.head
-          ctxt.add(parseTrue(i))
-          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
+          case 'f' =>
+            val ctxt = stack.head
+            ctxt.add(parseFalse(i))
+            rparse(if (ctxt.isObj) OBJEND else ARREND, i + 5, stack)
 
-        case 'f' =>
-          val ctxt = stack.head
-          ctxt.add(parseFalse(i))
-          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 5, stack)
+          case 'n' =>
+            val ctxt = stack.head
+            ctxt.add(parseNull(i))
+            rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
 
-        case 'n' =>
-          val ctxt = stack.head
-          ctxt.add(parseNull(i))
-          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
+          case ' ' => rparse(state, i + 1, stack)
+          case '\t' => rparse(state, i + 1, stack)
+          case '\r' => rparse(state, i + 1, stack)
+          case '\n' => newline(i); rparse(state, i + 1, stack)
 
-        case _ =>
-          die(i, "expected json value")
-      }
+          case _ =>
+            die(i, "expected json value")
+        }
 
       // we are in an object expecting to see a key
-      case KEY => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\r' => rparse(state, i + 1, stack)
-        case '\n' => newline(i); rparse(state, i + 1, stack)
+      case KEY =>
+        (at(i): @switch) match {
+          case '"' =>
+            val j = parseString(i, stack.head)
+            rparse(SEP, j, stack)
 
-        case '"' =>
-          val j = parseString(i, stack.head)
-          rparse(SEP, j, stack)
+          case ' ' => rparse(state, i + 1, stack)
+          case '\t' => rparse(state, i + 1, stack)
+          case '\r' => rparse(state, i + 1, stack)
+          case '\n' => newline(i); rparse(state, i + 1, stack)
 
-        case _ => die(i, "expected \"")
-      }
+          case _ => die(i, "expected \"")
+        }
 
       // we are starting an array, expecting to see data or a closing bracket
-      case ARRBEG => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\r' => rparse(state, i + 1, stack)
-        case '\n' => newline(i); rparse(state, i + 1, stack)
+      case ARRBEG =>
+        (at(i): @switch) match {
+          case ']' => stack match {
+            case ctxt1 :: Nil =>
+              (ctxt1.finish, i + 1)
+            case ctxt1 :: ctxt2 :: tail =>
+              ctxt2.add(ctxt1.finish)
+              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
+            case _ =>
+              error("invalid stack")
+          }
 
-        case ']' => stack match {
-          case ctxt1 :: Nil =>
-            (ctxt1.finish, i + 1)
-          case ctxt1 :: ctxt2 :: tail =>
-            ctxt2.add(ctxt1.finish)
-            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-          case _ =>
-            error("invalid stack")
+          case ' ' => rparse(state, i + 1, stack)
+          case '\t' => rparse(state, i + 1, stack)
+          case '\r' => rparse(state, i + 1, stack)
+          case '\n' => newline(i); rparse(state, i + 1, stack)
+
+          case _ => rparse(DATA, i, stack)
         }
-
-        case _ => rparse(DATA, i, stack)
-      }
 
       // we are starting an object, expecting to see a key or a closing brace
-      case OBJBEG => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\r' => rparse(state, i + 1, stack)
-        case '\n' => newline(i); rparse(state, i + 1, stack)
+      case OBJBEG =>
+        (at(i): @switch) match {
+          case '}' => stack match {
+            case ctxt1 :: Nil =>
+              (ctxt1.finish, i + 1)
+            case ctxt1 :: ctxt2 :: tail =>
+              ctxt2.add(ctxt1.finish)
+              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
+            case _ =>
+              error("invalid stack")
+          }
 
-        case '}' => stack match {
-          case ctxt1 :: Nil =>
-            (ctxt1.finish, i + 1)
-          case ctxt1 :: ctxt2 :: tail =>
-            ctxt2.add(ctxt1.finish)
-            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-          case _ =>
-            error("invalid stack")
+          case ' ' => rparse(state, i + 1, stack)
+          case '\t' => rparse(state, i + 1, stack)
+          case '\r' => rparse(state, i + 1, stack)
+          case '\n' => newline(i); rparse(state, i + 1, stack)
+
+          case _ => rparse(KEY, i, stack)
         }
 
-        case _ => rparse(KEY, i, stack)
-      }
-
       // we are in an object just after a key, expecting to see a colon
-      case SEP => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\r' => rparse(state, i + 1, stack)
-        case '\n' => newline(i); rparse(state, i + 1, stack)
+      case SEP =>
+        (at(i): @switch) match {
+          case ':' => rparse(DATA, i + 1, stack)
 
-        case ':' => rparse(DATA, i + 1, stack)
+          case ' ' => rparse(state, i + 1, stack)
+          case '\t' => rparse(state, i + 1, stack)
+          case '\r' => rparse(state, i + 1, stack)
+          case '\n' => newline(i); rparse(state, i + 1, stack)
 
-        case _ => die(i, "expected :")
-      }
+          case _ => die(i, "expected :")
+        }
 
       // we are at a possible stopping point for an array, expecting to see
       // either a comma (before more data) or a closing bracket.
-      case ARREND => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\r' => rparse(state, i + 1, stack)
-        case '\n' => newline(i); rparse(state, i + 1, stack)
+      case ARREND =>
+        (at(i): @switch) match {
+          case ',' => rparse(DATA, i + 1, stack)
 
-        case ',' => rparse(DATA, i + 1, stack)
+          case ']' => stack match {
+            case ctxt1 :: Nil =>
+              (ctxt1.finish, i + 1)
+            case ctxt1 :: ctxt2 :: tail =>
+              ctxt2.add(ctxt1.finish)
+              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
+            case _ =>
+              error("invalid stack")
+          }
 
-        case ']' => stack match {
-          case ctxt1 :: Nil =>
-            (ctxt1.finish, i + 1)
-          case ctxt1 :: ctxt2 :: tail =>
-            ctxt2.add(ctxt1.finish)
-            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-          case _ =>
-            error("invalid stack")
+          case ' ' => rparse(state, i + 1, stack)
+          case '\t' => rparse(state, i + 1, stack)
+          case '\r' => rparse(state, i + 1, stack)
+          case '\n' => newline(i); rparse(state, i + 1, stack)
+
+          case _ => die(i, "expected ] or ,")
         }
-
-        case _ => die(i, "expected ] or ,")
-      }
 
       // we are at a possible stopping point for an object, expecting to see
       // either a comma (before more data) or a closing brace.
-      case OBJEND => (at(i): @switch) match {
-        case ' ' => rparse(state, i + 1, stack)
-        case '\t' => rparse(state, i + 1, stack)
-        case '\r' => rparse(state, i + 1, stack)
-        case '\n' => newline(i); rparse(state, i + 1, stack)
+      case OBJEND =>
+        (at(i): @switch) match {
+          case ',' => rparse(KEY, i + 1, stack)
 
-        case ',' => rparse(KEY, i + 1, stack)
+          case '}' => stack match {
+            case ctxt1 :: Nil =>
+              (ctxt1.finish, i + 1)
+            case ctxt1 :: ctxt2 :: tail =>
+              ctxt2.add(ctxt1.finish)
+              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
+            case _ =>
+              error("invalid stack")
+          }
 
-        case '}' => stack match {
-          case ctxt1 :: Nil =>
-            (ctxt1.finish, i + 1)
-          case ctxt1 :: ctxt2 :: tail =>
-            ctxt2.add(ctxt1.finish)
-            rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-          case _ =>
-            error("invalid stack")
+          case ' ' => rparse(state, i + 1, stack)
+          case '\t' => rparse(state, i + 1, stack)
+          case '\r' => rparse(state, i + 1, stack)
+          case '\n' => newline(i); rparse(state, i + 1, stack)
+
+          case _ => die(i, "expected } or ,")
         }
-        
-        case _ => die(i, "expected } or ,")
-      }
     }
   }
 }
 
 
 object Parser {
+
   def parseUnsafe[J](s: String)(implicit facade: Facade[J]): J =
     new StringParser(s).parse()
 

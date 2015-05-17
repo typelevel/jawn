@@ -20,6 +20,7 @@ sealed trait Renderer {
       case LongNum(n) => sb.append(n.toString)
       case DoubleNum(n) => sb.append(n.toString)
       case DeferNum(s) => sb.append(s)
+      case DeferLong(s) => sb.append(s)
       case JString(s) => renderString(sb, s)
       case JArray(vs) => renderArray(sb, depth, vs)
       case JObject(vs) => renderObject(sb, depth, canonicalizeObject(vs))

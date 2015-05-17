@@ -37,7 +37,7 @@ shows you how to depend on Jawn for your project:
 // use this if you just want jawn's parser, and will implement your own facade
 libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.7.4"
 
-// use this if you want to use jawn's parser and ast
+// use this if you want jawn's parser and also jawn's ast
 libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.7.4"
 ```
 
@@ -52,8 +52,17 @@ libraryDependencies += "org.spire-math" %% "spray-support" % "0.7.4"
 There are a few reasons you might want to do this:
 
  * The library's built-in parser is significantly slower than Jawn
- * Jawn supports more input types (ByteBuffer, File, etc.)
+ * Jawn supports more input types (`ByteBuffer`, `File`, etc.)
  * You need asynchronous JSON parsing
+
+### Dependencies
+
+*jawn-parser* has no dependencies other than Scala.
+
+*jawn-ast* depends on *jawn-parser* but nothing else.
+
+The various support projects (e.g. *argonaut-support*) depend on the
+library they are supporting.
 
 ### Parsing
 
@@ -82,23 +91,32 @@ Here's an example:
 ```scala
 import jawn.ast
 import jawn.AsyncParser
+import jawn.ParseException
 
 val p = ast.JParser.async(mode = AsyncParser.UnwrapArray)
 
-def chunks: Stream[String] = ...
-def sink(j: ast.JValue): Unit = ...
+def chunks: Stream[String] = ???
+def sink(j: ast.JValue): Unit = ???
 
 def loop(st: Stream[String]): Either[ParseException, Unit] =
   st match {
-    case Stream.End => p.finish().fold(e => e, js => js.foreach(sink))
-    case s #:: tail => p.absorb(s).fold(e => e, { js => js.foreach(sink); loop(tail) })
+    case s #:: tail =>
+      p.absorb(s) match {
+        case Right(js) =>
+          js.foreach(sink)
+          loop(tail)
+        case Left(e) =>
+          Left(e)
+      }
+    case _ =>
+      p.finish().right.map(_.foreach(sink))
   }
   
 loop(chunks)
 ```
 
 You can also call `jawn.Parser.async[J]` to use async parsing with an
-arbitrary data type.
+arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 ### Supporting external ASTs with Jawn
 
@@ -123,7 +141,7 @@ Parser.parseFromFile(File) → Try[J]
 Parser.parseFromChannel(ReadableByteChannel) → Try[J]
 Parser.parseFromByteBuffer(ByteBuffer) → Try[J]
 ```
-  
+
 These methods parallel those provided by `jawn.Parser`.
 
 For the following snippets, `XYZ` is one of (`argonaut`, `json4s`,
@@ -157,10 +175,9 @@ snippet to your `build.sbt` file:
 libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.7.4"
 ```
 
-To support your AST of choice, you'll want to define a
-`jawn.Facade[J]` instance, where the `J` type parameter represents the
-base of your JSON AST. For example, here's a facade that supports
-Spray:
+To support your AST of choice, you'll want to define a `Facade[J]`
+instance, where the `J` type parameter represents the base of your JSON
+AST. For example, here's a facade that supports Spray:
 
 ```scala
 import spray.json._
@@ -185,41 +202,188 @@ You can also look at the facades used by the support projects to help
 you create your own. This could also be useful if you wanted to
 use an older version of a supported library.
 
-### Dependencies
+### Using the AST
 
-*jawn-parser* has no dependencies other than Scala itself.
+#### Access
 
-*jawn-ast* depends on [Spire](http://github.com/non/spire) in order to
- provide type class instances.
+For accessing atomic values, `JValue` supports two sets of
+methods: *get-style* methods and *as-style* methods.
 
-The various support projects (e.g. *argonaut-support*) depend on the
-library they are supporting.
+The *get-style* methods return `Some(_)` when called on a compatible
+JSON value (e.g. strings can return `Some[String]`, numbers can return
+`Some[Double]`, etc.), and `None` otherwise:
+
+```scala
+getBoolean → Option[Boolean]
+getString → Option[String]
+getLong → Option[Long]
+getDouble → Option[Double]
+getBigInt → Option[BigInt]
+getBigDecimal → Option[BigDecimal]
+```
+
+In constrast, the *as-style* methods will either return an unwrapped
+value (instead of returning `Some(_)`) or throw an exception (instead
+of returning `None`):
+
+```scala
+asBoolean → Boolean // or exception
+asString → String // or exception
+asLong → Long // or exception
+asDouble → Double // or exception
+asBigInt → BigInt // or exception
+asBigDecimal → BigDecimal // or exception
+```
+
+To access elements of an array, call `get` with an `Int` position:
+
+```scala
+get(i: Int) → JValue // returns JNull if index is illegal
+```
+
+To access elements of an object, call `get` with a `String` key:
+
+```scala
+get(k: String) → JValue // returns JNull if key is not found
+```
+
+Both of these methods also return `JNull` if the value is not the
+appropraite container. This allows the caller to chain lookups without
+having to check that each level is correct:
+
+```scala
+val v: JValue = ???
+
+// returns JNull if a problem is encountered in structure of 'v'.
+val t: JValue = v.get("novels").get(0).get("title")
+
+// if 'v' had the right structure and 't' is JString(s), then Some(s).
+// otherwise, None.
+val titleOrNone: Option[String] = t.getString
+
+// equivalent to titleOrNone.getOrElse(throw ...)
+val titleOrDie: String = t.asString
+```
+
+#### Updating
+
+The atomic values (`JNum`, `JBoolean`, `JNum`, and `JString`) are
+immutable.
+
+Objects are fully-mutable and can have items added, removed, or
+changed:
+
+```scala
+set(k: String, v: JValue) → Unit
+remove(k: String) → Option[JValue]
+```
+
+If `set` is called on a non-object, an exception will be thrown.
+If `remove` is called on a non-object, `None` will be returned.
+
+Arrays are semi-mutable. Their values can be changed, but their size
+is fixed:
+
+```scala
+set(i: Int, v: JValue) → Unit
+```
+
+If `set` is called on a non-array, or called with an illegal index, an
+exception will be thrown.
+
+(A future version of Jawn may provide an array whose length can be
+changed.)
 
 ### Profiling
 
-Jawn provides benchmarks to help compare various JSON parsers on a
-wide range of input files. You can run the benchmarks from SBT with:
+Jawn uses [JMH](http://openjdk.java.net/projects/code-tools/jmh/)
+along with the [sbt-jmh](https://github.com/ktoso/sbt-jmh) plugin.
+
+#### Running Benchmarks
+
+The benchmarks are located in the `benchmark` project. You can run the
+benchmarks by typing `benchmark/run` from SBT. There are many
+supported arguments, so here are a few examples:
+
+Run all benchmarks, with 10 warmups, 10 iterations, using 3 threads:
+
+`benchmark/run -wi 10 -i 10 -f1 -t3`
+
+Run just the `CountriesBench` test (5 warmups, 5 iterations, 1 thread):
+
+`benchmark/run -wi 5 -i 5 -f1 -t1 .*CountriesBench`
+
+#### Benchmark Issues
+
+Currently, the benchmarks are a bit fiddily. The most obvious symptom
+is that if you compile the benchmarks, make changes, and compile
+again, you may see errors like:
 
 ```
-> benchmark/run
+[error] (benchmark/jmh:generateJavaSources) java.lang.NoClassDefFoundError: jawn/benchmark/Bla25Bench
 ```
 
-Any JSON files you put in `benchmark/src/main/resources` will be
-included in the ad-hoc benchmark. There is a Python script I've used
-to generate random JSON data called `randjson.py` which is a bit
-quirky but does seem to work. I test on this random JSON as well as
-data from projects I've worked on.
+The fix here is to run `benchmark/clean` and try again.
 
-(I also test with larger data sets (100-600M) but for obvious reasons
-I don't distribute this JSON in the project.)
+You will also see intermittent problems like:
 
-Of course, your mileage may vary, and these results do vary somewhat
-based on file size, file structure, etc.
+```
+[error] (benchmark/jmh:compile) java.lang.reflect.MalformedParameterizedTypeException
+```
 
-I have tried to understand the libraries well enough to write the most
-optimal code for loading a file (given a path) and parsing it to a
-simple JSON AST.  Pull requests to update versions and improve usage
-are welcome.
+The solution here is easier (though frustrating): just try it
+again. If you continue to have problems, consider cleaning the project
+and trying again.
+
+(In the future I hope to make the benchmarking here a bit more
+resilient. Suggestions and pull requests gladly welcome!)
+
+#### Files
+
+The benchmarks use files located in `benchmark/src/main/resources`. If
+you want to test your own files (e.g. `mydata.json`), you would:
+
+ * Copy the file to `benchmark/src/main/resources/mydata.json`.
+ * Add the following code to `JmhBenchmarks.scala`:
+
+```scala
+class MyDataBench extends JmhBenchmarks("mydata.json")
+```
+
+Jawn has been tested with much larger files, e.g. 100M - 1G, but these
+are obviously too large to ship with the project.
+
+#### Interpreting the results
+
+Remember that the benchmarking results you see will vary based on:
+
+ * Hardware
+ * Java version
+ * JSON file size
+ * JSON file structure
+ * JSON data values
+
+I have tried to use each library in the most idiomatic and fastest way
+possible (to parse the JSON into a simple AST). Pull requests to
+update library versions and improve usage are very welcome.
+
+### Future Work
+
+More support libraries could be added.
+
+It's likely that some of Jawn's I/O could be optimized a bit more, and
+also made more configurable. The heuristics around all-at-once loading
+versus input chunking could definitely be improved.
+
+In cases where the user doesn't need fast lookups into JSON objects,
+an even lighter AST could be used to improve parsing and rendering
+speeds.
+
+Strategies to cache/intern field names of objects could pay big
+dividends in some cases (this might require AST changes).
+
+If you have ideas for any of these (or other ideas) please feel free
+to open an issue or pull request so we can talk about it.
 
 ### Disclaimers
 
@@ -228,12 +392,13 @@ future, but for now that's the target case. You can always decode your
 data to a string, and handle the character set decoding using Java's
 standard tools.
 
-Jawn's AST is intended to be a proof of concept of a very lightweight
-AST. It lacks most of the fancy operators and DSLs of other libraries.
+Jawn's AST is intended to be very lightweight and simple. It supports
+simple access, and limited mutable updates. It intentionally lacks the
+power and sophistication of many other JSON libraries.
 
 ### Copyright and License
 
 All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
-Copyright Erik Osheim, 2012-2014.
+Copyright Erik Osheim, 2012-2015.

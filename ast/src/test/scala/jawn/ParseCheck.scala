@@ -12,61 +12,9 @@ import Arbitrary.arbitrary
 import scala.collection.mutable
 import scala.util.{Try, Success}
 
+import ArbitraryUtil._
+
 class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
-
-  // in theory we could test larger number values than longs, but meh?
-  // we need to exclude nan, +inf, and -inf from our doubles
-  // we want to be sure we test every possible unicode character
-
-  val jnull   = Gen.oneOf(JNull :: Nil)
-  val jfalse  = Gen.oneOf(JFalse :: Nil)
-  val jtrue   = Gen.oneOf(JTrue :: Nil)
-  val jlong   = arbitrary[Long].map(LongNum(_))
-  val jdouble = Gen.choose(Double.MinValue, Double.MaxValue).map(DoubleNum(_))
-  val jstring = arbitrary[String].map(JString(_))
-
-  // totally unscientific atom frequencies
-  val jatom: Gen[JAtom] =
-    Gen.frequency((1, 'n), (5, 'f), (5, 't), (8, 'l), (8, 'd), (16, 's)).flatMap {
-      case 'n => jnull
-      case 'f => jfalse
-      case 't => jtrue
-      case 'l => jlong
-      case 'd => jdouble
-      case 's => jstring
-    }
-
-  // use lvl to limit the depth of our jvalues
-  // otherwise we will end up with SOE real fast
-
-  def jarray(lvl: Int): Gen[JArray] =
-    Gen.containerOf[Array, JValue](jvalue(lvl + 1)).map(JArray(_))
-
-  def jitem(lvl: Int): Gen[(String, JValue)] =
-    for { s <- arbitrary[String]; j <- jvalue(lvl) } yield (s, j)
-
-  def jobject(lvl: Int): Gen[JObject] =
-    Gen.containerOf[List, (String, JValue)](jitem(lvl + 1)).map(JObject.fromSeq)
-
-  def jvalue(lvl: Int): Gen[JValue] =
-    if (lvl < 3) {
-      Gen.frequency((16, 'ato), (1, 'arr), (2, 'obj)).flatMap {
-        case 'ato => jatom
-        case 'arr => jarray(lvl)
-        case 'obj => jobject(lvl)
-      }
-    } else {
-      jatom
-    }
-
-  implicit lazy val arbJAtom: Arbitrary[JAtom] =
-    Arbitrary(jatom)
-
-  // implicit lazy val arbJArray: Arbitrary[JArray] =
-  //   Arbitrary(jarray(3))
-  
-  implicit lazy val arbJValue: Arbitrary[JValue] =
-    Arbitrary(jvalue(0))
 
   // so it's only one property, but it exercises:
   //
@@ -82,6 +30,9 @@ class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks
       val json2 = CanonicalRenderer.render(value2)
       json2 shouldBe json1
       json2.## shouldBe json1.##
+
+      value1 shouldBe value2
+      value1.## shouldBe value2.##
     }
   }
 
@@ -127,12 +78,12 @@ class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks
     forAll { (v: JValue) =>
       val json = CanonicalRenderer.render(v)
       val segments = splitIntoSegments(json)
-      parseSegments(AsyncParser[JValue](SingleValue), segments) shouldBe List(v)
+      val parsed = parseSegments(AsyncParser[JValue](SingleValue), segments)
+      parsed shouldBe List(v)
     }
   }
 
   property("async unwrapping") {
-    //forAll { (vs: List[JAtom]) =>
     forAll { (vs0: List[Int]) =>
       val vs = vs0.map(LongNum(_))
       val arr = JArray(vs.toArray)
@@ -161,7 +112,6 @@ class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks
       val s = n.toString
       val n1 = LongNum(n)
       val n2 = DoubleNum(n)
-      val n3 = DeferNum(s + ".00")
 
       def check(j: JValue) {
         j shouldBe n1; n1 shouldBe j

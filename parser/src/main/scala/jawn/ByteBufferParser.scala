@@ -5,11 +5,11 @@ import java.nio.ByteBuffer
 
 /**
  * Basic ByteBuffer parser.
- * 
+ *
  * This assumes that the provided ByteBuffer is ready to be read. The
  * user is responsible for any necessary flipping/resetting of the
  * ByteBuffer before parsing.
- * 
+ *
  * The parser makes absolute calls to the ByteBuffer, which will not
  * update its own mutable position fields.
  */

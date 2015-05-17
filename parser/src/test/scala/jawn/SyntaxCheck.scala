@@ -56,12 +56,11 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
     } else {
       jatom
     }
-  
+
   implicit lazy val arbJValue: Arbitrary[J] =
     Arbitrary(jvalue(0))
 
   import java.nio.ByteBuffer
-  println()
 
   def isValidSyntax(s: String): Boolean = {
     val r1 = Parser.parseFromString(s)(NullFacade).isSuccess
@@ -75,7 +74,7 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
   }
 
   property("syntax-checking") {
-    forAll { j: J => isValidSyntax(j.build) shouldBe true }
+    forAll { (j: J) => isValidSyntax(j.build) shouldBe true }
   }
 
   def qs(s: String): String = "\"" + s + "\""

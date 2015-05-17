@@ -24,9 +24,9 @@ object AsyncParser {
  * Option[ByteBuffer] instances) and parse asynchronously. You can
  * use the factory methods in the companion object to instantiate an
  * async parser.
- * 
+ *
  * The async parser's fields are described below:
- * 
+ *
  * The (state, curr, stack) triple is used to save and restore parser
  * state between async calls. State also helps encode extra
  * information when streaming or unwrapping an array.
@@ -34,22 +34,22 @@ object AsyncParser {
  * The (data, len, allocated) triple is used to manage the underlying
  * data the parser is keeping track of. As new data comes in, data may
  * be expanded if not enough space is available.
- * 
+ *
  * The offset parameter is used to drive the outer async parsing. It
  * stores similar information to curr but is kept separate to avoid
  * "corrupting" our snapshot.
- * 
+ *
  * The done parameter is used internally to help figure out when the
  * atEof() parser method should return true. This will be set when
  * apply(None) is called.
- * 
+ *
  * The streamMode parameter controls how the asynchronous parser will
  * be handling multiple values. There are three states:
- * 
+ *
  *    1: An array is being unwrapped. Normal JSON array rules apply
  *       (Note that if the outer value observed is not an array, this
  *       mode will toggle to the -1 mode).
- * 
+ *
  *    0: A stream of individual JSON elements separated by whitespace
  *       are being parsed. We can return each complete element as we
  *       parse it.
