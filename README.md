@@ -353,6 +353,10 @@ class MyDataBench extends JmhBenchmarks("mydata.json")
 Jawn has been tested with much larger files, e.g. 100M - 1G, but these
 are obviously too large to ship with the project.
 
+With large files, it's usually easier to comment out most of the
+benchmarking methods and only test one (or a few) methods. Some of the
+slower JSON parsers get *much* slower for large files.
+
 #### Interpreting the results
 
 Remember that the benchmarking results you see will vary based on:
