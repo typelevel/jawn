@@ -1,10 +1,13 @@
 package jawn
 package ast
 
+import java.lang.Double.{isNaN, isInfinite}
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
 
 class WrongValueException(e: String, g: String) extends Exception(s"expected $e, got $g")
+
+class InvalidNumException(s: String) extends Exception(s"invalid number: $s")
 
 sealed abstract class JValue {
 
@@ -103,9 +106,40 @@ sealed abstract class JNum extends JAtom {
 }
 
 object JNum { self =>
-  final def apply(n: Long): JNum = LongNum(n)
-  final def apply(n: Double): JNum = DoubleNum(n)
-  final def apply(s: String): JNum = DeferNum(s)
+
+  /**
+   * Create a JNum from a Double.
+   *
+   * This is identical to calling the LongNum(_) constructor.
+   */
+  final def apply(n: Long): JNum =
+    LongNum(n)
+
+  /**
+   * Create a JNum from a Double.
+   *
+   * This factory constructor performs some error-checking (ensures
+   * that the given value is a finite Double). If you have already
+   * done this error-checking, you can use the DoubleNum(_) or
+   * DeferNum(_) constructors directly.
+   */
+  final def apply(n: Double): JNum =
+    if (isNaN(n) || isInfinite(n)) throw new InvalidNumException(n.toString)
+    else DoubleNum(n)
+
+  /**
+   * Create a JNum from a Double.
+   *
+   * This factory constructor validates the string (essentially,
+   * parsing it as a JSON value). If you are already sure this string
+   * is a valid JSON number, you can use the DeferLong(_) or
+   * DeferNum(_) constructors directly.
+   */
+  final def apply(s: String): JNum =
+    JParser.parseUnsafe(s) match {
+      case jnum: JNum => jnum
+      case _ => throw new InvalidNumException(s)
+    }
 
   final def hybridEq(x: Long, y: Double): Boolean = {
     val z = x.toDouble
