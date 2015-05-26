@@ -56,15 +56,16 @@ class AstTest extends PropSpec with Matchers with GeneratorDrivenPropertyChecks 
 
   property(".getBigInt") {
     forAll { (n: BigInt) =>
-      JNum(n.toString).getBigInt shouldBe Some(n)
-      JParser.parseUnsafe(n.toString).getBigInt shouldBe Some(n)
+      if (Try(BigInt(n.toString)) == Success(n)) {
+        JNum(n.toString).getBigInt shouldBe Some(n)
+        JParser.parseUnsafe(n.toString).getBigInt shouldBe Some(n)
+      }
     }
   }
 
   property(".getBigDecimal") {
     forAll { (n: BigDecimal) =>
-      // some BigDecimals are too big for BigDecimal's own constuctor :/
-      if (Try(BigDecimal(n.toString)).isSuccess) {
+      if (Try(BigDecimal(n.toString)) == Success(n)) {
         JNum(n.toString).getBigDecimal shouldBe Some(n)
         JParser.parseUnsafe(n.toString).getBigDecimal shouldBe Some(n)
       }
