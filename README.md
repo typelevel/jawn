@@ -1,5 +1,7 @@
 ## Jawn
 
+[![Join the chat at https://gitter.im/non/jawn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/non/jawn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 "Jawn is for parsing jay-sawn."
 
 ### Origin
