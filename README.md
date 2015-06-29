@@ -12,6 +12,8 @@ we get a catchy slogan.
 
 Jawn was designed to parse JSON into an AST as quickly as possible.
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/non/jawn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ### Overview
 
 Jawn consists of three parts:
