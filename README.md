@@ -39,10 +39,10 @@ shows you how to depend on Jawn for your project:
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.8.1"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.8.2"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.8.1"
+libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.8.2"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -50,7 +50,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.spire-math" %% "jawn-spray-support" % "0.8.1"
+libraryDependencies += "org.spire-math" %% "jawn-spray-support" % "0.8.2"
 ```
 
 There are a few reasons you might want to do this:
@@ -59,7 +59,7 @@ There are a few reasons you might want to do this:
  * Jawn supports more input types (`ByteBuffer`, `File`, etc.)
  * You need asynchronous JSON parsing
 
-(NOTE: previous to version 0.8.1 the support libraries would have been
+(NOTE: previous to version 0.8.2 the support libraries would have been
 named `"spray-support"` instead of `"jawn-spray-support"`.)
 
 ### Dependencies
@@ -157,7 +157,7 @@ For the following snippets, `XYZ` is one of (`argonaut`, `json4s`,
 This is how you would include the subproject in build.sbt:
 
 ```scala
-libraryDependencies += "org.spire-math" %% jawn-"XYZ-support" % "0.8.1"
+libraryDependencies += "org.spire-math" %% jawn-"XYZ-support" % "0.8.2"
 ```
 
 This is an example of how you might use the parser into your code:
@@ -179,7 +179,7 @@ To include Jawn's parser in your project, add the following
 snippet to your `build.sbt` file:
 
 ```scala
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.8.1"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.8.2"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
