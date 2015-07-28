@@ -70,17 +70,20 @@ lazy val noPublish = Seq(
 
 lazy val root = project.in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
+  .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
   .settings(jawnSettings: _*)
   .settings(noPublish: _*)
 
 lazy val parser = project.in(file("parser"))
+  .disablePlugins(JmhPlugin)
   .settings(name := "parser")
   .settings(moduleName := "jawn-parser")
   .settings(jawnSettings: _*)
 
 lazy val ast = project.in(file("ast"))
   .dependsOn(parser)
+  .disablePlugins(JmhPlugin)
   .settings(name := "ast")
   .settings(moduleName := "jawn-ast")
   .settings(jawnSettings: _*)
@@ -88,6 +91,7 @@ lazy val ast = project.in(file("ast"))
 def support(name: String) =
   Project(id = name, base = file(s"support/$name"))
     .dependsOn(parser)
+    .disablePlugins(JmhPlugin)
     .settings(moduleName := "jawn-" + name)
     .settings(jawnSettings: _*)
 
@@ -100,6 +104,7 @@ lazy val supportSpray = support("spray")
 
 lazy val benchmark = project.in(file("benchmark"))
   .dependsOn(all.map(Project.classpathDependency[Project]): _*)
+  .enablePlugins(JmhPlugin)
   .settings(name := "jawn-benchmark")
   .settings(jawnSettings: _*)
   .settings(scalaVersion := "2.11.7")
