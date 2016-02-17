@@ -39,6 +39,7 @@ private[jawn] final class CharBuilder {
     resizeIfNecessary(tlen)
     var i = 0
     var j = len
+    len = tlen
     while (i < s.length) { cs(j) = s.charAt(i); i += 1; j += 1 }
   }
 
