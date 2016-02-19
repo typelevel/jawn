@@ -89,7 +89,6 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
   property("literal NL is invalid") { isValidSyntax(qs("\n")) shouldBe false }
   property("literal CR is invalid") { isValidSyntax(qs("\r")) shouldBe false }
   property("literal NUL is invalid") { isValidSyntax(qs("\u0000")) shouldBe false }
-
   property("literal BS TAB is invalid") { isValidSyntax(qs("\\\t")) shouldBe false }
   property("literal BS NL is invalid") { isValidSyntax(qs("\\\n")) shouldBe false }
   property("literal BS CR is invalid") { isValidSyntax(qs("\\\r")) shouldBe false }
@@ -97,6 +96,30 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
   property("literal BS ZERO is invalid") { isValidSyntax(qs("\\0")) shouldBe false }
   property("literal BS X is invalid") { isValidSyntax(qs("\\x")) shouldBe false }
 
+  property("0 is ok") { isValidSyntax("0") shouldBe true }
   property("0e is invalid") { isValidSyntax("0e") shouldBe false }
   property("123e is invalid") { isValidSyntax("123e") shouldBe false }
+  property(".999 is invalid") { isValidSyntax(".999") shouldBe false }
+  property("0.999 is ok") { isValidSyntax("0.999") shouldBe true }
+  property("-.999 is invalid") { isValidSyntax("-.999") shouldBe false }
+  property("-0.999 is ok") { isValidSyntax("-0.999") shouldBe true }
+  property("+0.999 is invalid") { isValidSyntax("+0.999") shouldBe false }
+  property("--0.999 is invalid") { isValidSyntax("--0.999") shouldBe false }
+  property("01 is invalid") { isValidSyntax("01") shouldBe false }
+  property("1e is invalid") { isValidSyntax("1e") shouldBe false }
+  property("1e- is invalid") { isValidSyntax("1e+") shouldBe false }
+  property("1e+ is invalid") { isValidSyntax("1e-") shouldBe false }
+  property("1. is invalid") { isValidSyntax("1.") shouldBe false }
+  property("1.e is invalid") { isValidSyntax("1.e") shouldBe false }
+  property("1.e9 is invalid") { isValidSyntax("1.e9") shouldBe false }
+  property("1.e- is invalid") { isValidSyntax("1.e+") shouldBe false }
+  property("1.e+ is invalid") { isValidSyntax("1.e-") shouldBe false }
+  property("1.1e is invalid") { isValidSyntax("1.1e") shouldBe false }
+  property("1.1e- is invalid") { isValidSyntax("1.1e-") shouldBe false }
+  property("1.1e+ is invalid") { isValidSyntax("1.1e+") shouldBe false }
+  property("1.1e1 is ok") { isValidSyntax("1.1e1") shouldBe true }
+  property("1.1e-1 is ok") { isValidSyntax("1.1e-1") shouldBe true }
+  property("1.1e+1 is ok") { isValidSyntax("1.1e+1") shouldBe true }
+  property("1+ is invalid") { isValidSyntax("1+") shouldBe false }
+  property("1- is invalid") { isValidSyntax("1-") shouldBe false }
 }
