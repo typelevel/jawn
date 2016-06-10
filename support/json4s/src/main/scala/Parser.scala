@@ -36,13 +36,13 @@ object Parser extends SupportParser[JValue] {
       def objectContext() =
         new FContext[JValue] {
           var key: String = null
-          var vs = List.empty[JField]
+          val vs = mutable.ListBuffer.empty[JField]
           def add(s: String): Unit =
             if (key == null) key = s
-            else { vs = JField(key, jstring(s)) :: vs; key = null }
+            else { vs += JField(key, jstring(s)); key = null }
           def add(v: JValue): Unit =
-            { vs = JField(key, v) :: vs; key = null }
-          def finish: JValue = JObject(vs)
+            { vs += JField(key, v); key = null }
+          def finish: JValue = JObject(vs.toList)
           def isObj: Boolean = true
         }
     }
