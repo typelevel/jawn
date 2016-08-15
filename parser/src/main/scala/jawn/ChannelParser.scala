@@ -102,7 +102,7 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
    * current byte buffer, do a swap, load some more data, and
    * continue.
    */
-  protected[this] final def reset(i: Int): Int = {
+  protected[this] final def reset(i: Int): Int =
     if (i >= Bufsize) {
       swap()
       nnext = ch.read(ByteBuffer.wrap(next))
@@ -111,7 +111,6 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
     } else {
       i
     }
-  }
 
   protected[this] final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]): Unit = ()
 
@@ -143,7 +142,6 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
    */
   protected[this] final def at(i: Int, k: Int): String = {
     val len = k - i
-
     if (k > Allsize) {
       grow()
       at(i, k)
@@ -161,5 +159,6 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
   }
 
   protected[this] final def atEof(i: Int) =
-    if (i < Bufsize) i >= ncurr else (i - Bufsize) >= nnext
+    if (i < Bufsize) i >= ncurr
+    else i >= (nnext + Bufsize)
 }
