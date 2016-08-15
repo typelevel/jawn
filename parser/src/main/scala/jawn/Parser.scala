@@ -112,7 +112,7 @@ abstract class Parser[J] {
   /**
    * Used to generate error messages with character info and offsets.
    */
-  protected[this] def die(i: Int, msg: String) = {
+  protected[this] def die(i: Int, msg: String): Nothing = {
     val y = line() + 1
     val x = column(i) + 1
     val s = "%s got %s (line %d, column %d)" format (msg, at(i), y, x)
@@ -292,7 +292,7 @@ abstract class Parser[J] {
     var i = 0
     var x = 0
     while (i < 4) {
-      x = (x << 4) | hc(s.charAt(i))
+      x = (x << 4) | hc(s.charAt(i).toInt)
       i += 1
     }
     x.toChar

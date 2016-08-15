@@ -34,24 +34,21 @@ object ChannelParser {
  */
 final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with ByteBasedParser[J] {
 
-  @inline final val Bufsize = 1048576
-  @inline final val Mask = Bufsize - 1
+  var Bufsize: Int = 1048576
+  var Mask: Int = Bufsize - 1
+  var Allsize: Int = Bufsize * 2
 
   // these are the actual byte arrays we'll use
   private var curr = new Array[Byte](Bufsize)
   private var next = new Array[Byte](Bufsize)
 
-  // these are the bytebuffers used to load the data
-  private var bcurr = ByteBuffer.wrap(curr)
-  private var bnext = ByteBuffer.wrap(next)
-
   // these are the bytecounts for each array
-  private var ncurr = ch.read(bcurr)
-  private var nnext = ch.read(bnext)
+  private var ncurr = ch.read(ByteBuffer.wrap(curr))
+  private var nnext = ch.read(ByteBuffer.wrap(next))
 
   var line = 0
   private var pos = 0
-  protected[this] final def newline(i: Int) { line += 1; pos = i }
+  protected[this] final def newline(i: Int): Unit = { line += 1; pos = i }
   protected[this] final def column(i: Int) = i - pos
 
   protected[this] final def close(): Unit = ch.close()
@@ -65,8 +62,23 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
    */
   protected[this] final def swap(): Unit = {
     var tmp = curr; curr = next; next = tmp
-    var btmp = bcurr; bcurr = bnext; bnext = btmp
     var ntmp = ncurr; ncurr = nnext; nnext = ntmp
+  }
+
+  protected[this] final def grow(): Unit = {
+    println(s"grow $Bufsize -> $Allsize")
+    val cc = new Array[Byte](Allsize)
+    System.arraycopy(curr, 0, cc, 0, Bufsize)
+    System.arraycopy(next, 0, cc, Bufsize, Bufsize)
+
+    curr = cc
+    ncurr = ncurr + nnext
+    next = new Array[Byte](Allsize)
+    nnext = ch.read(ByteBuffer.wrap(next))
+
+    Bufsize = Allsize
+    Mask = Allsize - 1
+    Allsize = Allsize * 2
   }
 
   /**
@@ -76,9 +88,8 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
    */
   protected[this] final def reset(i: Int): Int = {
     if (i >= Bufsize) {
-      bcurr.clear()
       swap()
-      nnext = ch.read(bnext)
+      nnext = ch.read(ByteBuffer.wrap(next))
       pos -= Bufsize
       i - Bufsize
     } else {
@@ -93,7 +104,9 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
    * data are bytes not chars.
    */
   protected[this] final def byte(i: Int): Byte =
-    if (i < Bufsize) curr(i) else next(i & Mask)
+    if (i < Bufsize) curr(i)
+    else if (i < Allsize) next(i & Mask)
+    else { grow(); byte(i) }
 
   /**
    * Reads a byte as a single Char. The byte must be valid ASCII (this
@@ -101,7 +114,9 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
    * delimiters, which are known to be within ASCII).
    */
   protected[this] final def at(i: Int): Char =
-    if (i < Bufsize) curr(i).toChar else next(i & Mask).toChar
+    if (i < Bufsize) curr(i).toChar
+    else if (i < Allsize) next(i & Mask).toChar
+    else { grow(); at(i) }
 
   /**
    * Access a byte range as a string.
@@ -113,7 +128,10 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
   protected[this] final def at(i: Int, k: Int): String = {
     val len = k - i
 
-    if (k <= Bufsize) {
+    if (k > Allsize) {
+      grow()
+      at(i, k)
+    } else if (k <= Bufsize) {
       new String(curr, i, len, utf8)
     } else if (i >= Bufsize) {
       new String(next, i - Bufsize, len, utf8)
