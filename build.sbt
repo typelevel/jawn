@@ -82,7 +82,7 @@ lazy val parser = project.in(file("parser"))
   .settings(jawnSettings: _*)
 
 lazy val ast = project.in(file("ast"))
-  .dependsOn(parser)
+  .dependsOn(parser % "compile->compile;test->test")
   .disablePlugins(JmhPlugin)
   .settings(name := "ast")
   .settings(moduleName := "jawn-ast")
