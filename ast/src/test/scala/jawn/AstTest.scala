@@ -1,16 +1,15 @@
 package jawn
 package ast
 
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatest._
-import prop._
+import org.scalatest.prop._
 
 import scala.collection.mutable
 import scala.util.{Try, Success}
 
 import ArbitraryUtil._
 
-class AstTest extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
+class AstTest extends PropSpec with Matchers with PropertyChecks {
 
   property("calling .get never crashes") {
     forAll { (v: JValue, s: String, i: Int) =>

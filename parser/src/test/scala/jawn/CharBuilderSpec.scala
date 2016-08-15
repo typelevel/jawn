@@ -1,16 +1,15 @@
 package jawn
 
-import org.scalactic.TypeCheckedTripleEquals
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.PropSpec
+import org.scalatest._
+import org.scalatest.prop._
 
-class CharBuilderSpec extends PropSpec with TypeCheckedTripleEquals with GeneratorDrivenPropertyChecks {
+class CharBuilderSpec extends PropSpec with Matchers with PropertyChecks {
 
   property("append") {
     forAll { xs: List[Char] =>
       val builder = new CharBuilder
       xs.foreach(builder.append)
-      assert(builder.makeString === xs.mkString)
+      builder.makeString shouldBe xs.mkString
     }
   }
 
@@ -18,8 +17,7 @@ class CharBuilderSpec extends PropSpec with TypeCheckedTripleEquals with Generat
     forAll { xs: List[String] =>
       val builder = new CharBuilder
       xs.foreach(builder.extend)
-      assert(builder.makeString === xs.mkString)
+      builder.makeString shouldBe xs.mkString
     }
   }
-
 }

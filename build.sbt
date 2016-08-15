@@ -2,13 +2,13 @@ import ReleaseTransformations._
 
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
-  scalaVersion := "2.11.7",
-  crossScalaVersions := Seq("2.10.5", "2.11.7"),
+  scalaVersion := "2.11.8",
+  crossScalaVersions := Seq("2.10.6", "2.11.8"),
 
   resolvers += Resolver.sonatypeRepo("releases"),
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "2.2.5" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.12.4" % "test"
+    "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+    "org.scalacheck" %% "scalacheck" % "1.13.2" % "test"
   ),
   scalacOptions ++= Seq(
     "-Yinline-warnings",
@@ -107,7 +107,7 @@ lazy val benchmark = project.in(file("benchmark"))
   .enablePlugins(JmhPlugin)
   .settings(name := "jawn-benchmark")
   .settings(jawnSettings: _*)
-  .settings(scalaVersion := "2.11.7")
+  .settings(scalaVersion := "2.11.8")
   .settings(noPublish: _*)
 
 lazy val all =

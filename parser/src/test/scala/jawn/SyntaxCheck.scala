@@ -10,7 +10,7 @@ import Arbitrary.arbitrary
 
 import scala.util.{Try, Success, Failure}
 
-class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
+class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
 
   sealed trait J {
     def build: String = this match {

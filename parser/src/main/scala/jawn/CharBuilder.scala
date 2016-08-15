@@ -20,7 +20,7 @@ private[jawn] final class CharBuilder {
 
   def makeString: String = new String(cs, 0, len)
 
-  def resizeIfNecessary(goal: Int) {
+  def resizeIfNecessary(goal: Int): Unit = {
     if (goal <= capacity) return ()
     var cap = capacity
     while (goal > cap && cap > 0) cap *= 2
@@ -34,18 +34,23 @@ private[jawn] final class CharBuilder {
     }
   }
 
-  def extend(s: String) {
+  def extend(s: String): Unit = {
     val tlen = len + s.length
     resizeIfNecessary(tlen)
     var i = 0
     var j = len
     len = tlen
-    while (i < s.length) { cs(j) = s.charAt(i); i += 1; j += 1 }
+    while (i < s.length) {
+      cs(j) = s.charAt(i)
+      i += 1
+      j += 1
+    }
   }
 
-  def append(c: Char) {
-    resizeIfNecessary(len + 1)
+  def append(c: Char): Unit = {
+    val tlen = len + 1
+    resizeIfNecessary(tlen)
     cs(len) = c
-    len += 1
+    len = tlen
   }
 }

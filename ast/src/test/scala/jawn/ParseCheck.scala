@@ -1,9 +1,8 @@
 package jawn
 package ast
 
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatest._
-import prop._
+import org.scalatest.prop._
 import org.scalacheck.Arbitrary._
 import org.scalacheck._
 import Gen._
@@ -14,7 +13,7 @@ import scala.util.{Try, Success}
 
 import ArbitraryUtil._
 
-class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
+class AstCheck extends PropSpec with Matchers with PropertyChecks {
 
   // so it's only one property, but it exercises:
   //
