@@ -1,40 +1,57 @@
 package jawn
 
+import java.lang.Integer.{ bitCount, highestOneBit }
 import java.io.{File, FileInputStream}
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 
 object ChannelParser {
 
-  final val ParseAsStringThreshold: Int = 20 * 1048576
+  final val DefaultBufferSize = 1048576
 
-  def fromFile[J](f: File): SyncParser[J] =
+  final val ParseAsStringThreshold = 20 * 1048576
+
+  def fromFile[J](f: File, bufferSize: Int = DefaultBufferSize): SyncParser[J] =
     if (f.length < ParseAsStringThreshold) {
       val bytes = new Array[Byte](f.length.toInt)
       val fis = new FileInputStream(f)
       fis.read(bytes)
       new StringParser[J](new String(bytes, "UTF-8"))
     } else {
-      new ChannelParser[J](new FileInputStream(f).getChannel)
+      new ChannelParser[J](new FileInputStream(f).getChannel, bufferSize)
     }
 
-  def fromChannel[J](ch: ReadableByteChannel): ChannelParser[J] =
-    new ChannelParser[J](ch)
-}
+  def fromChannel[J](ch: ReadableByteChannel, bufferSize: Int = DefaultBufferSize): ChannelParser[J] =
+    new ChannelParser[J](ch, bufferSize)
 
-// TODO: it is possible that the buffering machinery here is too
-// heavyweight. also, i think there may be rare cases where a
-// super-long string could fail to parse. consider other options.
+  /**
+   * Given a desired buffer size, find the closest positive
+   * power-of-two larger than that size.
+   *
+   * This method throws an exception if the given values are negative
+   * or too large to have a valid power of two.
+   */
+  def computeBufferSize(x: Int): Int =
+    if (x < 0) {
+      throw new IllegalArgumentException("negative bufferSize ($x)")
+    } else if (x > 0x40000000) {
+      throw new IllegalArgumentException("bufferSize too large ($x)")
+    } else if (bitCount(x) == 1) {
+      x
+    } else {
+      highestOneBit(x) << 1
+    }
+}
 
 /**
  * Basic file parser.
  *
- * Given a file name this parser opens it, chunks the data 256K at a
- * time, and parses it.
+ * Given a file name this parser opens it, chunks the data, and parses
+ * it.
  */
-final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with ByteBasedParser[J] {
+final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends SyncParser[J] with ByteBasedParser[J] {
 
-  var Bufsize: Int = 1048576
+  var Bufsize: Int = ChannelParser.computeBufferSize(bufferSize)
   var Mask: Int = Bufsize - 1
   var Allsize: Int = Bufsize * 2
 
@@ -49,7 +66,7 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
   var line = 0
   private var pos = 0
   protected[this] final def newline(i: Int): Unit = { line += 1; pos = i }
-  protected[this] final def column(i: Int) = i - pos
+  protected[this] final def column(i: Int): Int = i - pos
 
   protected[this] final def close(): Unit = ch.close()
 
@@ -66,7 +83,6 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
   }
 
   protected[this] final def grow(): Unit = {
-    println(s"grow $Bufsize -> $Allsize")
     val cc = new Array[Byte](Allsize)
     System.arraycopy(curr, 0, cc, 0, Bufsize)
     System.arraycopy(next, 0, cc, Bufsize, Bufsize)
@@ -78,7 +94,7 @@ final class ChannelParser[J](ch: ReadableByteChannel) extends SyncParser[J] with
 
     Bufsize = Allsize
     Mask = Allsize - 1
-    Allsize = Allsize * 2
+    Allsize *= 2
   }
 
   /**
