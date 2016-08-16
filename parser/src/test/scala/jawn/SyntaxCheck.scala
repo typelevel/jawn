@@ -1,7 +1,6 @@
 package jawn
 package parser
 
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatest._
 import prop._
 import org.scalacheck.Arbitrary._
@@ -67,6 +66,10 @@ class SyntaxCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChe
     val bb = ByteBuffer.wrap(s.getBytes("UTF-8"))
     val r2 = Parser.parseFromByteBuffer(bb)(NullFacade).isSuccess
     if (r1 == r2) r1 else sys.error(s"String/ByteBuffer parsing disagree($r1, $r2): $s")
+
+    Util.withTemp(s) { t =>
+      Parser.parseFromFile(t)(NullFacade).isSuccess
+    }
 
     val async = AsyncParser[Unit](AsyncParser.SingleValue)
     val r3 = async.absorb(s)(NullFacade).isRight && async.finish()(NullFacade).isRight

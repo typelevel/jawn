@@ -33,6 +33,10 @@ class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks
 
       value1 shouldBe value2
       value1.## shouldBe value2.##
+
+      parser.Util.withTemp(json1) { t =>
+        JParser.parseFromFile(t).get shouldBe value2
+      }
     }
   }
 
@@ -101,9 +105,7 @@ class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks
 
   property("if x == y, then x.## == y.##") {
     forAll { (x: JValue, y: JValue) =>
-      if (x == y) {
-        x.## shouldBe y.##
-      }
+      if (x == y) x.## shouldBe y.##
     }
   }
 
@@ -124,6 +126,23 @@ class AstCheck extends PropSpec with Matchers with GeneratorDrivenPropertyChecks
       check(DeferNum(s + ".000"))
       check(DeferNum(s + "e0"))
       check(DeferNum(s + ".0e0"))
+    }
+  }
+
+  property("large strings") {
+    val M = 1000000
+    val q = "\""
+
+    val s0 = ("x" * (40 * M))
+    val e0 = q + s0 + q
+    parser.Util.withTemp(e0) { t =>
+      JParser.parseFromFile(t).filter(_ == JString(s0)).isSuccess shouldBe true
+    }
+
+    val s1 = "\\" * (20 * M)
+    val e1 = q + s1 + s1 + q
+    parser.Util.withTemp(e1) { t =>
+      JParser.parseFromFile(t).filter(_ == JString(s1)).isSuccess shouldBe true
     }
   }
 }

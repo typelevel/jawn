@@ -121,16 +121,16 @@ final class AsyncParser[J] protected[jawn] (
    * ASYNC_PRESTART: We haven't seen any non-whitespace yet. We
    * could be parsing an array, or not. We are waiting for valid
    * JSON.
-   * 
+   *
    * ASYNC_START: We've seen an array and have begun unwrapping
    * it. We could see a ] if the array is empty, or valid JSON.
-   * 
+   *
    * ASYNC_END: We've parsed an array and seen the final ]. At this
    * point we should only see whitespace or an EOF.
-   * 
+   *
    * ASYNC_POSTVAL: We just parsed a value from inside the array. We
-   * expect to see whitespace, a comma, or an EOF.
-   * 
+   * expect to see whitespace, a comma, or a ].
+   *
    * ASYNC_PREVAL: We are in an array and we just saw a comma. We
    * expect to see whitespace or a JSON value.
    */
@@ -275,16 +275,12 @@ final class AsyncParser[J] protected[jawn] (
    * This is a specialized accessor for the case where our underlying data are
    * bytes not chars.
    */
-  protected[this] final def byte(i: Int): Byte = if (i >= len)
-    throw new AsyncException
-  else
-    data(i)
+  protected[this] final def byte(i: Int): Byte =
+    if (i >= len) throw new AsyncException else data(i)
 
   // we need to signal if we got out-of-bounds
-  protected[this] final def at(i: Int): Char = if (i >= len)
-    throw new AsyncException
-  else
-    data(i).toChar
+  protected[this] final def at(i: Int): Char =
+    if (i >= len) throw new AsyncException else data(i).toChar
 
   /**
    * Access a byte range as a string.
@@ -303,10 +299,11 @@ final class AsyncParser[J] protected[jawn] (
 
   // the basic idea is that we don't signal EOF until done is true, which means
   // the client explicitly send us an EOF.
-  protected[this] final def atEof(i: Int) = if (done) i >= len else false
+  protected[this] final def atEof(i: Int): Boolean =
+    if (done) i >= len else false
 
   // we don't have to do anything special on close.
-  protected[this] final def close() = ()
+  protected[this] final def close(): Unit = ()
 }
 
 /**

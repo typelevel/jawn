@@ -29,7 +29,7 @@ trait ByteBasedParser[J] extends Parser[J] {
     var j = i
     var c: Int = byte(j) & 0xff
     while (c != 34) {
-      if (c < 32) return die(j, s"control char ($c) in string" format c)
+      if (c < 32) return die(j, s"control char ($c) in string")
       if (c == 92) return -1
       j += 1
       c = byte(j) & 0xff
