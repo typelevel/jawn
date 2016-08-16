@@ -109,3 +109,6 @@ class Qux2Bench extends JmhBenchmarks("qux2.json")
 class Bla25Bench extends JmhBenchmarks("bla25.json")
 class CountriesBench extends JmhBenchmarks("countries.geo.json")
 class Ugh10kBench extends JmhBenchmarks("ugh10k.json")
+
+// // from https://github.com/zemirco/sf-city-lots-json
+// class CityLotsBench extends JmhBenchmarks("citylots.json")
