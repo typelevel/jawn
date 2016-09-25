@@ -22,7 +22,6 @@ lazy val jawnSettings = Seq(
 
   // release stuff
   releaseCrossBuild := true,
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := Function.const(false),
@@ -57,7 +56,7 @@ lazy val jawnSettings = Seq(
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    publishArtifacts,
+    ReleaseHelper.runCommandAndRemaining("+publishSigned"),
     setNextVersion,
     commitNextVersion,
     ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
@@ -70,6 +69,7 @@ lazy val noPublish = Seq(
 
 lazy val root = project.in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
+  .enablePlugins(CrossPerProjectPlugin)
   .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
   .settings(jawnSettings: _*)
