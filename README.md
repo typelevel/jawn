@@ -12,7 +12,9 @@ we get a catchy slogan.
 
 Jawn was designed to parse JSON into an AST as quickly as possible.
 
+[![Build Status](https://api.travis-ci.org/typelevel/cats.svg)](https://travis-ci.org/typelevel/cats)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/non/jawn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Latest version](https://index.scala-lang.org/non/jawn/jawn-parser/latest.svg?color=orange)](https://index.scala-lang.org/non/jawn)
 
 ### Overview
 
@@ -39,10 +41,10 @@ shows you how to depend on Jawn for your project:
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.9.0"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.0"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.9.0"
+libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.10.0"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -50,7 +52,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.9.0"
+libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.10.0"
 ```
 
 There are a few reasons you might want to do this:
@@ -91,7 +93,7 @@ the parser with data as it is available. There are three modes:
 
 * `SingleValue` waits to return a single `J` value once parsing is done.
 * `UnwrapArray` if the top-level element is an array, return values as they become available.
-* `ValueStream` parser one-or-more json values separated by whitespace
+* `ValueStream` parse one-or-more json values separated by whitespace.
 
 Here's an example:
 
@@ -118,7 +120,7 @@ def loop(st: Stream[String]): Either[ParseException, Unit] =
     case _ =>
       p.finish().right.map(_.foreach(sink))
   }
-  
+
 loop(chunks)
 ```
 
@@ -129,11 +131,11 @@ arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 Jawn currently supports six external ASTs directly:
 
- * Argonaut (6.0.4)
- * Json4s (3.2.11)
- * Play (2.3.6)
+ * Argonaut (6.1)
+ * Json4s (3.3.0)
+ * Play (2.5.8)
  * Rojoma (2.4.3)
- * Rojoma-v3 (3.2.1)
+ * Rojoma-v3 (3.3.0)
  * Spray (1.3.1)
 
 Each of these subprojects provides a `Parser` object (an instance of
@@ -159,7 +161,7 @@ This is how you would include the subproject in build.sbt:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.9.0"
+libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.10.0"
 ```
 
 This is an example of how you might use the parser into your code:
@@ -183,7 +185,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.9.0"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.0"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
@@ -416,4 +418,4 @@ power and sophistication of many other JSON libraries.
 All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
-Copyright Erik Osheim, 2012-2015.
+Copyright Erik Osheim, 2012-2016.
