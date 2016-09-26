@@ -99,7 +99,6 @@ lazy val supportArgonaut = support("argonaut")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
 
 lazy val supportJson4s = support("json4s")
-  .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := Seq("2.11.8"))
@@ -111,7 +110,6 @@ lazy val supportRojomaV3 = support("rojoma-v3")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
 
 lazy val supportSpray = support("spray")
-  .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
 
 lazy val benchmark = project.in(file("benchmark"))
   .dependsOn(all.map(Project.classpathDependency[Project]): _*)
