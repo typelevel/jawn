@@ -34,17 +34,19 @@ expectation is that you are here for (1) and (3) not (2).
 
 ### Quick Start
 
-Jawn supports Scala 2.10 and 2.11. Here's a `build.sbt` snippet that
-shows you how to depend on Jawn for your project:
+Jawn supports Scala 2.10, 2.11, and 2.12.0-RC1.
+
+Here's a `build.sbt` snippet that shows you how to depend on Jawn in
+your own SBT project:
 
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.0"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.1"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.10.0"
+libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.10.1"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -52,14 +54,14 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.10.0"
+libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.10.1"
 ```
 
 There are a few reasons you might want to do this:
 
- * The library's built-in parser is significantly slower than Jawn
- * Jawn supports more input types (`ByteBuffer`, `File`, etc.)
- * You need asynchronous JSON parsing
+ * The library's built-in parser is significantly slower than Jawn's.
+ * Jawn supports more input types (`ByteBuffer`, `File`, etc.).
+ * You need asynchronous JSON parsing.
 
 (NOTE: previous to version 0.8.3 the support libraries would have been
 named `"spray-support"` instead of `"jawn-spray"`.)
@@ -132,11 +134,14 @@ arbitrary data type (provided you also have an implicit `Facade[J]`).
 Jawn currently supports six external ASTs directly:
 
  * Argonaut (6.1)
- * Json4s (3.3.0)
- * Play (2.5.8)
+ * **Json4s (3.3.0)**
+ * *Play (2.5.8)*
  * Rojoma (2.4.3)
  * Rojoma-v3 (3.3.0)
- * Spray (1.3.1)
+ * **Spray (1.3.1)**
+
+(Projects in **bold** support Scala 2.10, 2.11, and 2.12.0-RC1.
+Projects in *italics* support only Scala 2.11.)
 
 Each of these subprojects provides a `Parser` object (an instance of
 `SupportParser[J]`) that is parameterized on the given project's
@@ -161,7 +166,7 @@ This is how you would include the subproject in build.sbt:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.10.0"
+libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.10.1"
 ```
 
 This is an example of how you might use the parser into your code:
@@ -185,7 +190,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.0"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.1"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
