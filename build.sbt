@@ -52,7 +52,7 @@ lazy val jawnSettings = Seq(
     checkSnapshotDependencies,
     inquireVersions,
     runClean,
-    runTest,
+    ReleaseHelper.runCommandAndRemaining("+test"), // formerly runTest
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
