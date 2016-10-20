@@ -3,7 +3,7 @@ import ReleaseTransformations._
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
   scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0-RC1"),
+  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0-RC2"),
 
   resolvers += Resolver.sonatypeRepo("releases"),
   libraryDependencies ++= Seq(
@@ -99,6 +99,7 @@ lazy val supportArgonaut = support("argonaut")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
 
 lazy val supportJson4s = support("json4s")
+  .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := Seq("2.11.8"))
