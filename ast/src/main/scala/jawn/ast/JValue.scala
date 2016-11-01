@@ -15,6 +15,7 @@ sealed abstract class JValue {
 
   def getBoolean: Option[Boolean] = None
   def getString: Option[String] = None
+  def getInt: Option[Int] = None
   def getLong: Option[Long] = None
   def getDouble: Option[Double] = None
   def getBigInt: Option[BigInt] = None
@@ -22,6 +23,7 @@ sealed abstract class JValue {
 
   def asBoolean: Boolean = throw new WrongValueException("boolean", valueType)
   def asString: String = throw new WrongValueException("string", valueType)
+  def asInt: Int = throw new WrongValueException("number", valueType)
   def asLong: Long = throw new WrongValueException("number", valueType)
   def asDouble: Double = throw new WrongValueException("number", valueType)
   def asBigInt: BigInt = throw new WrongValueException("number", valueType)
@@ -108,7 +110,7 @@ sealed abstract class JNum extends JAtom {
 object JNum { self =>
 
   /**
-   * Create a JNum from a Double.
+   * Create a JNum from a Long.
    *
    * This is identical to calling the LongNum(_) constructor.
    */
@@ -128,7 +130,7 @@ object JNum { self =>
     else DoubleNum(n)
 
   /**
-   * Create a JNum from a Double.
+   * Create a JNum from a String.
    *
    * This factory constructor validates the string (essentially,
    * parsing it as a JSON value). If you are already sure this string
@@ -152,11 +154,13 @@ object JNum { self =>
 
 case class LongNum(n: Long) extends JNum {
 
+  final override def getInt: Option[Int] = Some(n.toInt)
   final override def getLong: Option[Long] = Some(n)
   final override def getDouble: Option[Double] = Some(n.toDouble)
   final override def getBigInt: Option[BigInt] = Some(BigInt(n))
   final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(n))
 
+  final override def asInt: Int = n.toInt
   final override def asLong: Long = n
   final override def asDouble: Double = n.toDouble
   final override def asBigInt: BigInt = BigInt(n)
@@ -175,11 +179,13 @@ case class LongNum(n: Long) extends JNum {
 
 case class DoubleNum(n: Double) extends JNum {
 
+  final override def getInt: Option[Int] = Some(n.toInt)
   final override def getLong: Option[Long] = Some(n.toLong)
   final override def getDouble: Option[Double] = Some(n)
   final override def getBigInt: Option[BigInt] = Some(BigDecimal(n).toBigInt)
   final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(n))
 
+  final override def asInt: Int = n.toInt
   final override def asLong: Long = n.toLong
   final override def asDouble: Double = n
   final override def asBigInt: BigInt = BigDecimal(n).toBigInt
@@ -200,11 +206,13 @@ case class DeferLong(s: String) extends JNum {
 
   lazy val n: Long = java.lang.Long.parseLong(s)
 
+  final override def getInt: Option[Int] = Some(n.toInt)
   final override def getLong: Option[Long] = Some(n)
   final override def getDouble: Option[Double] = Some(n.toDouble)
   final override def getBigInt: Option[BigInt] = Some(BigInt(s))
   final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(s))
 
+  final override def asInt: Int = n.toInt
   final override def asLong: Long = n
   final override def asDouble: Double = n.toDouble
   final override def asBigInt: BigInt = BigInt(s)
@@ -226,11 +234,13 @@ case class DeferNum(s: String) extends JNum {
 
   lazy val n: Double = java.lang.Double.parseDouble(s)
 
+  final override def getInt: Option[Int] = Some(n.toInt)
   final override def getLong: Option[Long] = Some(n.toLong)
   final override def getDouble: Option[Double] = Some(n)
   final override def getBigInt: Option[BigInt] = Some(BigDecimal(s).toBigInt)
   final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(s))
 
+  final override def asInt: Int = n.toInt
   final override def asLong: Long = n.toLong
   final override def asDouble: Double = n
   final override def asBigInt: BigInt = BigDecimal(s).toBigInt
