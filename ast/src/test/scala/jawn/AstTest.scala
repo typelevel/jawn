@@ -24,6 +24,7 @@ class AstTest extends PropSpec with Matchers with PropertyChecks {
     forAll { (v: JValue) =>
       v.getBoolean shouldBe Try(v.asBoolean).toOption
       v.getString shouldBe Try(v.asString).toOption
+      v.getInt shouldBe Try(v.asInt).toOption
       v.getLong shouldBe Try(v.asLong).toOption
       v.getDouble shouldBe Try(v.asDouble).toOption
       v.getBigInt shouldBe Try(v.asBigInt).toOption
@@ -37,6 +38,13 @@ class AstTest extends PropSpec with Matchers with PropertyChecks {
 
   property(".getString") {
     forAll((s: String) => JString(s).getString shouldBe Some(s))
+  }
+
+  property(".getInt") {
+    forAll { (n: Int) =>
+      JNum(n).getInt shouldBe Some(n)
+      JParser.parseUnsafe(n.toString).getInt shouldBe Some(n)
+    }
   }
 
   property(".getLong") {
