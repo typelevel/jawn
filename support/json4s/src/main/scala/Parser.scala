@@ -12,7 +12,7 @@ object Parser extends SupportParser[JValue] {
       def jfalse() = JBool(false)
       def jtrue() = JBool(true)
       def jnum(s: String) = JDouble(java.lang.Double.parseDouble(s))
-      def jint(s: String) = JDouble(java.lang.Double.parseDouble(s))
+      def jint(s: String) = JInt(java.lang.Integer.parseInt(s))
       def jstring(s: String) = JString(s)
 
       def singleContext() =
