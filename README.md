@@ -34,7 +34,7 @@ expectation is that you are here for (1) and (3) not (2).
 
 ### Quick Start
 
-Jawn supports Scala 2.10, 2.11, and 2.12.0-RC1.
+Jawn supports Scala 2.10, 2.11, and 2.12.
 
 Here's a `build.sbt` snippet that shows you how to depend on Jawn in
 your own SBT project:
