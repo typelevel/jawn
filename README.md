@@ -133,15 +133,14 @@ arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 Jawn currently supports six external ASTs directly:
 
- * Argonaut (6.1)
- * **Json4s (3.3.0)**
- * *Play (2.5.8)*
- * Rojoma (2.4.3)
- * Rojoma-v3 (3.3.0)
- * **Spray (1.3.1)**
-
-(Projects in **bold** support Scala 2.10, 2.11, and 2.12.0-RC1.
-Projects in *italics* support only Scala 2.11.)
+| AST       | 2.10  | 2.11  | 2.12  |
+|-----------|-------|-------|-------|
+| Argonaut  | 6.1   | 6.1   |       |
+| Json4s    | 3.4.2 | 3.4.2 | 3.4.2 |
+| Play      |       | 2.5.8 |       |
+| Rojoma    | 2.4.3 | 2.4.3 |       |
+| Rojoma-v3 | 3.3.0 | 3.3.0 |       |
+| Spray     | 1.3.2 | 1.3.2 | 1.3.2 |
 
 Each of these subprojects provides a `Parser` object (an instance of
 `SupportParser[J]`) that is parameterized on the given project's
