@@ -3,12 +3,12 @@ import ReleaseTransformations._
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
   scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0-RC2"),
+  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0"),
 
   resolvers += Resolver.sonatypeRepo("releases"),
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.0.0" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.13.2" % "test"
+    "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
   ),
   scalacOptions ++= Seq(
     //"-Yinline-warnings",
