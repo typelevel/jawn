@@ -88,29 +88,40 @@ lazy val ast = project.in(file("ast"))
   .settings(jawnSettings: _*)
   .disablePlugins(JmhPlugin)
 
-def support(name: String) =
-  Project(id = name, base = file(s"support/$name"))
+def support(s: String) =
+  Project(id = s, base = file(s"support/$s"))
+    .settings(name := (s + "-support"))
+    .settings(moduleName := "jawn-" + s)
     .dependsOn(parser)
-    .settings(moduleName := "jawn-" + name)
     .settings(jawnSettings: _*)
     .disablePlugins(JmhPlugin)
 
 lazy val supportArgonaut = support("argonaut")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
+  .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.1")
 
 lazy val supportJson4s = support("json4s")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
+  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.4.2")
 
 lazy val supportPlay = support("play")
-  .settings(crossScalaVersions := Seq("2.11.8"))
+  .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
+  .settings(libraryDependencies += (scalaBinaryVersion.value match {
+    case "2.10" => "com.typesafe.play" %% "play-json" % "2.4.8"
+    case _ =>  "com.typesafe.play" %% "play-json" % "2.5.8"
+  }))
 
 lazy val supportRojoma = support("rojoma")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
+  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json" % "2.4.3")
 
 lazy val supportRojomaV3 = support("rojoma-v3")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
+  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.3.0")
 
 lazy val supportSpray = support("spray")
+  .settings(resolvers += "spray" at "http://repo.spray.io/")
+  .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.2")
 
 lazy val benchmark = project.in(file("benchmark"))
   .dependsOn(all.map(Project.classpathDependency[Project]): _*)
