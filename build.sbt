@@ -101,7 +101,6 @@ lazy val supportArgonaut = support("argonaut")
   .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.1")
 
 lazy val supportJson4s = support("json4s")
-  .settings(crossScalaVersions := Seq("2.10.6", "2.11.8"))
   .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.4.2")
 
 lazy val supportPlay = support("play")
