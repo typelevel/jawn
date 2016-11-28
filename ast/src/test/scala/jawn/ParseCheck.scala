@@ -51,6 +51,22 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
     }
   }
 
+  property("Test Iterable") {
+    val list = jawn.ast.JParser.parseFromString("""{"stuff": [1,2,3]}""").get
+    val stuff = list.get("stuff")
+    val converted = stuff.asIterable.map(_.asInt).toList
+    converted shouldBe List(1, 2, 3)
+  }
+
+  property("Test map") {
+    val list = jawn.ast.JParser.parseFromString("""{"stuff": [1,2,3]}""").get
+    val converted = list.asMap.map {
+      case (key, value) => (key, value.asIterable.map(_.asInt).toList)
+    }
+    val expected = Map("stuff" -> List(1, 2, 3))
+    converted shouldBe expected
+  }
+
   implicit val facade = JawnFacade
 
   val percs = List(0.0, 0.2, 0.4, 0.8, 1.0)
@@ -61,7 +77,7 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
     vs
   }
 
-  def splitIntoSegments(json: String): List[String] = 
+  def splitIntoSegments(json: String): List[String] =
     if (json.length >= 8) {
       val offsets = percs.map(n => (json.length * n).toInt)
       val pairs = offsets zip offsets.drop(1)

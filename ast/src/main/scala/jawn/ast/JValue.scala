@@ -20,6 +20,8 @@ sealed abstract class JValue {
   def getDouble: Option[Double] = None
   def getBigInt: Option[BigInt] = None
   def getBigDecimal: Option[BigDecimal] = None
+  def getIterable: Option[Iterable[JValue]] = None
+  def getMap: Option[collection.immutable.Map[String, JValue]] = None
 
   def asBoolean: Boolean = throw new WrongValueException("boolean", valueType)
   def asString: String = throw new WrongValueException("string", valueType)
@@ -28,6 +30,8 @@ sealed abstract class JValue {
   def asDouble: Double = throw new WrongValueException("number", valueType)
   def asBigInt: BigInt = throw new WrongValueException("number", valueType)
   def asBigDecimal: BigDecimal = throw new WrongValueException("number", valueType)
+  def asIterable: Iterable[JValue] = throw new WrongValueException("iterable", valueType)
+  def asMap: collection.immutable.Map[String, JValue] = throw new WrongValueException("map", valueType)
 
   def get(i: Int): JValue = JNull
   def set(i: Int, v: JValue): Unit = throw new WrongValueException("array", valueType)
@@ -261,6 +265,10 @@ case class DeferNum(s: String) extends JNum {
 case class JArray(vs: Array[JValue]) extends JValue {
   final def valueType: String = "array"
 
+  final override def getIterable: Option[Iterable[JValue]] = Some(vs)
+
+  final override def asIterable: Iterable[JValue] = vs
+
   final override def get(i: Int): JValue =
     if (0 <= i && i < vs.length) vs(i) else JNull
 
@@ -294,6 +302,12 @@ object JArray { self =>
 
 case class JObject(vs: mutable.Map[String, JValue]) extends JValue {
   final def valueType: String = "object"
+
+  final override def getIterable: Option[Iterable[JValue]] = Some(vs.values)
+  final override def getMap: Option[Map[String, JValue]] = Some(vs.toMap)
+
+  final override def asIterable: Iterable[JValue] = vs.values
+  final override def asMap: Map[String, JValue] = vs.toMap
 
   final override def get(k: String): JValue =
     vs.getOrElse(k, JNull)
