@@ -4,6 +4,8 @@ package support.json4s
 import scala.collection.mutable
 import org.json4s.JsonAST._
 
+object Parser extends Parser(false, false)
+
 class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends SupportParser[JValue] {
 
   implicit val facade: Facade[JValue] =
