@@ -4,15 +4,17 @@ package support.json4s
 import scala.collection.mutable
 import org.json4s.JsonAST._
 
-object Parser extends SupportParser[JValue] {
+object Parser extends Parser(false, false)
+
+class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends SupportParser[JValue] {
 
   implicit val facade: Facade[JValue] =
     new Facade[JValue] {
       def jnull() = JNull
       def jfalse() = JBool(false)
       def jtrue() = JBool(true)
-      def jnum(s: String) = JDouble(java.lang.Double.parseDouble(s))
-      def jint(s: String) = JInt(java.lang.Integer.parseInt(s))
+      def jnum(s: String) = if (useBigDecimalForDouble) JDecimal(BigDecimal(s)) else JDouble(s.toDouble)
+      def jint(s: String) = if (useBigIntForLong) JInt(BigInt(s)) else JLong(s.toLong)
       def jstring(s: String) = JString(s)
 
       def singleContext() =
