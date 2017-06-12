@@ -77,6 +77,15 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
 
   import AsyncParser.{UnwrapArray, ValueStream, SingleValue}
 
+  property("async multi") {
+    val data = "[1,2,3][4,5,6]"
+    val p = AsyncParser[JValue](ValueStream)
+    val res0 = p.absorb(data)
+    val res1 = p.finish
+    //println((res0, res1))
+    true
+  }
+
   property("async parsing") {
     forAll { (v: JValue) =>
       val json = CanonicalRenderer.render(v)
