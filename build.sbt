@@ -97,17 +97,16 @@ def support(s: String) =
     .disablePlugins(JmhPlugin)
 
 lazy val supportArgonaut = support("argonaut")
-  .settings(crossScalaVersions := Seq("2.10.6", "2.11.11"))
-  .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.1")
+  .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.2")
 
 lazy val supportJson4s = support("json4s")
-  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.5.0")
+  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.5.2")
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := Seq("2.10.6", "2.11.11"))
   .settings(libraryDependencies += (scalaBinaryVersion.value match {
-    case "2.10" => "com.typesafe.play" %% "play-json" % "2.4.8"
-    case _ =>  "com.typesafe.play" %% "play-json" % "2.5.9"
+    case "2.10" => "com.typesafe.play" %% "play-json" % "2.4.11"
+    case _ =>  "com.typesafe.play" %% "play-json" % "2.5.15"
   }))
 
 lazy val supportRojoma = support("rojoma")
@@ -115,11 +114,11 @@ lazy val supportRojoma = support("rojoma")
   .settings(libraryDependencies += "com.rojoma" %% "rojoma-json" % "2.4.3")
 
 lazy val supportRojomaV3 = support("rojoma-v3")
-  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.7.0")
+  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.7.2")
 
 lazy val supportSpray = support("spray")
   .settings(resolvers += "spray" at "http://repo.spray.io/")
-  .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.2")
+  .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.3")
 
 lazy val benchmark = project.in(file("benchmark"))
   .dependsOn(all.map(Project.classpathDependency[Project]): _*)
