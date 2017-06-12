@@ -1,9 +1,13 @@
 import ReleaseTransformations._
 
+lazy val previousJawnVersion = "0.10.4"
+
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
   scalaVersion := "2.11.8",
   crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0"),
+
+  mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
 
   resolvers += Resolver.sonatypeRepo("releases"),
   libraryDependencies ++= Seq(
@@ -65,7 +69,8 @@ lazy val jawnSettings = Seq(
 lazy val noPublish = Seq(
   publish := {},
   publishLocal := {},
-  publishArtifact := false)
+  publishArtifact := false,
+  mimaPreviousArtifacts := Set())
 
 lazy val root = project.in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
