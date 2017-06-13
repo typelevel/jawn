@@ -5,14 +5,14 @@ lazy val previousJawnVersion = "0.10.4"
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
   scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0"),
+  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0", "2.13.0-M1"),
 
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
 
   resolvers += Resolver.sonatypeRepo("releases"),
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.0.0" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
+    "org.scalatest" %% "scalatest" % "3.0.3" % Test,
+    "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
   ),
   scalacOptions ++= Seq(
     //"-Yinline-warnings",
@@ -30,26 +30,23 @@ lazy val jawnSettings = Seq(
   publishArtifact in Test := false,
   pomIncludeRepository := Function.const(false),
 
-  publishTo <<= (version).apply { v =>
+  publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (v.trim.endsWith("SNAPSHOT"))
+    if (version.value.trim.endsWith("SNAPSHOT"))
       Some("Snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("Releases" at nexus + "service/local/staging/deploy/maven2")
   },
 
-  pomExtra := (
-    <scm>
-      <url>git@github.com:non/jawn.git</url>
-      <connection>scm:git:git@github.com:non/jawn.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>d_m</id>
-        <name>Erik Osheim</name>
-        <url>http://github.com/non/</url>
-      </developer>
-    </developers>
+  scmInfo := Some(ScmInfo(
+    browseUrl = url("https://github.com/non/jawn"),
+    connection = "scm:git:git@github.com:non/jawn.git"
+  )),
+  developers += Developer(
+    email = "",
+    id = "d_m",
+    name = "Erik Osheim",
+    url = url("http://github.com/non/")
   ),
 
   releaseProcess := Seq[ReleaseStep](

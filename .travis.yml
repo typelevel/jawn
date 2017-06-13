@@ -3,3 +3,5 @@ jdk:
   - oraclejdk8
 script:
   - sbt "so test"
+before_script:
+  - sudo chmod +x /usr/local/bin/sbt
