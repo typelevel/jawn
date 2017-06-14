@@ -61,11 +61,6 @@ abstract class Parser[J] {
   protected[this] final def is(i: Int, c: Char): Boolean = at(i) == c
 
   /**
-   * Return true iff the bytes/chars from 'i' until 'j' are equal to 'str'.
-   */
-  protected[this] final def is(i: Int, j: Int, str: String): Boolean = at(i, j) == str
-
-  /**
    * The reset() method is used to signal that we're working from the
    * given position, and any previous data can be released. Some
    * parsers (e.g.  StringParser) will ignore release, while others
@@ -307,19 +302,31 @@ abstract class Parser[J] {
    * Parse the JSON constant "true".
    */
   protected[this] final def parseTrue(i: Int)(implicit facade: Facade[J]) =
-    if (is(i, i + 4, "true")) facade.jtrue else die(i, "expected true")
+    if (at(i) == 't' && at(i + 1) == 'r' && at(i + 2) == 'u' && at(i + 3) == 'e') {
+      facade.jtrue
+    } else {
+      die(i, "expected true")
+    }
 
   /**
    * Parse the JSON constant "false".
    */
   protected[this] final def parseFalse(i: Int)(implicit facade: Facade[J]) =
-    if (is(i, i + 5, "false")) facade.jfalse else die(i, "expected false")
+    if (at(i) == 'f' && at(i + 1) == 'a' && at(i + 2) == 'l' && at(i + 3) == 's' && at(i + 4) == 'e') {
+      facade.jfalse
+    } else {
+      die(i, "expected false")
+    }
 
   /**
    * Parse the JSON constant "null".
    */
   protected[this] final def parseNull(i: Int)(implicit facade: Facade[J]) =
-    if (is(i, i + 4, "null")) facade.jnull else die(i, "expected null")
+    if (at(i) == 'n' && at(i + 1) == 'u' && at(i + 2) == 'l' && at(i + 3) == 'l') {
+      facade.jnull
+    } else {
+      die(i, "expected null")
+    }
 
   /**
    * Parse and return the next JSON value and the position beyond it.
