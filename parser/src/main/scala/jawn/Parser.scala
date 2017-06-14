@@ -35,8 +35,6 @@ abstract class Parser[J] {
 
   protected[this] final val utf8 = Charset.forName("UTF-8")
 
-  protected[this] final val charBuilder = new CharBuilder()
-
   /**
    * Read the byte/char at 'i' as a Char.
    *

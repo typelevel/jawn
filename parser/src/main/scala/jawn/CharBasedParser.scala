@@ -13,6 +13,8 @@ import scala.annotation.{switch, tailrec}
  */
 private[jawn] trait CharBasedParser[J] extends Parser[J] {
 
+  private[this] final val charBuilder = new CharBuilder()
+
   /**
    * See if the string has any escape sequences. If not, return the
    * end of the string. If so, bail out and return -1.
