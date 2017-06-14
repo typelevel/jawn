@@ -56,11 +56,6 @@ abstract class Parser[J] {
   protected[this] def atEof(i: Int): Boolean
 
   /**
-   * Return true iff the byte/char at 'i' is equal to 'c'.
-   */
-  protected[this] final def is(i: Int, c: Char): Boolean = at(i) == c
-
-  /**
    * The reset() method is used to signal that we're working from the
    * given position, and any previous data can be released. Some
    * parsers (e.g.  StringParser) will ignore release, while others
