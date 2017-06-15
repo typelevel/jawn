@@ -13,8 +13,15 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def jnull() = JNull
       def jfalse() = JBool(false)
       def jtrue() = JBool(true)
-      def jnum(s: String) = if (useBigDecimalForDouble) JDecimal(BigDecimal(s)) else JDouble(s.toDouble)
-      def jint(s: String) = if (useBigIntForLong) JInt(BigInt(s)) else JLong(s.toLong)
+      def jnum(s: String, decIndex: Int, expIndex: Int) =
+        if (decIndex == -1 && expIndex == -1) {
+          if (useBigIntForLong) JInt(BigInt(s))
+          else JLong(s.toLong)
+        } else {
+          if (useBigDecimalForDouble) JDecimal(BigDecimal(s))
+          else JDouble(s.toDouble)
+        }
+
       def jstring(s: String) = JString(s)
 
       def singleContext() =

@@ -129,7 +129,8 @@ abstract class Parser[J] {
   protected[this] final def parseNum(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
     var c = at(j)
-    var dec = false
+    var decIndex = -1
+    var expIndex = -1
 
     if (c == '-') {
       j += 1
@@ -145,7 +146,7 @@ abstract class Parser[J] {
     }
 
     if (c == '.') {
-      dec = true
+      decIndex = j
       j += 1
       c = at(j)
       if ('0' <= c && c <= '9') {
@@ -156,7 +157,7 @@ abstract class Parser[J] {
     }
 
     if (c == 'e' || c == 'E') {
-      dec = true
+      expIndex = j
       j += 1
       c = at(j)
       if (c == '+' || c == '-') {
@@ -170,10 +171,7 @@ abstract class Parser[J] {
       }
     }
 
-    if (dec)
-      ctxt.add(facade.jnum(at(i, j)))
-    else
-      ctxt.add(facade.jint(at(i, j)))
+    ctxt.add(facade.jnum(at(i, j), decIndex, expIndex))
     j
   }
 
@@ -194,7 +192,8 @@ abstract class Parser[J] {
   protected[this] final def parseNumSlow(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
     var c = at(j)
-    var dec = false
+    var decIndex = -1
+    var expIndex = -1
 
     if (c == '-') {
       // any valid input will require at least one digit after -
@@ -204,7 +203,7 @@ abstract class Parser[J] {
     if (c == '0') {
       j += 1
       if (atEof(j)) {
-        ctxt.add(facade.jint(at(i, j)))
+        ctxt.add(facade.jnum(at(i, j), decIndex, expIndex))
         return j
       }
       c = at(j)
@@ -212,7 +211,7 @@ abstract class Parser[J] {
       while ('0' <= c && c <= '9') {
         j += 1
         if (atEof(j)) {
-          ctxt.add(facade.jint(at(i, j)))
+          ctxt.add(facade.jnum(at(i, j), decIndex, expIndex))
           return j
         }
         c = at(j)
@@ -223,14 +222,14 @@ abstract class Parser[J] {
 
     if (c == '.') {
       // any valid input will require at least one digit after .
-      dec = true
+      decIndex = j
       j += 1
       c = at(j)
       if ('0' <= c && c <= '9') {
         while ('0' <= c && c <= '9') {
           j += 1
           if (atEof(j)) {
-            ctxt.add(facade.jnum(at(i, j)))
+            ctxt.add(facade.jnum(at(i, j), decIndex, expIndex))
             return j
           }
           c = at(j)
@@ -242,7 +241,7 @@ abstract class Parser[J] {
 
     if (c == 'e' || c == 'E') {
       // any valid input will require at least one digit after e, e+, etc
-      dec = true
+      expIndex = j
       j += 1
       c = at(j)
       if (c == '+' || c == '-') {
@@ -253,7 +252,7 @@ abstract class Parser[J] {
         while ('0' <= c && c <= '9') {
           j += 1
           if (atEof(j)) {
-            ctxt.add(facade.jnum(at(i, j)))
+            ctxt.add(facade.jnum(at(i, j), decIndex, expIndex))
             return j
           }
           c = at(j)
@@ -262,10 +261,8 @@ abstract class Parser[J] {
         die(i, "expected digit")
       }
     }
-    if (dec)
-      ctxt.add(facade.jnum(at(i, j)))
-    else
-      ctxt.add(facade.jint(at(i, j)))
+
+    ctxt.add(facade.jnum(at(i, j), decIndex, expIndex))
     j
   }
 

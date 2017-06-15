@@ -10,8 +10,8 @@ object Parser extends SupportParser[Json] {
       def jnull() = Json.jNull
       def jfalse() = Json.jFalse
       def jtrue() = Json.jTrue
-      def jnum(s: String) = Json.jNumber(JsonNumber.unsafeDecimal(s))
-      def jint(s: String) = Json.jNumber(JsonNumber.unsafeDecimal(s))
+      def jnum(s: String, decIndex: Int, expIndex: Int) =
+        Json.jNumber(JsonNumber.unsafeDecimal(s))
       def jstring(s: String) = Json.jString(s)
 
       def singleContext() = new FContext[Json] {

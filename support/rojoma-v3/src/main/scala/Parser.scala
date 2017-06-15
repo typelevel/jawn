@@ -10,8 +10,7 @@ object Parser extends SupportParser[JValue] {
       def jnull() = JNull
       def jfalse() = JBoolean.canonicalFalse
       def jtrue() = JBoolean.canonicalTrue
-      def jnum(s: String) = JNumber.unsafeFromString(s)
-      def jint(s: String) = JNumber.unsafeFromString(s)
+      def jnum(s: String, decIndex: Int, expIndex: Int) = JNumber.unsafeFromString(s)
       def jstring(s: String) = JString(s)
       def jarray(vs: mutable.ArrayBuffer[JValue]) = JArray(vs)
       def jobject(vs: mutable.Map[String, JValue]) = JObject(vs)

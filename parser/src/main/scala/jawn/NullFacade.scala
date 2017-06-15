@@ -25,7 +25,6 @@ object NullFacade extends Facade[Unit] {
   def jnull(): Unit = ()
   def jfalse(): Unit = ()
   def jtrue(): Unit = ()
-  def jnum(s: String): Unit = ()
-  def jint(s: String): Unit = ()
+  def jnum(s: String, decIndex: Int, expIndex: Int): Unit = ()
   def jstring(s: String): Unit = ()
 }

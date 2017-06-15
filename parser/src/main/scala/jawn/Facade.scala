@@ -15,8 +15,7 @@ trait Facade[J] {
   def jnull(): J
   def jfalse(): J
   def jtrue(): J
-  def jnum(s: String): J
-  def jint(s: String): J
+  def jnum(s: String, decIndex: Int, expIndex: Int): J
   def jstring(s: String): J
 }
 
