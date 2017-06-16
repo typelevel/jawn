@@ -13,14 +13,18 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def jnull() = JNull
       def jfalse() = JBool(false)
       def jtrue() = JBool(true)
-      def jnum(s: String) = if (useBigDecimalForDouble) JDecimal(BigDecimal(s)) else JDouble(s.toDouble)
-      def jint(s: String) = if (useBigIntForLong) JInt(BigInt(s)) else JLong(s.toLong)
-      def jstring(s: String) = JString(s)
+      def jnum(s: CharSequence) =
+        if (useBigDecimalForDouble) JDecimal(BigDecimal(s.toString))
+        else JDouble(s.toString.toDouble)
+      def jint(s: CharSequence) =
+        if (useBigIntForLong) JInt(BigInt(s.toString))
+        else JLong(s.toString.toLong)
+      def jstring(s: CharSequence) = JString(s.toString)
 
       def singleContext() =
         new FContext[JValue] {
           var value: JValue = null
-          def add(s: String) { value = jstring(s) }
+          def add(s: CharSequence) { value = jstring(s) }
           def add(v: JValue) { value = v }
           def finish: JValue = value
           def isObj: Boolean = false
@@ -29,7 +33,7 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def arrayContext() =
         new FContext[JValue] {
           val vs = mutable.ListBuffer.empty[JValue]
-          def add(s: String) { vs += jstring(s) }
+          def add(s: CharSequence) { vs += jstring(s) }
           def add(v: JValue) { vs += v }
           def finish: JValue = JArray(vs.toList)
           def isObj: Boolean = false
@@ -39,8 +43,8 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
         new FContext[JValue] {
           var key: String = null
           val vs = mutable.ListBuffer.empty[JField]
-          def add(s: String): Unit =
-            if (key == null) key = s
+          def add(s: CharSequence): Unit =
+            if (key == null) key = s.toString
             else { vs += JField(key, jstring(s)); key = null }
           def add(v: JValue): Unit =
             { vs += JField(key, v); key = null }

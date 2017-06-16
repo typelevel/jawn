@@ -29,14 +29,20 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
   protected[this] final def byte(i: Int): Byte = src.get(i + start)
   protected[this] final def at(i: Int): Char = src.get(i + start).toChar
 
-  protected[this] final def at(i: Int, k: Int): String = {
-    val len = k - i
-    val arr = new Array[Byte](len)
-    src.position(i + start)
-    src.get(arr, 0, len)
-    src.position(start)
-    new String(arr, utf8)
+  private[this] final class AsChars(i: Int, k: Int) extends CharSequence {
+    private[this] final val len: Int = k - i
+    final def charAt(j: Int): Char = at(i + j)
+    final def length: Int = len
+    final def subSequence(start: Int, len: Int): CharSequence = new AsChars(i + start, i + start + len)
+    override final def toString: String = {
+      val arr = new Array[Byte](len)
+      src.position(i + start)
+      src.get(arr, 0, len)
+      src.position(start)
+      new String(arr, utf8)
+    }
   }
 
+  protected[this] final def at(i: Int, k: Int): CharSequence = new AsChars(i, k)
   protected[this] final def atEof(i: Int) = i >= limit
 }

@@ -27,43 +27,43 @@ abstract class JmhBenchmarks(name: String) {
   def buffered(path: String): BufferedReader =
     new BufferedReader(new FileReader(new File(path)))
 
-  @Benchmark
-  def json4sJacksonParse() = {
-    import org.json4s._
-    import org.json4s.jackson.JsonMethods._
-    parse(load(path))
-  }
-
-  @Benchmark
-  def playParse() =
-    play.api.libs.json.Json.parse(load(path))
-
-  @Benchmark
-  def rojomaV3Parse() =
-    com.rojoma.json.v3.io.JsonReader.fromReader(reader(path), blockSize = 100000)
-
-  @Benchmark
-  def argonautParse() =
-    argonaut.Parse.parse(load(path))
-
-  @Benchmark
-  def sprayParse() =
-    spray.json.JsonParser(load(path))
-
-  @Benchmark
-  def parboiledJsonParse() =
-    new ParboiledParser(load(path)).Json.run().get
-
-  @Benchmark
-  def jacksonParse() = {
-    import com.fasterxml.jackson.databind.ObjectMapper
-    import com.fasterxml.jackson.databind.JsonNode
-    new ObjectMapper().readValue(new File(path), classOf[JsonNode])
-  }
-
-  @Benchmark
-  def gsonParse() =
-    new com.google.gson.JsonParser().parse(buffered(path))
+  // @Benchmark
+  // def json4sJacksonParse() = {
+  //   import org.json4s._
+  //   import org.json4s.jackson.JsonMethods._
+  //   parse(load(path))
+  // }
+  // 
+  // @Benchmark
+  // def playParse() =
+  //   play.api.libs.json.Json.parse(load(path))
+  // 
+  // @Benchmark
+  // def rojomaV3Parse() =
+  //   com.rojoma.json.v3.io.JsonReader.fromReader(reader(path), blockSize = 100000)
+  // 
+  // @Benchmark
+  // def argonautParse() =
+  //   argonaut.Parse.parse(load(path))
+  // 
+  // @Benchmark
+  // def sprayParse() =
+  //   spray.json.JsonParser(load(path))
+  // 
+  // @Benchmark
+  // def parboiledJsonParse() =
+  //   new ParboiledParser(load(path)).Json.run().get
+  // 
+  // @Benchmark
+  // def jacksonParse() = {
+  //   import com.fasterxml.jackson.databind.ObjectMapper
+  //   import com.fasterxml.jackson.databind.JsonNode
+  //   new ObjectMapper().readValue(new File(path), classOf[JsonNode])
+  // }
+  // 
+  // @Benchmark
+  // def gsonParse() =
+  //   new com.google.gson.JsonParser().parse(buffered(path))
 
   @Benchmark
   def jawnCheckSyntax() =
