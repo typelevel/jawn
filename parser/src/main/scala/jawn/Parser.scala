@@ -445,15 +445,21 @@ abstract class Parser[J] {
       // we are starting an array, expecting to see data or a closing bracket
       case ARRBEG =>
         (at(i): @switch) match {
-          case ']' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
+          case ']' =>
+            if (stack.isEmpty) {
               error("invalid stack")
-          }
+            } else {
+              val ctxt1 = stack.head
+              val tail = stack.tail
+
+              if (tail.isEmpty) {
+                (ctxt1.finish, i + 1)
+              } else {
+                val ctxt2 = tail.head
+                ctxt2.add(ctxt1.finish)
+                rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, tail)
+              }
+            }
 
           case ' ' => rparse(state, i + 1, stack)
           case '\t' => rparse(state, i + 1, stack)
@@ -466,15 +472,21 @@ abstract class Parser[J] {
       // we are starting an object, expecting to see a key or a closing brace
       case OBJBEG =>
         (at(i): @switch) match {
-          case '}' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
+          case '}' =>
+            if (stack.isEmpty) {
               error("invalid stack")
-          }
+            } else {
+              val ctxt1 = stack.head
+              val tail = stack.tail
+
+              if (tail.isEmpty) {
+                (ctxt1.finish, i + 1)
+              } else {
+                val ctxt2 = tail.head
+                ctxt2.add(ctxt1.finish)
+                rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, tail)
+              }
+            }
 
           case ' ' => rparse(state, i + 1, stack)
           case '\t' => rparse(state, i + 1, stack)
@@ -503,15 +515,21 @@ abstract class Parser[J] {
         (at(i): @switch) match {
           case ',' => rparse(DATA, i + 1, stack)
 
-          case ']' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
+          case ']' =>
+            if (stack.isEmpty) {
               error("invalid stack")
-          }
+            } else {
+              val ctxt1 = stack.head
+              val tail = stack.tail
+
+              if (tail.isEmpty) {
+                (ctxt1.finish, i + 1)
+              } else {
+                val ctxt2 = tail.head
+                ctxt2.add(ctxt1.finish)
+                rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, tail)
+              }
+            }
 
           case ' ' => rparse(state, i + 1, stack)
           case '\t' => rparse(state, i + 1, stack)
@@ -527,15 +545,21 @@ abstract class Parser[J] {
         (at(i): @switch) match {
           case ',' => rparse(KEY, i + 1, stack)
 
-          case '}' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
+          case '}' =>
+            if (stack.isEmpty) {
               error("invalid stack")
-          }
+            } else {
+              val ctxt1 = stack.head
+              val tail = stack.tail
+
+              if (tail.isEmpty) {
+                (ctxt1.finish, i + 1)
+              } else {
+                val ctxt2 = tail.head
+                ctxt2.add(ctxt1.finish)
+                rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, tail)
+              }
+            }
 
           case ' ' => rparse(state, i + 1, stack)
           case '\t' => rparse(state, i + 1, stack)
