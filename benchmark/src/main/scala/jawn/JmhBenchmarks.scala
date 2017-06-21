@@ -10,7 +10,6 @@ import scala.collection.mutable
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 abstract class JmhBenchmarks(name: String) {
-
   val path: String = s"src/main/resources/$name"
 
   def load(path: String): String = {
@@ -27,6 +26,20 @@ abstract class JmhBenchmarks(name: String) {
   def buffered(path: String): BufferedReader =
     new BufferedReader(new FileReader(new File(path)))
 
+  @Benchmark
+  def jawnCheckSyntax() =
+    jawn.Syntax.checkString(load(path))
+
+  @Benchmark
+  def jawnParse() =
+    jawn.ast.JParser.parseFromFile(new File(path)).get
+
+  @Benchmark
+  def jawnStringParse() =
+    jawn.ast.JParser.parseFromString(load(path)).get
+}
+
+trait OtherBenchmarks { self: JmhBenchmarks =>
   @Benchmark
   def json4sJacksonParse() = {
     import org.json4s._
@@ -65,18 +78,6 @@ abstract class JmhBenchmarks(name: String) {
   def gsonParse() =
     new com.google.gson.JsonParser().parse(buffered(path))
 
-  @Benchmark
-  def jawnCheckSyntax() =
-    jawn.Syntax.checkString(load(path))
-
-  @Benchmark
-  def jawnParse() =
-    jawn.ast.JParser.parseFromFile(new File(path)).get
-
-  @Benchmark
-  def jawnStringParse() =
-    jawn.ast.JParser.parseFromString(load(path)).get
-
   // don't bother benchmarking jawn + external asts by default
 
   // @Benchmark
@@ -105,10 +106,15 @@ abstract class JmhBenchmarks(name: String) {
   // }
 }
 
-class Qux2Bench extends JmhBenchmarks("qux2.json")
-class Bla25Bench extends JmhBenchmarks("bla25.json")
-class CountriesBench extends JmhBenchmarks("countries.geo.json")
-class Ugh10kBench extends JmhBenchmarks("ugh10k.json")
+class Qux2Bench extends JmhBenchmarks("qux2.json") with OtherBenchmarks
+class Bla25Bench extends JmhBenchmarks("bla25.json") with OtherBenchmarks
+class CountriesBench extends JmhBenchmarks("countries.geo.json") with OtherBenchmarks
+class Ugh10kBench extends JmhBenchmarks("ugh10k.json") with OtherBenchmarks
+
+class JawnOnlyQux2Bench extends JmhBenchmarks("qux2.json")
+class JawnOnlyBla25Bench extends JmhBenchmarks("bla25.json")
+class JawnOnlyCountriesBench extends JmhBenchmarks("countries.geo.json")
+class JawnOnlyUgh10kBench extends JmhBenchmarks("ugh10k.json")
 
 // // from https://github.com/zemirco/sf-city-lots-json
 // class CityLotsBench extends JmhBenchmarks("citylots.json")
