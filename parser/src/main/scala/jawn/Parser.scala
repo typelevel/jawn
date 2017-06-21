@@ -293,9 +293,11 @@ abstract class Parser[J] {
 
   /**
    * Parse the JSON constant "true".
+   *
+   * Note that this method assumes that the first character has already been checked.
    */
-  protected[this] final def parseTrue(i: Int)(implicit facade: Facade[J]) =
-    if (at(i) == 't' && at(i + 1) == 'r' && at(i + 2) == 'u' && at(i + 3) == 'e') {
+  protected[this] final def parseTrue(i: Int)(implicit facade: Facade[J]): J =
+    if (at(i + 1) == 'r' && at(i + 2) == 'u' && at(i + 3) == 'e') {
       facade.jtrue
     } else {
       die(i, "expected true")
@@ -303,9 +305,11 @@ abstract class Parser[J] {
 
   /**
    * Parse the JSON constant "false".
+   *
+   * Note that this method assumes that the first character has already been checked.
    */
-  protected[this] final def parseFalse(i: Int)(implicit facade: Facade[J]) =
-    if (at(i) == 'f' && at(i + 1) == 'a' && at(i + 2) == 'l' && at(i + 3) == 's' && at(i + 4) == 'e') {
+  protected[this] final def parseFalse(i: Int)(implicit facade: Facade[J]): J =
+    if (at(i + 1) == 'a' && at(i + 2) == 'l' && at(i + 3) == 's' && at(i + 4) == 'e') {
       facade.jfalse
     } else {
       die(i, "expected false")
@@ -313,9 +317,11 @@ abstract class Parser[J] {
 
   /**
    * Parse the JSON constant "null".
+   *
+   * Note that this method assumes that the first character has already been checked.
    */
-  protected[this] final def parseNull(i: Int)(implicit facade: Facade[J]) =
-    if (at(i) == 'n' && at(i + 1) == 'u' && at(i + 2) == 'l' && at(i + 3) == 'l') {
+  protected[this] final def parseNull(i: Int)(implicit facade: Facade[J]): J =
+    if (at(i + 1) == 'u' && at(i + 2) == 'l' && at(i + 3) == 'l') {
       facade.jnull
     } else {
       die(i, "expected null")
