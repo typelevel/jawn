@@ -11,7 +11,7 @@ import scala.annotation.{switch, tailrec}
  *
  * It is simpler than ByteBasedParser.
  */
-private[jawn] trait CharBasedParser[J] extends Parser[J] {
+trait CharBasedParser[J] extends Parser[J] {
 
   private[this] final val charBuilder = new CharBuilder()
 
