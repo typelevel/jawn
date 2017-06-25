@@ -146,7 +146,7 @@ abstract class Parser[J] {
     }
 
     if (c == '.') {
-      decIndex = j
+      decIndex = j - i
       j += 1
       c = at(j)
       if ('0' <= c && c <= '9') {
@@ -157,7 +157,7 @@ abstract class Parser[J] {
     }
 
     if (c == 'e' || c == 'E') {
-      expIndex = j
+      expIndex = j - i
       j += 1
       c = at(j)
       if (c == '+' || c == '-') {
@@ -222,7 +222,7 @@ abstract class Parser[J] {
 
     if (c == '.') {
       // any valid input will require at least one digit after .
-      decIndex = j
+      decIndex = j - i
       j += 1
       c = at(j)
       if ('0' <= c && c <= '9') {
@@ -241,7 +241,7 @@ abstract class Parser[J] {
 
     if (c == 'e' || c == 'E') {
       // any valid input will require at least one digit after e, e+, etc
-      expIndex = j
+      expIndex = j - i
       j += 1
       c = at(j)
       if (c == '+' || c == '-') {
