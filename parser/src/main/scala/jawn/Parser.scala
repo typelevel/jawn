@@ -290,9 +290,11 @@ abstract class Parser[J] {
 
   /**
    * Parse the JSON constant "true".
+   *
+   * Note that this method assumes that the first character has already been checked.
    */
-  protected[this] final def parseTrue(i: Int)(implicit facade: Facade[J]) =
-    if (at(i) == 't' && at(i + 1) == 'r' && at(i + 2) == 'u' && at(i + 3) == 'e') {
+  protected[this] final def parseTrue(i: Int)(implicit facade: Facade[J]): J =
+    if (at(i + 1) == 'r' && at(i + 2) == 'u' && at(i + 3) == 'e') {
       facade.jtrue
     } else {
       die(i, "expected true")
@@ -300,9 +302,11 @@ abstract class Parser[J] {
 
   /**
    * Parse the JSON constant "false".
+   *
+   * Note that this method assumes that the first character has already been checked.
    */
-  protected[this] final def parseFalse(i: Int)(implicit facade: Facade[J]) =
-    if (at(i) == 'f' && at(i + 1) == 'a' && at(i + 2) == 'l' && at(i + 3) == 's' && at(i + 4) == 'e') {
+  protected[this] final def parseFalse(i: Int)(implicit facade: Facade[J]): J =
+    if (at(i + 1) == 'a' && at(i + 2) == 'l' && at(i + 3) == 's' && at(i + 4) == 'e') {
       facade.jfalse
     } else {
       die(i, "expected false")
@@ -310,9 +314,11 @@ abstract class Parser[J] {
 
   /**
    * Parse the JSON constant "null".
+   *
+   * Note that this method assumes that the first character has already been checked.
    */
-  protected[this] final def parseNull(i: Int)(implicit facade: Facade[J]) =
-    if (at(i) == 'n' && at(i + 1) == 'u' && at(i + 2) == 'l' && at(i + 3) == 'l') {
+  protected[this] final def parseNull(i: Int)(implicit facade: Facade[J]): J =
+    if (at(i + 1) == 'u' && at(i + 2) == 'l' && at(i + 3) == 'l') {
       facade.jnull
     } else {
       die(i, "expected null")
@@ -377,164 +383,97 @@ abstract class Parser[J] {
   protected[this] final def rparse(state: Int, j: Int, stack: List[FContext[J]])(implicit facade: Facade[J]): (J, Int) = {
     val i = reset(j)
     checkpoint(state, i, stack)
-    (state: @switch) match {
+
+    val c = at(i)
+
+    if (c == '\n') {
+      newline(i)
+      rparse(state, i + 1, stack)
+    } else if (c == ' ' || c == '\t' || c == '\r') {
+      rparse(state, i + 1, stack)
+    } else if (state == DATA) {
       // we are inside an object or array expecting to see data
-      case DATA =>
-        (at(i): @switch) match {
-          case '[' => rparse(ARRBEG, i + 1, facade.arrayContext() :: stack)
-          case '{' => rparse(OBJBEG, i + 1, facade.objectContext() :: stack)
+      if (c == '[') {
+        rparse(ARRBEG, i + 1, facade.arrayContext() :: stack)
+      } else if (c == '{') {
+        rparse(OBJBEG, i + 1, facade.objectContext() :: stack)
+      } else {
+        val ctxt = stack.head
 
-          case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
-            val ctxt = stack.head
-            val j = parseNum(i, ctxt)
-            rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
-
-          case '"' =>
-            val ctxt = stack.head
-            val j = parseString(i, ctxt)
-            rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
-
-          case 't' =>
-            val ctxt = stack.head
-            ctxt.add(parseTrue(i))
-            rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
-
-          case 'f' =>
-            val ctxt = stack.head
-            ctxt.add(parseFalse(i))
-            rparse(if (ctxt.isObj) OBJEND else ARREND, i + 5, stack)
-
-          case 'n' =>
-            val ctxt = stack.head
-            ctxt.add(parseNull(i))
-            rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
-
-          case ' ' => rparse(state, i + 1, stack)
-          case '\t' => rparse(state, i + 1, stack)
-          case '\r' => rparse(state, i + 1, stack)
-          case '\n' => newline(i); rparse(state, i + 1, stack)
-
-          case _ =>
-            die(i, "expected json value")
+        if ((c >= '0' && c <= '9') || c == '-') {
+          val j = parseNum(i, ctxt)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+        } else if (c == '"') {
+          val j = parseString(i, ctxt)
+          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+        } else if (c == 't') {
+          ctxt.add(parseTrue(i))
+          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
+        } else if (c == 'f') {
+          ctxt.add(parseFalse(i))
+          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 5, stack)
+        } else if (c == 'n') {
+          ctxt.add(parseNull(i))
+          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
+        } else {
+          die(i, "expected json value")
         }
+      }
+    } else if (
+      (c == ']' && (state == ARREND || state == ARRBEG)) ||
+      (c == '}' && (state == OBJEND || state == OBJBEG))
+    ) {
+      // we are inside an array or object and have seen a key or a closing
+      // brace, respectively.
+      if (stack.isEmpty) {
+        error("invalid stack")
+      } else {
+        val ctxt1 = stack.head
+        val tail = stack.tail
 
-      // we are in an object expecting to see a key
-      case KEY =>
-        (at(i): @switch) match {
-          case '"' =>
-            val j = parseString(i, stack.head)
-            rparse(SEP, j, stack)
-
-          case ' ' => rparse(state, i + 1, stack)
-          case '\t' => rparse(state, i + 1, stack)
-          case '\r' => rparse(state, i + 1, stack)
-          case '\n' => newline(i); rparse(state, i + 1, stack)
-
-          case _ => die(i, "expected \"")
+        if (tail.isEmpty) {
+          (ctxt1.finish, i + 1)
+        } else {
+          val ctxt2 = tail.head
+          ctxt2.add(ctxt1.finish)
+          rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, tail)
         }
-
-      // we are starting an array, expecting to see data or a closing bracket
-      case ARRBEG =>
-        (at(i): @switch) match {
-          case ']' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
-              error("invalid stack")
-          }
-
-          case ' ' => rparse(state, i + 1, stack)
-          case '\t' => rparse(state, i + 1, stack)
-          case '\r' => rparse(state, i + 1, stack)
-          case '\n' => newline(i); rparse(state, i + 1, stack)
-
-          case _ => rparse(DATA, i, stack)
-        }
-
-      // we are starting an object, expecting to see a key or a closing brace
-      case OBJBEG =>
-        (at(i): @switch) match {
-          case '}' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
-              error("invalid stack")
-          }
-
-          case ' ' => rparse(state, i + 1, stack)
-          case '\t' => rparse(state, i + 1, stack)
-          case '\r' => rparse(state, i + 1, stack)
-          case '\n' => newline(i); rparse(state, i + 1, stack)
-
-          case _ => rparse(KEY, i, stack)
-        }
-
-      // we are in an object just after a key, expecting to see a colon
-      case SEP =>
-        (at(i): @switch) match {
-          case ':' => rparse(DATA, i + 1, stack)
-
-          case ' ' => rparse(state, i + 1, stack)
-          case '\t' => rparse(state, i + 1, stack)
-          case '\r' => rparse(state, i + 1, stack)
-          case '\n' => newline(i); rparse(state, i + 1, stack)
-
-          case _ => die(i, "expected :")
-        }
-
-      // we are at a possible stopping point for an array, expecting to see
-      // either a comma (before more data) or a closing bracket.
-      case ARREND =>
-        (at(i): @switch) match {
-          case ',' => rparse(DATA, i + 1, stack)
-
-          case ']' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
-              error("invalid stack")
-          }
-
-          case ' ' => rparse(state, i + 1, stack)
-          case '\t' => rparse(state, i + 1, stack)
-          case '\r' => rparse(state, i + 1, stack)
-          case '\n' => newline(i); rparse(state, i + 1, stack)
-
-          case _ => die(i, "expected ] or ,")
-        }
-
-      // we are at a possible stopping point for an object, expecting to see
-      // either a comma (before more data) or a closing brace.
-      case OBJEND =>
-        (at(i): @switch) match {
-          case ',' => rparse(KEY, i + 1, stack)
-
-          case '}' => stack match {
-            case ctxt1 :: Nil =>
-              (ctxt1.finish, i + 1)
-            case ctxt1 :: ctxt2 :: tail =>
-              ctxt2.add(ctxt1.finish)
-              rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2 :: tail)
-            case _ =>
-              error("invalid stack")
-          }
-
-          case ' ' => rparse(state, i + 1, stack)
-          case '\t' => rparse(state, i + 1, stack)
-          case '\r' => rparse(state, i + 1, stack)
-          case '\n' => newline(i); rparse(state, i + 1, stack)
-
-          case _ => die(i, "expected } or ,")
-        }
+      }
+    } else if (state == KEY) {
+      // we are in an object expecting to see a key.
+      if (c == '"') {
+        val j = parseString(i, stack.head)
+        rparse(SEP, j, stack)
+      } else {
+        die(i, "expected \"")
+      }
+    } else if (state == SEP) {
+      // we are in an object just after a key, expecting to see a colon.
+      if (c == ':') {
+        rparse(DATA, i + 1, stack)
+      } else {
+        die(i, "expected :")
+      }
+    } else if (state == ARREND) {
+      // we are in an array, expecting to see a comma (before more data).
+      if (c == ',') {
+        rparse(DATA, i + 1, stack)
+      } else {
+        die(i, "expected ] or ,")
+      }
+    } else if (state == OBJEND) {
+      // we are in an object, expecting to see a comma (before more data).
+      if (c == ',') {
+        rparse(KEY, i + 1, stack)
+      } else {
+        die(i, "expected } or ,")
+      }
+    } else if (state == ARRBEG) {
+      // we are starting an array, expecting to see data or a closing bracket.
+      rparse(DATA, i, stack)
+    } else {
+      // we are starting an object, expecting to see a key or a closing brace.
+      rparse(KEY, i, stack)
     }
   }
 }
