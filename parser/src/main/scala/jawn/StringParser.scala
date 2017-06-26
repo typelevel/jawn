@@ -19,7 +19,7 @@ private[jawn] final class StringParser[J](s: String) extends SyncParser[J] with 
   final def reset(i: Int): Int = i
   final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {}
   final def at(i: Int): Char = s.charAt(i)
-  final def at(i: Int, j: Int): String = s.substring(i, j)
+  final def at(i: Int, j: Int): CharSequence = s.substring(i, j)
   final def atEof(i: Int) = i == s.length
   final def close() = ()
 }

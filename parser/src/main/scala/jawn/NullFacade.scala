@@ -13,7 +13,7 @@ package jawn
 object NullFacade extends Facade[Unit] {
 
   case class NullContext(isObj: Boolean) extends FContext[Unit] {
-    def add(s: String): Unit = ()
+    def add(s: CharSequence): Unit = ()
     def add(v: Unit): Unit = ()
     def finish: Unit = ()
   }
@@ -25,6 +25,6 @@ object NullFacade extends Facade[Unit] {
   def jnull(): Unit = ()
   def jfalse(): Unit = ()
   def jtrue(): Unit = ()
-  def jnum(s: String, decIndex: Int, expIndex: Int): Unit = ()
-  def jstring(s: String): Unit = ()
+  def jnum(s: CharSequence, decIndex: Int, expIndex: Int): Unit = ()
+  def jstring(s: CharSequence): Unit = ()
 }
