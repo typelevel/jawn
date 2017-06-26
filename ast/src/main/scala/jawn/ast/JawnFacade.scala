@@ -8,8 +8,12 @@ object JawnFacade extends Facade[JValue] {
   final val jnull = JNull
   final val jfalse = JFalse
   final val jtrue = JTrue
-  final def jnum(s: String) = DeferNum(s)
-  final def jint(s: String) = DeferLong(s)
+  final def jnum(s: String, decIndex: Int, expIndex: Int) =
+    if (decIndex == -1 && expIndex == -1) {
+      DeferLong(s)
+    } else {
+      DeferNum(s)
+    }
   final def jstring(s: String) = JString(s)
 
   final def singleContext(): FContext[JValue] =

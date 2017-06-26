@@ -9,8 +9,7 @@ object Parser extends SupportParser[JsValue] {
       def jnull() = JsNull
       def jfalse() = JsFalse
       def jtrue() = JsTrue
-      def jnum(s: String) = JsNumber(s)
-      def jint(s: String) = JsNumber(s)
+      def jnum(s: String, decIndex: Int, expIndex: Int) = JsNumber(s)
       def jstring(s: String) = JsString(s)
       def jarray(vs: List[JsValue]) = JsArray(vs: _*)
       def jobject(vs: Map[String, JsValue]) = JsObject(vs)
