@@ -289,7 +289,7 @@ final class AsyncParser[J] protected[jawn] (
    * boundaries. Also, the resulting String is not guaranteed to have length
    * (k - i).
    */
-  protected[this] final def at(i: Int, k: Int): String = {
+  protected[this] final def at(i: Int, k: Int): CharSequence = {
     if (k > len) throw new AsyncException
     val size = k - i
     val arr = new Array[Byte](size)

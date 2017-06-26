@@ -34,7 +34,7 @@ private[jawn] final class CharBuilder {
     }
   }
 
-  def extend(s: String): Unit = {
+  def extend(s: CharSequence): Unit = {
     val tlen = len + s.length
     resizeIfNecessary(tlen)
     var i = 0

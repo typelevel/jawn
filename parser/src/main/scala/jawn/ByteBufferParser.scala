@@ -29,7 +29,7 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
   protected[this] final def byte(i: Int): Byte = src.get(i + start)
   protected[this] final def at(i: Int): Char = src.get(i + start).toChar
 
-  protected[this] final def at(i: Int, k: Int): String = {
+  protected[this] final def at(i: Int, k: Int): CharSequence = {
     val len = k - i
     val arr = new Array[Byte](len)
     src.position(i + start)
