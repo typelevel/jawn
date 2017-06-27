@@ -68,7 +68,7 @@ abstract class Parser[J] {
    * The checkpoint() method is used to allow some parsers to store
    * their progress.
    */
-  protected[this] def checkpoint(state: Int, i: Int, stack: List[RawFContext[J]]): Unit
+  protected[this] def checkpoint(state: Int, i: Int, context: RawFContext[J], stack: List[RawFContext[J]]): Unit
 
   /**
    * Should be called when parsing is finished.
@@ -371,8 +371,8 @@ abstract class Parser[J] {
 
       // if we have a recursive top-level structure, we'll delegate the parsing
       // duties to our good friend rparse().
-      case '[' => rparse(ARRBEG, i + 1, facade.arrayContext(i) :: Nil)
-      case '{' => rparse(OBJBEG, i + 1, facade.objectContext(i) :: Nil)
+      case '[' => rparse(ARRBEG, i + 1, facade.arrayContext(i), Nil)
+      case '{' => rparse(OBJBEG, i + 1, facade.objectContext(i), Nil)
 
       // we have a single top-level number
       case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
@@ -410,41 +410,44 @@ abstract class Parser[J] {
    * improvements.
    */
   @tailrec
-  protected[this] final def rparse(state: Int, j: Int, stack: List[RawFContext[J]])(implicit facade: RawFacade[J]): (J, Int) = {
+  protected[this] final def rparse(
+    state: Int,
+    j: Int,
+    context: RawFContext[J],
+    stack: List[RawFContext[J]]
+  )(implicit facade: RawFacade[J]): (J, Int) = {
     val i = reset(j)
-    checkpoint(state, i, stack)
+    checkpoint(state, i, context, stack)
 
     val c = at(i)
 
     if (c == '\n') {
       newline(i)
-      rparse(state, i + 1, stack)
+      rparse(state, i + 1, context, stack)
     } else if (c == ' ' || c == '\t' || c == '\r') {
-      rparse(state, i + 1, stack)
+      rparse(state, i + 1, context, stack)
     } else if (state == DATA) {
       // we are inside an object or array expecting to see data
       if (c == '[') {
-        rparse(ARRBEG, i + 1, facade.arrayContext(i) :: stack)
+        rparse(ARRBEG, i + 1, facade.arrayContext(i), context :: stack)
       } else if (c == '{') {
-        rparse(OBJBEG, i + 1, facade.objectContext(i) :: stack)
+        rparse(OBJBEG, i + 1, facade.objectContext(i), context :: stack)
       } else {
-        val ctxt = stack.head
-
         if ((c >= '0' && c <= '9') || c == '-') {
-          val j = parseNum(i, ctxt)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          val j = parseNum(i, context)
+          rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
         } else if (c == '"') {
-          val j = parseString(i, ctxt)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, j, stack)
+          val j = parseString(i, context)
+          rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
         } else if (c == 't') {
-          ctxt.add(parseTrue(i), i)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
+          context.add(parseTrue(i), i)
+          rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
         } else if (c == 'f') {
-          ctxt.add(parseFalse(i), i)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 5, stack)
+          context.add(parseFalse(i), i)
+          rparse(if (context.isObj) OBJEND else ARREND, i + 5, context, stack)
         } else if (c == 'n') {
-          ctxt.add(parseNull(i), i)
-          rparse(if (ctxt.isObj) OBJEND else ARREND, i + 4, stack)
+          context.add(parseNull(i), i)
+          rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
         } else {
           die(i, "expected json value")
         }
@@ -456,54 +459,47 @@ abstract class Parser[J] {
       // we are inside an array or object and have seen a key or a closing
       // brace, respectively.
       if (stack.isEmpty) {
-        error("invalid stack")
+        (context.finish(i), i + 1)
       } else {
-        val ctxt1 = stack.head
-        val tail = stack.tail
-
-        if (tail.isEmpty) {
-          (ctxt1.finish(i), i + 1)
-        } else {
-          val ctxt2 = tail.head
-          ctxt2.add(ctxt1.finish(i), i)
-          rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, tail)
-        }
+        val ctxt2 = stack.head
+        ctxt2.add(context.finish(i), i)
+        rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2, stack.tail)
       }
     } else if (state == KEY) {
       // we are in an object expecting to see a key.
       if (c == '"') {
-        val j = parseString(i, stack.head)
-        rparse(SEP, j, stack)
+        val j = parseString(i, context)
+        rparse(SEP, j, context, stack)
       } else {
         die(i, "expected \"")
       }
     } else if (state == SEP) {
       // we are in an object just after a key, expecting to see a colon.
       if (c == ':') {
-        rparse(DATA, i + 1, stack)
+        rparse(DATA, i + 1, context, stack)
       } else {
         die(i, "expected :")
       }
     } else if (state == ARREND) {
       // we are in an array, expecting to see a comma (before more data).
       if (c == ',') {
-        rparse(DATA, i + 1, stack)
+        rparse(DATA, i + 1, context, stack)
       } else {
         die(i, "expected ] or ,")
       }
     } else if (state == OBJEND) {
       // we are in an object, expecting to see a comma (before more data).
       if (c == ',') {
-        rparse(KEY, i + 1, stack)
+        rparse(KEY, i + 1, context, stack)
       } else {
         die(i, "expected } or ,")
       }
     } else if (state == ARRBEG) {
       // we are starting an array, expecting to see data or a closing bracket.
-      rparse(DATA, i, stack)
+      rparse(DATA, i, context, stack)
     } else {
       // we are starting an object, expecting to see a key or a closing brace.
-      rparse(KEY, i, stack)
+      rparse(KEY, i, context, stack)
     }
   }
 }
