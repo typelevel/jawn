@@ -89,4 +89,27 @@ class SliceCheck extends PropSpec with Matchers with PropertyChecks {
       }
     }
   }
+
+  property("x == x") {
+    forAll { (x: Slice) => x shouldBe x }
+  }
+
+  property("(x == y) = (x.toString == y.toString)") {
+    forAll { (x: Slice, y: Slice) =>
+      (x == y) shouldBe (x.toString == y.toString)
+    }
+  }
+
+  property("(x == y) -> (x.## == y.##)") {
+    forAll { (x: Slice, y: Slice) =>
+      if (x == y) x.## shouldBe y.##
+      else (x.## == y.##) shouldBe false
+    }
+  }
+
+  property("x == Slice(x.toString)") {
+    forAll { (x: Slice) =>
+      Slice(x.toString) shouldBe x
+    }
+  }
 }
