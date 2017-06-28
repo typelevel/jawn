@@ -41,6 +41,18 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
     }
   }
 
+  property("string encoding/decoding") {
+    forAll { s: String =>
+      val jstr1 = JString(s)
+      val json1 = CanonicalRenderer.render(jstr1)
+      val jstr2 = JParser.parseFromString(json1).get
+      val json2 = CanonicalRenderer.render(jstr2)
+      jstr2 shouldBe jstr1
+      json2 shouldBe json1
+      json2.## shouldBe json1.##
+    }
+  }
+
   property("string/charSequence parsing") {
     forAll { value: JValue =>
       val s = CanonicalRenderer.render(value)
