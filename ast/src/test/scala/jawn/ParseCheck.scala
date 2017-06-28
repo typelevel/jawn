@@ -11,6 +11,8 @@ import Arbitrary.arbitrary
 import scala.collection.mutable
 import scala.util.{Try, Success}
 
+import jawn.parser.TestUtil
+
 import ArbitraryUtil._
 
 class AstCheck extends PropSpec with Matchers with PropertyChecks {
@@ -33,21 +35,19 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
       value1 shouldBe value2
       value1.## shouldBe value2.##
 
-      parser.Util.withTemp(json1) { t =>
+      TestUtil.withTemp(json1) { t =>
         JParser.parseFromFile(t).get shouldBe value2
       }
     }
   }
 
-  property("string encoding/decoding") {
-    forAll { s: String =>
-      val jstr1 = JString(s)
-      val json1 = CanonicalRenderer.render(jstr1)
-      val jstr2 = JParser.parseFromString(json1).get
-      val json2 = CanonicalRenderer.render(jstr2)
-      jstr2 shouldBe jstr1
-      json2 shouldBe json1
-      json2.## shouldBe json1.##
+  property("string/charSequence parsing") {
+    forAll { value: JValue =>
+      val s = CanonicalRenderer.render(value)
+      val j1 = JParser.parseFromString(s)
+      val j2 = JParser.parseFromCharSequence(Slice(s))
+      j1 shouldBe j2
+      j1.## shouldBe j2.##
     }
   }
 
@@ -143,13 +143,13 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
 
     val s0 = ("x" * (40 * M))
     val e0 = q + s0 + q
-    parser.Util.withTemp(e0) { t =>
+    TestUtil.withTemp(e0) { t =>
       JParser.parseFromFile(t).filter(_ == JString(s0)).isSuccess shouldBe true
     }
 
     val s1 = "\\" * (20 * M)
     val e1 = q + s1 + s1 + q
-    parser.Util.withTemp(e1) { t =>
+    TestUtil.withTemp(e1) { t =>
       JParser.parseFromFile(t).filter(_ == JString(s1)).isSuccess shouldBe true
     }
   }

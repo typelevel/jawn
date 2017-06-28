@@ -14,11 +14,11 @@ class ChannelSpec extends PropSpec with Matchers {
     val big = q + ("x" * (40 * M)) + q
     val bigEscaped = q + ("\\\\" * (20 * M)) + q
 
-    Util.withTemp(big) { t =>
+    TestUtil.withTemp(big) { t =>
       Parser.parseFromFile(t)(NullFacade).isSuccess shouldBe true
     }
 
-    Util.withTemp(bigEscaped) { t =>
+    TestUtil.withTemp(bigEscaped) { t =>
       Parser.parseFromFile(t)(NullFacade).isSuccess shouldBe true
     }
   }

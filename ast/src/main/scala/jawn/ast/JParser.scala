@@ -15,6 +15,9 @@ object JParser {
   def parseFromString(s: String): Try[JValue] =
     Try(new StringParser[JValue](s).parse)
 
+  def parseFromCharSequence(cs: CharSequence): Try[JValue] =
+    Try(new CharSequenceParser[JValue](cs).parse)
+
   def parseFromPath(path: String): Try[JValue] =
     parseFromFile(new File(path))
 
