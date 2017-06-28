@@ -1,9 +1,23 @@
 package jawn
 
-object Util {
+package object util {
 
-  case class InvalidLong(s: String) extends Exception(s"string '$s' not a valid Long")
-
+  /**
+   * Parse the given character sequence as a single Long value (64-bit
+   * signed integer) in decimal (base-10).
+   *
+   * Other than "0", leading zeros are not allowed, nor are leading
+   * plusses. At most one leading minus is allowed. The value "-0" is
+   * allowed, and is interpreted as 0.
+   *
+   * Stated more precisely, accepted values:
+   *
+   *   - conform to the pattern: -?(0|([1-9][0-9]*))
+   *   - are within [-9223372036854775808, 9223372036854775807]
+   *
+   * This method will throw an `InvalidLong` exception on invalid
+   * input.
+   */
   def parseLong(cs: CharSequence): Long = {
 
     // we store the inverse of the positive sum, to ensure we don't
@@ -22,6 +36,7 @@ object Util {
     val size = len - i
     if (i >= len) throw InvalidLong(cs.toString)
     if (size > 19) throw InvalidLong(cs.toString)
+    if (cs.charAt(i) == '0' && size > 1) throw InvalidLong(cs.toString)
 
     while (i < len) {
       val digit = cs.charAt(i).toInt - 48
@@ -39,22 +54,22 @@ object Util {
   }
 
   /**
-   * Parse a Long from a given CharSequence.
+   * Parse the given character sequence as a single Long value (64-bit
+   * signed integer) in decimal (base-10).
    *
-   * This method assumes the input has already been validated, and is
-   * a valid base-10 integer (-?[1-9][0-9]*|0). This method is not
-   * guaranteed to fail on invalid input (although it may fail).
+   * For valid inputs, this method produces the same values as
+   * `parseLong`. However, by avoiding input validation it is up to
+   * 50% faster.
    *
-   * In particular, this method will not correctly handle:
-   *
-   *  - empty sequences
-   *  - leading zeros (e.g. 012)
-   *  - leading plus (e.g. +33)
-   *  - decimals or exponents (e.g. 2.3, 1e4)
-   *  - other bases (e.g. a1ef, 0x44ed)
+   * For inputs which `parseLong` throws an error on,
+   * `parseLongUnsafe` may (or may not) throw an error, or return a
+   * bogus value. This method makes no guarantees about how it handles
+   * invalid input.
    *
    * This method should only be used on sequences which have already
-   * been parsed (e.g. by a Jawn parser).
+   * been parsed (e.g. by a Jawn parser). When in doubt, use
+   * `parseLong(cs)`, which is still significantly faster than
+   * `java.lang.Long.parseLong(cs.toString)`.
    */
   def parseLongUnsafe(cs: CharSequence): Long = {
 

@@ -1,5 +1,5 @@
 package jawn
-package parser
+package util
 
 import org.scalatest._
 import prop._
@@ -110,6 +110,22 @@ class SliceCheck extends PropSpec with Matchers with PropertyChecks {
   property("x == Slice(x.toString)") {
     forAll { (x: Slice) =>
       Slice(x.toString) shouldBe x
+    }
+  }
+
+  property("slice is serializable") {
+    import java.io._
+
+    forAll { (x: Slice) =>
+      val baos = new ByteArrayOutputStream()
+      val oos = new ObjectOutputStream(baos)
+      oos.writeObject(x)
+      oos.close()
+      val bytes = baos.toByteArray
+      val bais = new ByteArrayInputStream(bytes)
+      val ois = new ObjectInputStream(bais)
+      Try(ois.readObject()) shouldBe Try(x)
+      ois.close()
     }
   }
 }

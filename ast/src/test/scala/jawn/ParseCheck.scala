@@ -57,7 +57,8 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
     forAll { value: JValue =>
       val s = CanonicalRenderer.render(value)
       val j1 = JParser.parseFromString(s)
-      val j2 = JParser.parseFromCharSequence(Slice(s))
+      val cs = java.nio.CharBuffer.wrap(s.toCharArray)
+      val j2 = JParser.parseFromCharSequence(cs)
       j1 shouldBe j2
       j1.## shouldBe j2.##
     }

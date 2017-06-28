@@ -1,5 +1,5 @@
 package jawn
-package parser
+package util
 
 import org.scalatest._
 import prop._
@@ -24,13 +24,13 @@ class ParseLongCheck extends PropSpec with Matchers with PropertyChecks {
       val i = prefix.length
       val cs = s.subSequence(i, payload.length + i)
       cs.toString shouldBe payload
-      Util.parseLong(cs) shouldBe n
-      Util.parseLongUnsafe(cs) shouldBe n
+      parseLong(cs) shouldBe n
+      parseLongUnsafe(cs) shouldBe n
     }
 
     forAll { (s: String) =>
-      Try(Util.parseLong(s)) match {
-        case Success(n) => Util.parseLongUnsafe(s) shouldBe n
+      Try(parseLong(s)) match {
+        case Success(n) => parseLongUnsafe(s) shouldBe n
         case Failure(_) => succeed
       }
     }
@@ -39,23 +39,31 @@ class ParseLongCheck extends PropSpec with Matchers with PropertyChecks {
   property("safe parser fails on invalid input") {
     forAll { (n: Long, m: Long, suffix: String) =>
       val s1 = n.toString + suffix
-      Try(Util.parseLong(s1)) match {
+      Try(parseLong(s1)) match {
         case Success(n) => n shouldBe s1.toLong
         case Failure(_) => Try(s1.toLong).isFailure
       }
 
       val s2 = n.toString + (m & 0x7fffffffffffffffL).toString
-      Try(Util.parseLong(s2)) match {
+      Try(parseLong(s2)) match {
         case Success(n) => n shouldBe s2.toLong
         case Failure(_) => Try(s2.toLong).isFailure
       }
     }
 
-    Try(Util.parseLong("9223372036854775807")) shouldBe Try(Long.MaxValue)
-    Try(Util.parseLong("-9223372036854775808")) shouldBe Try(Long.MinValue)
+    Try(parseLong("9223372036854775807")) shouldBe Try(Long.MaxValue)
+    Try(parseLong("-9223372036854775808")) shouldBe Try(Long.MinValue)
+    Try(parseLong("-0")) shouldBe Try(0L)
 
-    assert(Try(Util.parseLong("9223372036854775808")).isFailure)
-    assert(Try(Util.parseLong("-9223372036854775809")).isFailure)
+    assert(Try(parseLong("")).isFailure)
+    assert(Try(parseLong("+0")).isFailure)
+    assert(Try(parseLong("00")).isFailure)
+    assert(Try(parseLong("01")).isFailure)
+    assert(Try(parseLong("+1")).isFailure)
+    assert(Try(parseLong("-")).isFailure)
+    assert(Try(parseLong("--1")).isFailure)
+    assert(Try(parseLong("9223372036854775808")).isFailure)
+    assert(Try(parseLong("-9223372036854775809")).isFailure)
   }
 
   // NOTE: parseLongUnsafe is not guaranteed to crash, or do anything

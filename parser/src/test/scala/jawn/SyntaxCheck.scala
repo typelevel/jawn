@@ -62,7 +62,8 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   import java.nio.ByteBuffer
 
   def isValidSyntax(s: String): Boolean = {
-    val r0 = Parser.parseFromCharSequence(Slice(s))(NullFacade).isSuccess
+    val cs = java.nio.CharBuffer.wrap(s.toCharArray)
+    val r0 = Parser.parseFromCharSequence(cs)(NullFacade).isSuccess
     val r1 = Parser.parseFromString(s)(NullFacade).isSuccess
     val bb = ByteBuffer.wrap(s.getBytes("UTF-8"))
     val r2 = Parser.parseFromByteBuffer(bb)(NullFacade).isSuccess
