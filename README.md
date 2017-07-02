@@ -18,11 +18,12 @@ Jawn was designed to parse JSON into an AST as quickly as possible.
 
 ### Overview
 
-Jawn consists of three parts:
+Jawn consists of four parts:
 
-1. A fast, generic JSON parser
-2. A small, somewhat anemic AST
+1. A fast, generic JSON parser (`jawn-parser`)
+2. A small, somewhat anemic AST (`jawn-ast`)
 3. Support packages which parse to third-party ASTs
+4. A few helpful utilities (`jawn-util`)
 
 Currently Jawn is competitive with the fastest Java JSON libraries
 (GSON and Jackson) and in the author's benchmarks it often wins. It
@@ -30,7 +31,8 @@ seems to be faster than any other Scala parser that exists (as of July
 2014).
 
 Given the plethora of really nice JSON libraries for Scala, the
-expectation is that you are here for (1) and (3) not (2).
+expectation is that you're probably here for `jawn-parser` or a
+support package.
 
 ### Quick Start
 
@@ -43,10 +45,10 @@ your own SBT project:
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.4"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.11.0"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.10.4"
+libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.11.0"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -54,7 +56,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.10.4"
+libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.11.0"
 ```
 
 There are a few reasons you might want to do this:
@@ -165,7 +167,7 @@ This is how you would include the subproject in build.sbt:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.10.4"
+libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.11.0"
 ```
 
 This is an example of how you might use the parser into your code:
@@ -189,7 +191,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.10.4"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.11.0"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
@@ -422,4 +424,4 @@ power and sophistication of many other JSON libraries.
 All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
-Copyright Erik Osheim, 2012-2016.
+Copyright Erik Osheim, 2012-2017.
