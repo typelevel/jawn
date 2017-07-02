@@ -133,14 +133,14 @@ arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 Jawn currently supports six external ASTs directly:
 
-| AST       | 2.10  | 2.11  | 2.12  |
-|-----------|-------|-------|-------|
-| Argonaut  | 6.1   | 6.1   |       |
-| Json4s    | 3.5.0 | 3.5.0 | 3.5.0 |
-| Play-json | 2.4.8 | 2.5.9 |       |
-| Rojoma    | 2.4.3 | 2.4.3 | 2.4.3 |
-| Rojoma-v3 | 3.7.0 | 3.7.0 | 3.7.0 |
-| Spray     | 1.3.2 | 1.3.2 | 1.3.2 |
+| AST       | 2.10   | 2.11   | 2.12  |
+|-----------|--------|--------|-------|
+| Argonaut  | 6.2    | 6.2    | 6.2   |
+| Json4s    | 3.5.2  | 3.5.2  | 3.5.2 |
+| Play-json | 2.4.11 | 2.5.15 | 2.6.0 |
+| Rojoma    | 2.4.3  | 2.4.3  | 2.4.3 |
+| Rojoma-v3 | 3.7.2  | 3.7.2  | 3.7.2 |
+| Spray     | 1.3.3  | 1.3.3  | 1.3.3 |
 
 Each of these subprojects provides a `Parser` object (an instance of
 `SupportParser[J]`) that is parameterized on the given project's
