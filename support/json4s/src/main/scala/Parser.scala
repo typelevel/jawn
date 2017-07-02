@@ -17,7 +17,7 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def jnum(s: CharSequence, decIndex: Int, expIndex: Int) =
         if (decIndex == -1 && expIndex == -1) {
           if (useBigIntForLong) JInt(BigInt(s.toString))
-          else JLong(s.toString.toLong)
+          else JLong(util.parseLongUnsafe(s))
         } else {
           if (useBigDecimalForDouble) JDecimal(BigDecimal(s.toString))
           else JDouble(s.toString.toDouble)

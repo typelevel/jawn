@@ -2,24 +2,34 @@ import ReleaseTransformations._
 
 lazy val previousJawnVersion = "0.10.4"
 
+lazy val stableCrossVersions =
+  Seq("2.10.6", "2.11.11", "2.12.2")
+
+lazy val allCrossVersions =
+  stableCrossVersions :+ "2.13.0-M1"
+
+lazy val benchmarkVersion =
+  "2.12.2"
+
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
-  scalaVersion := "2.11.11",
-  crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2"),
+  scalaVersion := "2.12.2",
+  crossScalaVersions := allCrossVersions,
 
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
 
   resolvers += Resolver.sonatypeRepo("releases"),
-  libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.0.3" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.13.5" % "test"
-  ),
-  scalacOptions ++= Seq(
-    //"-Yinline-warnings",
-    "-deprecation",
-    "-optimize",
-    "-unchecked"
-  ),
+
+  libraryDependencies ++=
+    "org.scalatest" %% "scalatest" % "3.0.3" % Test ::
+    "org.scalacheck" %% "scalacheck" % "1.13.5" % Test ::
+    Nil,
+
+  scalacOptions ++=
+    "-deprecation" ::
+    "-optimize" ::
+    "-unchecked" ::
+    Nil,
 
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
   homepage := Some(url("http://github.com/non/jawn")),
@@ -32,24 +42,23 @@ lazy val jawnSettings = Seq(
 
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value)
+    if (isSnapshot.value) {
       Some("Snapshots" at nexus + "content/repositories/snapshots")
-    else
+    } else {
       Some("Releases" at nexus + "service/local/staging/deploy/maven2")
+    }
   },
 
-  pomExtra := (
-    <scm>
-      <url>git@github.com:non/jawn.git</url>
-      <connection>scm:git:git@github.com:non/jawn.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>d_m</id>
-        <name>Erik Osheim</name>
-        <url>http://github.com/non/</url>
-      </developer>
-    </developers>
+  scmInfo := Some(ScmInfo(
+    browseUrl = url("https://github.com/non/jawn"),
+    connection = "scm:git:git@github.com:non/jawn.git"
+  )),
+
+  developers += Developer(
+    name = "Erik Osheim",
+    email = "erik@plastic-idolatry.com",
+    id = "d_m",
+    url = url("http://github.com/non/")
   ),
 
   releaseProcess := Seq[ReleaseStep](
@@ -86,8 +95,16 @@ lazy val parser = project.in(file("parser"))
   .settings(jawnSettings: _*)
   .disablePlugins(JmhPlugin)
 
+lazy val util = project.in(file("util"))
+  .dependsOn(parser % "compile->compile;test->test")
+  .settings(name := "util")
+  .settings(moduleName := "jawn-util")
+  .settings(jawnSettings: _*)
+  .disablePlugins(JmhPlugin)
+
 lazy val ast = project.in(file("ast"))
   .dependsOn(parser % "compile->compile;test->test")
+  .dependsOn(util % "compile->compile;test->test")
   .settings(name := "ast")
   .settings(moduleName := "jawn-ast")
   .settings(jawnSettings: _*)
@@ -102,26 +119,32 @@ def support(s: String) =
     .disablePlugins(JmhPlugin)
 
 lazy val supportArgonaut = support("argonaut")
+  .settings(crossScalaVersions := stableCrossVersions)
   .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.2")
 
 lazy val supportJson4s = support("json4s")
+  .dependsOn(util)
+  .settings(crossScalaVersions := stableCrossVersions)
   .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.5.2")
 
 lazy val supportPlay = support("play")
-  .settings(crossScalaVersions := Seq("2.10.6", "2.11.11"))
+  .settings(crossScalaVersions := stableCrossVersions)
   .settings(libraryDependencies += (scalaBinaryVersion.value match {
     case "2.10" => "com.typesafe.play" %% "play-json" % "2.4.11"
-    case _ =>  "com.typesafe.play" %% "play-json" % "2.5.15"
+    case "2.11" =>  "com.typesafe.play" %% "play-json" % "2.5.15"
+    case _ =>  "com.typesafe.play" %% "play-json" % "2.6.0"
   }))
 
 lazy val supportRojoma = support("rojoma")
-  .settings(crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2"))
+  .settings(crossScalaVersions := stableCrossVersions)
   .settings(libraryDependencies += "com.rojoma" %% "rojoma-json" % "2.4.3")
 
 lazy val supportRojomaV3 = support("rojoma-v3")
+  .settings(crossScalaVersions := stableCrossVersions)
   .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.7.2")
 
 lazy val supportSpray = support("spray")
+  .settings(crossScalaVersions := stableCrossVersions)
   .settings(resolvers += "spray" at "http://repo.spray.io/")
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.3")
 
@@ -129,10 +152,10 @@ lazy val benchmark = project.in(file("benchmark"))
   .dependsOn(all.map(Project.classpathDependency[Project]): _*)
   .settings(name := "jawn-benchmark")
   .settings(jawnSettings: _*)
-  .settings(scalaVersion := "2.11.11")
+  .settings(scalaVersion := benchmarkVersion)
+  .settings(crossScalaVersions := Seq(benchmarkVersion))
   .settings(noPublish: _*)
-  .settings(crossScalaVersions := Seq("2.11.11"))
   .enablePlugins(JmhPlugin)
 
 lazy val all =
-  Seq(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportRojomaV3, supportSpray)
+  Seq(parser, util, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportRojomaV3, supportSpray)
