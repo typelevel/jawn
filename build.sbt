@@ -158,4 +158,4 @@ lazy val benchmark = project.in(file("benchmark"))
   .enablePlugins(JmhPlugin)
 
 lazy val all =
-  Seq(parser, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportRojomaV3, supportSpray)
+  Seq(parser, util, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportRojomaV3, supportSpray)
