@@ -137,7 +137,7 @@ Jawn currently supports six external ASTs directly:
 |-----------|-------|-------|-------|
 | Argonaut  | 6.1   | 6.1   |       |
 | Json4s    | 3.5.0 | 3.5.0 | 3.5.0 |
-| Play-json | 2.4.8 | 2.5.9 |       |
+| Play-json | 2.4.8 | 2.5.9 | 2.6.0 |
 | Rojoma    | 2.4.3 | 2.4.3 | 2.4.3 |
 | Rojoma-v3 | 3.7.0 | 3.7.0 | 3.7.0 |
 | Spray     | 1.3.2 | 1.3.2 | 1.3.2 |
