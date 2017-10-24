@@ -4,3 +4,4 @@ jdk:
   - oraclejdk8
 script:
   - sbt "so test"
+  - sbt "so mimaReportBinaryIssues"
