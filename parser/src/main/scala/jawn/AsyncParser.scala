@@ -246,6 +246,7 @@ final class AsyncParser[J] protected[jawn] (
   // every 1M we shift our array back by 1M.
   protected[this] final def reset(i: Int): Int = {
     if (offset >= 1048576) {
+      curr -= 1048576
       len -= 1048576
       offset -= 1048576
       pos -= 1048576
