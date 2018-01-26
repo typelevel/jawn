@@ -243,15 +243,16 @@ final class AsyncParser[J] protected[jawn] (
     }
   }
 
-  // every 1M we shift our array back by 1M.
+  // every 1M we shift our array back to the beginning.
   protected[this] final def reset(i: Int): Int = {
     if (offset >= 1048576) {
-      curr -= 1048576
-      len -= 1048576
-      offset -= 1048576
-      pos -= 1048576
-      System.arraycopy(data, 1048576, data, 0, len)
-      i - 1048576
+      val diff = offset
+      curr -= diff
+      len -= diff
+      offset = 0
+      pos -= diff
+      System.arraycopy(data, diff, data, 0, len)
+      i - diff
     } else {
       i
     }
