@@ -28,9 +28,17 @@ lazy val jawnSettings = Seq(
 
   scalacOptions ++=
     "-deprecation" ::
-    "-optimize" ::
     "-unchecked" ::
     Nil,
+
+  scalacOptions += {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, v)) if v <= 11 =>
+        "-optimize"
+      case _ =>
+        "-opt:l:method"
+    }
+  },
 
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
   homepage := Some(url("http://github.com/non/jawn")),
