@@ -66,11 +66,11 @@ lazy val jawnSettings = Seq(
     checkSnapshotDependencies,
     inquireVersions,
     runClean,
-    ReleaseHelper.runCommandAndRemaining("+test"), // formerly runTest
+    releaseStepCommandAndRemaining("+test"), // formerly runTest
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    ReleaseHelper.runCommandAndRemaining("+publishSigned"),
+    releaseStepCommandAndRemaining("+publishSigned"),
     setNextVersion,
     commitNextVersion,
     ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
