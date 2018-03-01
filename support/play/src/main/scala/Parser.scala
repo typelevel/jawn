@@ -5,7 +5,7 @@ import play.api.libs.json._
 
 object Parser extends SupportParser[JsValue] {
 
-  implicit val facade: Facade[JsValue] =
+  implicit val facade: RawFacade[JsValue] =
     new SimpleFacade[JsValue] {
       def jnull() = JsNull
       def jfalse() = JsBoolean(false)

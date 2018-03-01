@@ -17,9 +17,9 @@ class JNumIndexCheck extends PropSpec with Matchers with PropertyChecks {
       def finish: Boolean = !failed
     }
 
-    val singleContext: FContext[Boolean] = new JNumIndexCheckContext(false)
-    val arrayContext: FContext[Boolean] = new JNumIndexCheckContext(false)
-    val objectContext: FContext[Boolean] = new JNumIndexCheckContext(true)
+    val singleContext: RawFContext[Boolean] = new JNumIndexCheckContext(false)
+    val arrayContext: RawFContext[Boolean] = new JNumIndexCheckContext(false)
+    val objectContext: RawFContext[Boolean] = new JNumIndexCheckContext(true)
 
     def jnull(): Boolean = true
     def jfalse(): Boolean = true

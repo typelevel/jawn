@@ -5,7 +5,7 @@ import scala.collection.mutable
 import argonaut._
 
 object Parser extends SupportParser[Json] {
-  implicit val facade: Facade[Json] =
+  implicit val facade: RawFacade[Json] =
     new Facade[Json] {
       def jnull() = Json.jNull
       def jfalse() = Json.jFalse
