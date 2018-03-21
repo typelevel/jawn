@@ -321,16 +321,16 @@ along with the [sbt-jmh](https://github.com/ktoso/sbt-jmh) plugin.
 #### Running Benchmarks
 
 The benchmarks are located in the `benchmark` project. You can run the
-benchmarks by typing `benchmark/run` from SBT. There are many
+benchmarks by typing `benchmark/jmh:run` from SBT. There are many
 supported arguments, so here are a few examples:
 
 Run all benchmarks, with 10 warmups, 10 iterations, using 3 threads:
 
-`benchmark/run -wi 10 -i 10 -f1 -t3`
+`benchmark/jmh:run -wi 10 -i 10 -f1 -t3`
 
 Run just the `CountriesBench` test (5 warmups, 5 iterations, 1 thread):
 
-`benchmark/run -wi 5 -i 5 -f1 -t1 .*CountriesBench`
+`benchmark/jmh:run -wi 5 -i 5 -f1 -t1 .*CountriesBench`
 
 #### Benchmark Issues
 
