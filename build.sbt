@@ -1,20 +1,20 @@
 import ReleaseTransformations._
 
-lazy val previousJawnVersion = "0.10.4"
+lazy val previousJawnVersion = "0.11.1"
 
 lazy val stableCrossVersions =
-  Seq("2.10.6", "2.11.11", "2.12.2")
+  Seq("2.10.6", "2.11.12", "2.12.5")
 
 // we'll support 2.13.0-M1 soon but not yet
 lazy val allCrossVersions =
-  stableCrossVersions
+  stableCrossVersions :+ "2.13.0-M3"
 
 lazy val benchmarkVersion =
-  "2.12.2"
+  "2.12.5"
 
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
-  scalaVersion := "2.12.2",
+  scalaVersion := "2.12.5",
   crossScalaVersions := allCrossVersions,
 
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
@@ -22,7 +22,7 @@ lazy val jawnSettings = Seq(
   resolvers += Resolver.sonatypeRepo("releases"),
 
   libraryDependencies ++=
-    "org.scalatest" %% "scalatest" % "3.0.3" % Test ::
+    "org.scalatest" %% "scalatest" % "3.0.5-M1" % Test ::
     "org.scalacheck" %% "scalacheck" % "1.13.5" % Test ::
     Nil,
 
