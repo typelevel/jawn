@@ -15,7 +15,9 @@ lazy val benchmarkVersion =
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
   scalaVersion := "2.12.5",
-  crossScalaVersions := allCrossVersions,
+
+  //crossScalaVersions := allCrossVersions,
+  crossScalaVersions := stableCrossVersions,
 
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
 
@@ -111,6 +113,7 @@ lazy val parser = project.in(file("parser"))
   .settings(name := "parser")
   .settings(moduleName := "jawn-parser")
   .settings(jawnSettings: _*)
+  .settings(crossScalaVersions := allCrossVersions)
   .disablePlugins(JmhPlugin)
 
 lazy val util = project.in(file("util"))
@@ -118,6 +121,7 @@ lazy val util = project.in(file("util"))
   .settings(name := "util")
   .settings(moduleName := "jawn-util")
   .settings(jawnSettings: _*)
+  .settings(crossScalaVersions := allCrossVersions)
   .disablePlugins(JmhPlugin)
 
 lazy val ast = project.in(file("ast"))
@@ -126,6 +130,7 @@ lazy val ast = project.in(file("ast"))
   .settings(name := "ast")
   .settings(moduleName := "jawn-ast")
   .settings(jawnSettings: _*)
+  .settings(crossScalaVersions := allCrossVersions)
   .disablePlugins(JmhPlugin)
 
 def support(s: String) =
