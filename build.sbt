@@ -21,8 +21,17 @@ lazy val jawnSettings = Seq(
 
   resolvers += Resolver.sonatypeRepo("releases"),
 
+  libraryDependencies += {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, v)) if v < 13 =>
+        "org.scalatest" %% "scalatest" % "3.0.5" % Test
+      case _ =>
+        "org.scalatest" %% "scalatest" % "3.0.5-M1" % Test
+    }
+  },
+
   libraryDependencies ++=
-    "org.scalatest" %% "scalatest" % "3.0.5-M1" % Test ::
+    //"org.scalatest" %% "scalatest" % "3.0.5-M1" % Test ::
     "org.scalacheck" %% "scalacheck" % "1.13.5" % Test ::
     Nil,
 
