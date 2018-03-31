@@ -19,7 +19,7 @@ object JawnFacade extends Facade[JValue] {
   final def jstring(s: CharSequence): JValue =
     JString(s.toString)
 
-  final def singleContext(): FContext[JValue] =
+  final def singleContext(): RawFContext[JValue] =
     new FContext[JValue] {
       var value: JValue = _
       def add(s: CharSequence) { value = JString(s.toString) }
@@ -28,7 +28,7 @@ object JawnFacade extends Facade[JValue] {
       def isObj: Boolean = false
     }
 
-  final def arrayContext(): FContext[JValue] =
+  final def arrayContext(): RawFContext[JValue] =
     new FContext[JValue] {
       val vs = mutable.ArrayBuffer.empty[JValue]
       def add(s: CharSequence) { vs.append(JString(s.toString)) }
@@ -37,7 +37,7 @@ object JawnFacade extends Facade[JValue] {
       def isObj: Boolean = false
     }
 
-  final def objectContext(): FContext[JValue] =
+  final def objectContext(): RawFContext[JValue] =
     new FContext[JValue] {
       var key: String = null
       val vs = mutable.Map.empty[String, JValue]

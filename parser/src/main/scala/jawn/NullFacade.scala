@@ -18,9 +18,9 @@ object NullFacade extends Facade[Unit] {
     def finish: Unit = ()
   }
 
-  val singleContext: FContext[Unit] = NullContext(false)
-  val arrayContext: FContext[Unit] = NullContext(false)
-  val objectContext: FContext[Unit] = NullContext(true)
+  val singleContext: RawFContext[Unit] = NullContext(false)
+  val arrayContext: RawFContext[Unit] = NullContext(false)
+  val objectContext: RawFContext[Unit] = NullContext(true)
 
   def jnull(): Unit = ()
   def jfalse(): Unit = ()

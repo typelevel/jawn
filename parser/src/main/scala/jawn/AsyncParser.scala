@@ -60,7 +60,7 @@ object AsyncParser {
 final class AsyncParser[J] protected[jawn] (
   protected[jawn] var state: Int,
   protected[jawn] var curr: Int,
-  protected[jawn] var stack: List[FContext[J]],
+  protected[jawn] var stack: List[RawFContext[J]],
   protected[jawn] var data: Array[Byte],
   protected[jawn] var len: Int,
   protected[jawn] var allocated: Int,
@@ -77,7 +77,7 @@ final class AsyncParser[J] protected[jawn] (
   final def copy() =
     new AsyncParser(state, curr, stack, data.clone, len, allocated, offset, done, streamMode)
 
-  final def absorb(buf: ByteBuffer)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
+  final def absorb(buf: ByteBuffer)(implicit facade: RawFacade[J]): Either[ParseException, Seq[J]] = {
     done = false
     val buflen = buf.limit - buf.position
     val need = len + buflen
@@ -87,13 +87,13 @@ final class AsyncParser[J] protected[jawn] (
     churn()
   }
 
-  final def absorb(bytes: Array[Byte])(implicit facade: Facade[J]): Either[ParseException, Seq[J]] =
+  final def absorb(bytes: Array[Byte])(implicit facade: RawFacade[J]): Either[ParseException, Seq[J]] =
     absorb(ByteBuffer.wrap(bytes))
 
-  final def absorb(s: String)(implicit facade: Facade[J]): Either[ParseException, Seq[J]] =
+  final def absorb(s: String)(implicit facade: RawFacade[J]): Either[ParseException, Seq[J]] =
     absorb(ByteBuffer.wrap(s.getBytes(utf8)))
 
-  final def finish()(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
+  final def finish()(implicit facade: RawFacade[J]): Either[ParseException, Seq[J]] = {
     done = true
     churn()
   }
@@ -140,7 +140,7 @@ final class AsyncParser[J] protected[jawn] (
   @inline private[this] final def ASYNC_POSTVAL = -2
   @inline private[this] final def ASYNC_PREVAL = -1
 
-  protected[jawn] def churn()(implicit facade: Facade[J]): Either[ParseException, Seq[J]] = {
+  protected[jawn] def churn()(implicit facade: RawFacade[J]): Either[ParseException, Seq[J]] = {
 
     // accumulates json values
     val results = mutable.ArrayBuffer.empty[J]
@@ -267,7 +267,7 @@ final class AsyncParser[J] protected[jawn] (
    * arguments are the exact arguments we can pass to rparse to
    * continue where we left off.
    */
-  protected[this] final def checkpoint(state: Int, i: Int, stack: List[FContext[J]]) {
+  protected[this] final def checkpoint(state: Int, i: Int, stack: List[RawFContext[J]]) {
     this.state = state
     this.curr = i
     this.stack = stack

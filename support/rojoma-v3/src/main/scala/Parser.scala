@@ -5,7 +5,7 @@ import scala.collection.mutable
 import com.rojoma.json.v3.ast._
 
 object Parser extends SupportParser[JValue] {
-  implicit val facade: Facade[JValue] =
+  implicit val facade: RawFacade[JValue] =
     new MutableFacade[JValue] {
       def jnull() = JNull
       def jfalse() = JBoolean.canonicalFalse

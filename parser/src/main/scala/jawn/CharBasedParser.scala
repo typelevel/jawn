@@ -22,7 +22,7 @@ trait CharBasedParser[J] extends Parser[J] {
    * This method expects the data to be in UTF-16 and accesses it as
    * chars.
    */
-  protected[this] final def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
+  protected[this] final def parseStringSimple(i: Int, ctxt: RawFContext[J]): Int = {
     var j = i
     var c = at(j)
     while (c != '"') {
@@ -37,7 +37,7 @@ trait CharBasedParser[J] extends Parser[J] {
   /**
    * Parse a string that is known to have escape sequences.
    */
-  protected[this] final def parseStringComplex(i: Int, ctxt: FContext[J]): Int = {
+  protected[this] final def parseStringComplex(i: Int, ctxt: RawFContext[J]): Int = {
     var j = i + 1
     val sb = charBuilder.reset()
 
@@ -74,7 +74,7 @@ trait CharBasedParser[J] extends Parser[J] {
       j = reset(j)
       c = at(j)
     }
-    ctxt.add(sb.makeString)
+    ctxt.add(sb.makeString, i)
     j + 1
   }
 
@@ -86,10 +86,10 @@ trait CharBasedParser[J] extends Parser[J] {
    * Char. It performs the correct checks to make sure that we don't
    * interpret a multi-char code point incorrectly.
    */
-  protected[this] final def parseString(i: Int, ctxt: FContext[J]): Int = {
+  protected[this] final def parseString(i: Int, ctxt: RawFContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)
     if (k != -1) {
-      ctxt.add(at(i + 1, k - 1))
+      ctxt.add(at(i + 1, k - 1), i)
       k
     } else {
       parseStringComplex(i, ctxt)

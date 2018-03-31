@@ -59,7 +59,7 @@ sealed abstract class JValue {
 }
 
 object JValue {
-  implicit val facade: Facade[JValue] = JawnFacade
+  implicit val facade: RawFacade[JValue] = JawnFacade
 }
 
 sealed abstract class JAtom extends JValue {

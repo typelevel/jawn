@@ -8,7 +8,7 @@ object Parser extends Parser(false, false)
 
 class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends SupportParser[JValue] {
 
-  implicit val facade: Facade[JValue] =
+  implicit val facade: RawFacade[JValue] =
     new Facade[JValue] {
       def jnull() = JNull
       def jfalse() = JBool(false)
