@@ -39,6 +39,7 @@ lazy val jawnSettings = Seq(
 
   scalacOptions ++=
     "-deprecation" ::
+    "-Xfuture" ::
     "-unchecked" ::
     Nil,
 

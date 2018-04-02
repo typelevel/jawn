@@ -136,7 +136,7 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
       val n1 = LongNum(n)
       val n2 = DoubleNum(n)
 
-      def check(j: JValue) {
+      def check(j: JValue): Unit = {
         j shouldBe n1; n1 shouldBe j
         j shouldBe n2; n2 shouldBe j
       }

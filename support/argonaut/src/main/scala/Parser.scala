@@ -17,16 +17,16 @@ object Parser extends SupportParser[Json] {
 
       def singleContext() = new FContext[Json] {
         var value: Json = null
-        def add(s: CharSequence) { value = jstring(s) }
-        def add(v: Json) { value = v }
+        def add(s: CharSequence): Unit = { value = jstring(s) }
+        def add(v: Json): Unit = { value = v }
         def finish: Json = value
         def isObj: Boolean = false
       }
 
       def arrayContext() = new FContext[Json] {
         val vs = mutable.ListBuffer.empty[Json]
-        def add(s: CharSequence) { vs += jstring(s) }
-        def add(v: Json) { vs += v }
+        def add(s: CharSequence): Unit = { vs += jstring(s) }
+        def add(v: Json): Unit = { vs += v }
         def finish: Json = Json.jArray(vs.toList)
         def isObj: Boolean = false
       }

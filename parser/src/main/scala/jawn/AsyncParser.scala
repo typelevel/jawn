@@ -71,7 +71,7 @@ final class AsyncParser[J] protected[jawn] (
 
   protected[this] var line = 0
   protected[this] var pos = 0
-  protected[this] final def newline(i: Int) { line += 1; pos = i + 1 }
+  protected[this] final def newline(i: Int): Unit = { line += 1; pos = i + 1 }
   protected[this] final def column(i: Int) = i - pos
 
   final def copy() =
@@ -267,7 +267,7 @@ final class AsyncParser[J] protected[jawn] (
    * arguments are the exact arguments we can pass to rparse to
    * continue where we left off.
    */
-  protected[this] final def checkpoint(state: Int, i: Int, stack: List[RawFContext[J]]) {
+  protected[this] final def checkpoint(state: Int, i: Int, stack: List[RawFContext[J]]): Unit = {
     this.state = state
     this.curr = i
     this.stack = stack

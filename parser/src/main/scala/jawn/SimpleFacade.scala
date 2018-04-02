@@ -15,16 +15,16 @@ trait SimpleFacade[J] extends Facade[J] {
 
   def singleContext() = new FContext[J] {
     var value: J = _
-    def add(s: CharSequence) { value = jstring(s) }
-    def add(v: J) { value = v }
+    def add(s: CharSequence): Unit = { value = jstring(s) }
+    def add(v: J): Unit = { value = v }
     def finish: J = value
     def isObj: Boolean = false
   }
 
   def arrayContext() = new FContext[J] {
     val vs = mutable.ListBuffer.empty[J]
-    def add(s: CharSequence) { vs += jstring(s) }
-    def add(v: J) { vs += v }
+    def add(s: CharSequence): Unit = { vs += jstring(s) }
+    def add(v: J): Unit = { vs += v }
     def finish: J = jarray(vs.toList)
     def isObj: Boolean = false
   }

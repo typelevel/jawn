@@ -8,16 +8,16 @@ trait MutableFacade[J] extends Facade[J] {
 
   def singleContext() = new FContext[J] {
     var value: J = _
-    def add(s: CharSequence) { value = jstring(s) }
-    def add(v: J) { value = v }
+    def add(s: CharSequence): Unit = { value = jstring(s) }
+    def add(v: J): Unit = { value = v }
     def finish: J = value
     def isObj: Boolean = false
   }
 
   def arrayContext() = new FContext[J] {
     val vs = mutable.ArrayBuffer.empty[J]
-    def add(s: CharSequence) { vs.append(jstring(s)) }
-    def add(v: J) { vs.append(v) }
+    def add(s: CharSequence): Unit = { vs.append(jstring(s)) }
+    def add(v: J): Unit = { vs.append(v) }
     def finish: J = jarray(vs)
     def isObj: Boolean = false
   }

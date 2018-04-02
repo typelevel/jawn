@@ -20,12 +20,12 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
   private[this] var lineState = 0
   protected[this] def line(): Int = lineState
 
-  protected[this] final def newline(i: Int) { lineState += 1 }
+  protected[this] final def newline(i: Int): Unit = { lineState += 1 }
   protected[this] final def column(i: Int) = i
 
-  protected[this] final def close() { src.position(src.limit) }
+  protected[this] final def close(): Unit = { src.position(src.limit) }
   protected[this] final def reset(i: Int): Int = i
-  protected[this] final def checkpoint(state: Int, i: Int, stack: List[RawFContext[J]]) {}
+  protected[this] final def checkpoint(state: Int, i: Int, stack: List[RawFContext[J]]): Unit = {}
   protected[this] final def byte(i: Int): Byte = src.get(i + start)
   protected[this] final def at(i: Int): Char = src.get(i + start).toChar
 

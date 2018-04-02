@@ -28,8 +28,8 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def singleContext() =
         new FContext[JValue] {
           var value: JValue = null
-          def add(s: CharSequence) { value = jstring(s) }
-          def add(v: JValue) { value = v }
+          def add(s: CharSequence): Unit = { value = jstring(s) }
+          def add(v: JValue): Unit = { value = v }
           def finish: JValue = value
           def isObj: Boolean = false
         }
@@ -37,8 +37,8 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def arrayContext() =
         new FContext[JValue] {
           val vs = mutable.ListBuffer.empty[JValue]
-          def add(s: CharSequence) { vs += jstring(s) }
-          def add(v: JValue) { vs += v }
+          def add(s: CharSequence): Unit = { vs += jstring(s) }
+          def add(v: JValue): Unit = { vs += v }
           def finish: JValue = JArray(vs.toList)
           def isObj: Boolean = false
         }
