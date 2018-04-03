@@ -1,4 +1,3 @@
-addSbtPlugin("com.eed3si9n"       % "sbt-doge"        % "0.1.5")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"         % "0.3.3")
 addSbtPlugin("com.typesafe"       % "sbt-mima-plugin" % "0.1.18")
 addSbtPlugin("com.jsuereth"       % "sbt-pgp"         % "1.1.1")

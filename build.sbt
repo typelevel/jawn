@@ -92,7 +92,7 @@ lazy val jawnSettings = Seq(
     releaseStepCommandAndRemaining("+publishSigned"),
     setNextVersion,
     commitNextVersion,
-    ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+    releaseStepCommandAndRemaining("sonatypeReleaseAll"),
     pushChanges))
 
 lazy val noPublish = Seq(
@@ -103,7 +103,6 @@ lazy val noPublish = Seq(
 
 lazy val root = project.in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
-  .enablePlugins(CrossPerProjectPlugin)
   .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
   .settings(jawnSettings: _*)
