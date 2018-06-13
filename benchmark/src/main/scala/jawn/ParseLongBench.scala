@@ -95,7 +95,7 @@ class ParseLongBench {
     var sum: Long = 0
     var i = 0
     while (i < css.length) {
-      sum += Util.parseLong(css(i))
+      sum += util.parseLong(css(i))
       i += 1
     }
     sum
@@ -105,7 +105,7 @@ class ParseLongBench {
     var sum: Long = 0
     var i = 0
     while (i < css.length) {
-      sum += Util.parseLongUnsafe(css(i))
+      sum += util.parseLongUnsafe(css(i))
       i += 1
     }
     sum
@@ -123,11 +123,11 @@ class ParseLongBench {
 
   @Benchmark def stringArraySafe(): Long = sumSafe(strs)
   @Benchmark def seqArraySafe(): Long = sumSafe(seqs)
-  @Benchmark def stringValueSafe(): Long = Util.parseLong(str)
-  @Benchmark def seqValueSafe(): Long = Util.parseLong(seq)
+  @Benchmark def stringValueSafe(): Long = util.parseLong(str)
+  @Benchmark def seqValueSafe(): Long = util.parseLong(seq)
 
   @Benchmark def stringArrayUnsafe(): Long = sumUnsafe(strs)
   @Benchmark def seqArrayUnsafe(): Long = sumUnsafe(seqs)
-  @Benchmark def stringValueUnsafe(): Long = Util.parseLongUnsafe(str)
-  @Benchmark def seqValueUnsafe(): Long = Util.parseLongUnsafe(seq)
+  @Benchmark def stringValueUnsafe(): Long = util.parseLongUnsafe(str)
+  @Benchmark def seqValueUnsafe(): Long = util.parseLongUnsafe(seq)
 }
