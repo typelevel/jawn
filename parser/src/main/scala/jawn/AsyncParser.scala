@@ -79,7 +79,7 @@ final class AsyncParser[J] protected[jawn] (
 
   final def absorb(buf: ByteBuffer)(implicit facade: RawFacade[J]): Either[ParseException, Seq[J]] = {
     done = false
-    val buflen = buf.limit - buf.position
+    val buflen = buf.limit() - buf.position()
     val need = len + buflen
     resizeIfNecessary(need)
     buf.get(data, len, buflen)
