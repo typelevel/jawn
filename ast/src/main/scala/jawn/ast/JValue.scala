@@ -288,7 +288,7 @@ object JArray { self =>
   final def empty: JArray =
     JArray(new Array[JValue](0))
 
-  final def fromSeq(js: Seq[JValue]): JArray =
+  final def fromSeq(js: collection.Seq[JValue]): JArray =
     JArray(js.toArray)
 }
 
@@ -309,6 +309,9 @@ object JObject { self =>
   final def empty: JObject =
     JObject(mutable.Map.empty)
 
-  final def fromSeq(js: Seq[(String, JValue)]): JObject =
-    JObject(mutable.Map(js: _*))
+  final def fromSeq(js: collection.Seq[(String, JValue)]): JObject = {
+    val builder = mutable.Map.newBuilder[String, JValue]
+    builder ++= js
+    JObject(builder.result)
+  }
 }

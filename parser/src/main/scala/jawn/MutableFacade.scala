@@ -16,8 +16,8 @@ trait MutableFacade[J] extends Facade[J] {
 
   def arrayContext() = new FContext[J] {
     val vs = mutable.ArrayBuffer.empty[J]
-    def add(s: CharSequence): Unit = { vs.append(jstring(s)) }
-    def add(v: J): Unit = { vs.append(v) }
+    def add(s: CharSequence): Unit = { vs += jstring(s) }
+    def add(v: J): Unit = { vs += v }
     def finish: J = jarray(vs)
     def isObj: Boolean = false
   }
