@@ -16,6 +16,7 @@ object ChannelParser {
       val bytes = new Array[Byte](f.length.toInt)
       val fis = new FileInputStream(f)
       fis.read(bytes)
+      fis.close()
       new StringParser[J](new String(bytes, "UTF-8"))
     } else {
       new ChannelParser[J](new FileInputStream(f).getChannel, bufferSize)
