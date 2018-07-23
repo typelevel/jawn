@@ -68,7 +68,7 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
 
   val percs = List(0.0, 0.2, 0.4, 0.8, 1.0)
 
-  def checkRight(r: Either[ParseException, Seq[JValue]]): Seq[JValue] = {
+  def checkRight(r: Either[ParseException, collection.Seq[JValue]]): collection.Seq[JValue] = {
     r.isRight shouldBe true
     val Right(vs) = r
     vs
@@ -83,7 +83,7 @@ class AstCheck extends PropSpec with Matchers with PropertyChecks {
       json :: Nil
     }
 
-  def parseSegments(p: AsyncParser[JValue], segments: List[String]): Seq[JValue] =
+  def parseSegments(p: AsyncParser[JValue], segments: List[String]): collection.Seq[JValue] =
     segments.foldLeft(List.empty[JValue]) { (rs, s) =>
       rs ++ checkRight(p.absorb(s))
     } ++ checkRight(p.finish())
