@@ -36,7 +36,7 @@ support package.
 
 ### Quick Start
 
-Jawn supports Scala 2.10, 2.11, 2.12, and 2.13.0-M3.
+Jawn supports Scala 2.10, 2.11, 2.12, and 2.13.0-M4.
 
 Here's a `build.sbt` snippet that shows you how to depend on Jawn in
 your own SBT project:
@@ -45,10 +45,10 @@ your own SBT project:
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.12.1"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.13.0"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.12.1"
+libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.13.0"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -56,7 +56,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.12.1"
+libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.13.0"
 ```
 
 There are a few reasons you might want to do this:
@@ -137,12 +137,12 @@ Jawn currently supports six external ASTs directly:
 
 | AST       | 2.10   | 2.11   | 2.12  |
 |-----------|--------|--------|-------|
-| Argonaut  | 6.2    | 6.2    | 6.2   |
-| Json4s    | 3.5.2  | 3.5.2  | 3.5.2 |
-| Play-json | 2.4.11 | 2.5.15 | 2.6.0 |
+| Argonaut  | 6.2.2  | 6.2.2  | 6.2.2 |
+| Json4s    | 3.5.4  | 3.5.4  | 3.5.4 |
+| Play-json | 2.6.9  | 2.6.9  | 2.6.9 |
 | Rojoma    | 2.4.3  | 2.4.3  | 2.4.3 |
-| Rojoma-v3 | 3.7.2  | 3.7.2  | 3.7.2 |
-| Spray     | 1.3.3  | 1.3.3  | 1.3.3 |
+| Rojoma-v3 | 3.8.0  | 3.8.0  | 3.8.0 |
+| Spray     | 1.3.4  | 1.3.4  | 1.3.4 |
 
 Each of these subprojects provides a `Parser` object (an instance of
 `SupportParser[J]`) that is parameterized on the given project's
@@ -167,7 +167,7 @@ This is how you would include the subproject in build.sbt:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.12.1"
+libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.13.0"
 ```
 
 This is an example of how you might use the parser into your code:
@@ -191,7 +191,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.12.1"
+libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.13.0"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
