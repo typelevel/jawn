@@ -167,7 +167,7 @@ lazy val supportRojomaV3 = support("rojoma-v3")
   .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.8.0")
 
 lazy val supportSpray = support("spray")
-  .settings(crossScalaVersions := stableCrossVersions)
+  .settings(crossScalaVersions := allCrossVersions)
   .settings(resolvers += "spray" at "http://repo.spray.io/")
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.4")
 
