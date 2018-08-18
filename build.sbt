@@ -153,9 +153,16 @@ lazy val supportJson4s = support("json4s")
   .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.0")
 
 lazy val supportPlay = support("play")
-  .settings(crossScalaVersions := stableCrossVersions)
+  .settings(crossScalaVersions := allCrossVersions)
   .settings(libraryDependencies += {
-    "com.typesafe.play" %% "play-json" % "2.6.9"
+    "com.typesafe.play" %% "play-json" % (
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v >= 13 =>
+          "2.7.0-M1"
+        case _ =>
+          "2.6.9"
+      }
+    )
   })
 
 lazy val supportRojoma = support("rojoma")
