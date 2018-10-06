@@ -3,18 +3,18 @@ import ReleaseTransformations._
 lazy val previousJawnVersion = "0.11.1"
 
 lazy val stableCrossVersions =
-  Seq("2.10.7", "2.11.12", "2.12.6")
+  Seq("2.10.7", "2.11.12", "2.12.7")
 
 // we'll support 2.13.0-M1 soon but not yet
 lazy val allCrossVersions =
   stableCrossVersions :+ "2.13.0-M4"
 
 lazy val benchmarkVersion =
-  "2.12.6"
+  "2.12.7"
 
 lazy val jawnSettings = Seq(
   organization := "org.spire-math",
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.7",
 
   //crossScalaVersions := allCrossVersions,
   crossScalaVersions := stableCrossVersions,
