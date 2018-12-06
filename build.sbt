@@ -5,6 +5,7 @@ lazy val previousJawnVersion = "0.11.1"
 lazy val scala210 = "2.10.7"
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.8"
+lazy val scala213 = "2.13.0-M5"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -27,7 +28,7 @@ lazy val stableCrossVersions =
 
 // we'll support 2.13.0-M1 soon but not yet
 lazy val allCrossVersions =
-  stableCrossVersions :+ "2.13.0-M4"
+  stableCrossVersions :+ scala213
 
 lazy val benchmarkVersion =
   scala212
@@ -45,7 +46,7 @@ lazy val jawnSettings = Seq(
       case Some((2, v)) if v < 13 =>
         "org.scalatest" %% "scalatest" % "3.0.5" % Test
       case _ =>
-        "org.scalatest" %% "scalatest" % "3.0.6-SNAP1" % Test
+        "org.scalatest" %% "scalatest" % "3.0.6-SNAP5" % Test
     }
   },
 
@@ -151,7 +152,7 @@ lazy val supportArgonaut = support("argonaut")
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
   .settings(crossScalaVersions := allCrossVersions)
-  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.0")
+  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.1")
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := stableCrossVersions)
