@@ -2,20 +2,23 @@ import ReleaseTransformations._
 
 lazy val previousJawnVersion = "0.11.1"
 
+lazy val scala210 = "2.10.7"
+lazy val scala211 = "2.11.12"
+lazy val scala212 = "2.12.8"
+ThisBuild / scalaVersion := scala212
+ThisBuild / organization := "org.typelevel"
+
 lazy val stableCrossVersions =
-  Seq("2.10.7", "2.11.12", "2.12.6")
+  Seq(scala210, scala211, scala212)
 
 // we'll support 2.13.0-M1 soon but not yet
 lazy val allCrossVersions =
   stableCrossVersions :+ "2.13.0-M4"
 
 lazy val benchmarkVersion =
-  "2.12.6"
+  scala212
 
 lazy val jawnSettings = Seq(
-  organization := "org.typelevel",
-  scalaVersion := "2.12.6",
-
   //crossScalaVersions := allCrossVersions,
   crossScalaVersions := stableCrossVersions,
 
