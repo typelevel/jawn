@@ -1,6 +1,16 @@
-language: scala
 sudo: false
+dist: trusty
+group: stable
+
 jdk:
-  - oraclejdk8
+  - openjdk8
 script:
   - sbt "+ test"
+
+before_cache:
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt        -name "*.lock"               -delete
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt
