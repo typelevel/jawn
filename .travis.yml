@@ -8,9 +8,21 @@ apt:
   packages:
     - openjdk8
 
+# workaround https://github.com/travis-ci/travis-ci/issues/9816
+addons:
+  apt:
+    sources:
+      - sourceline: "deb https://dl.bintray.com/sbt/debian /"
+        key_url: "https://bintray.com/user/downloadSubjectPublicKey?username=sbt"
+    packages:
+      - sbt=1.2.7
+
 before_install:
   - PATH=$(echo "$PATH" | sed -e 's/:\/usr\/local\/lib\/jvm\/openjdk11\/bin//')
   - JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+  - PATH=/usr/bin:$PATH
+  - export JAVA_OPTS="-server -Dfile.encoding=UTF-8 -Xss2M -Xms1024M -Xmx1024M -XX:ReservedCodeCacheSize=128m"
+  - export SBT_OPTS=
 
 script:
   - sbt "+ test"
