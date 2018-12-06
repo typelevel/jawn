@@ -7,6 +7,20 @@ lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.8"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
+ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
+ThisBuild / homepage := Some(url("http://github.com/typelevel/jawn"))
+
+ThisBuild / scmInfo := Some(ScmInfo(
+  browseUrl = url("https://github.com/typelevel/jawn"),
+  connection = "scm:git:git@github.com:typelevel/jawn.git"
+))
+
+ThisBuild / developers += Developer(
+  name = "Erik Osheim",
+  email = "erik@plastic-idolatry.com",
+  id = "d_m",
+  url = url("http://github.com/non/")
+)
 
 lazy val stableCrossVersions =
   Seq(scala210, scala211, scala212)
@@ -57,9 +71,6 @@ lazy val jawnSettings = Seq(
     }
   },
 
-  licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-  homepage := Some(url("http://github.com/typelevel/jawn")),
-
   // release stuff
   releaseCrossBuild := true,
   publishMavenStyle := true,
@@ -74,18 +85,6 @@ lazy val jawnSettings = Seq(
       Some("Releases" at nexus + "service/local/staging/deploy/maven2")
     }
   },
-
-  scmInfo := Some(ScmInfo(
-    browseUrl = url("https://github.com/typelevel/jawn"),
-    connection = "scm:git:git@github.com:typelevel/jawn.git"
-  )),
-
-  developers += Developer(
-    name = "Erik Osheim",
-    email = "erik@plastic-idolatry.com",
-    id = "d_m",
-    url = url("http://github.com/non/")
-  ),
 
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
@@ -102,15 +101,14 @@ lazy val jawnSettings = Seq(
     pushChanges))
 
 lazy val noPublish = Seq(
-  publish := {},
-  publishLocal := {},
-  publishArtifact := false,
+  publish / skip := true,
   mimaPreviousArtifacts := Set())
 
 lazy val root = project.in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
   .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
+  .settings(crossScalaVersions := List())
   .settings(jawnSettings: _*)
   .settings(noPublish: _*)
 
