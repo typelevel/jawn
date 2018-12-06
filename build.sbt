@@ -41,6 +41,8 @@ lazy val jawnSettings = Seq(
 
   resolvers += Resolver.sonatypeRepo("releases"),
 
+  Test / fork := true,
+
   libraryDependencies += {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, v)) if v < 13 =>
