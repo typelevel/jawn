@@ -34,9 +34,9 @@ object ChannelParser {
    */
   def computeBufferSize(x: Int): Int =
     if (x < 0) {
-      throw new IllegalArgumentException("negative bufferSize ($x)")
+      throw new IllegalArgumentException(s"negative bufferSize ($x)")
     } else if (x > 0x40000000) {
-      throw new IllegalArgumentException("bufferSize too large ($x)")
+      throw new IllegalArgumentException(s"bufferSize too large ($x)")
     } else if (bitCount(x) == 1) {
       x
     } else {
