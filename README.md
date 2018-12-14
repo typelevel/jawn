@@ -419,6 +419,13 @@ Jawn's AST is intended to be very lightweight and simple. It supports
 simple access, and limited mutable updates. It intentionally lacks the
 power and sophistication of many other JSON libraries.
 
+### Community
+
+People are expected to follow the
+[Typelevel Code of Conduct](http://typelevel.org/conduct.html) when
+discussing Jawn on GitHub, the Gitter channel, or other
+venues.
+
 ### Copyright and License
 
 All code is available to you under the MIT license, available at
