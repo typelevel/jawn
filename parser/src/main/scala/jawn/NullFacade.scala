@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 /**
  * NullFacade discards all JSON AST information.

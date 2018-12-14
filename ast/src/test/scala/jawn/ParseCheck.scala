@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 package ast
 
 import org.scalatest._
@@ -11,7 +11,7 @@ import Arbitrary.arbitrary
 import scala.collection.mutable
 import scala.util.{Try, Success}
 
-import jawn.parser.TestUtil
+import org.typelevel.jawn.parser.TestUtil
 
 import ArbitraryUtil._
 

@@ -1,4 +1,4 @@
-package jawn.benchmark
+package org.typelevel.jawn.benchmark
 
 /*
  * Copyright (C) 2009-2013 Mathias Doenitz, Alexander Myltsev

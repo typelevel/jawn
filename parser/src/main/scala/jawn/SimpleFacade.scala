@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 import scala.collection.mutable
 

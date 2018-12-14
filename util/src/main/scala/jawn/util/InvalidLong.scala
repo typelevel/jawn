@@ -1,4 +1,4 @@
-package jawn.util
+package org.typelevel.jawn.util
 
 class InvalidLong(s: String) extends NumberFormatException(s"For input string '$s'")
 

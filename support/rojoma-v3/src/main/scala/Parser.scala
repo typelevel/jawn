@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 package support.rojoma.v3
 
 import scala.collection.mutable

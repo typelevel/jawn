@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 /**
  * Basic in-memory string parsing.
