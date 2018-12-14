@@ -13,7 +13,7 @@ lazy val benchmarkVersion =
   "2.12.6"
 
 lazy val jawnSettings = Seq(
-  organization := "org.spire-math",
+  organization := "org.typelevel",
   scalaVersion := "2.12.6",
 
   //crossScalaVersions := allCrossVersions,
@@ -55,7 +55,7 @@ lazy val jawnSettings = Seq(
   },
 
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-  homepage := Some(url("http://github.com/non/jawn")),
+  homepage := Some(url("http://github.com/typelevel/jawn")),
 
   // release stuff
   releaseCrossBuild := true,
@@ -73,8 +73,8 @@ lazy val jawnSettings = Seq(
   },
 
   scmInfo := Some(ScmInfo(
-    browseUrl = url("https://github.com/non/jawn"),
-    connection = "scm:git:git@github.com:non/jawn.git"
+    browseUrl = url("https://github.com/typelevel/jawn"),
+    connection = "scm:git:git@github.com:typelevel/jawn.git"
   )),
 
   developers += Developer(
