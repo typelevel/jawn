@@ -2,20 +2,38 @@ import ReleaseTransformations._
 
 lazy val previousJawnVersion = "0.11.1"
 
+lazy val scala210 = "2.10.7"
+lazy val scala211 = "2.11.12"
+lazy val scala212 = "2.12.8"
+lazy val scala213 = "2.13.0-M5"
+ThisBuild / scalaVersion := scala212
+ThisBuild / organization := "org.typelevel"
+ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
+ThisBuild / homepage := Some(url("http://github.com/typelevel/jawn"))
+
+ThisBuild / scmInfo := Some(ScmInfo(
+  browseUrl = url("https://github.com/typelevel/jawn"),
+  connection = "scm:git:git@github.com:typelevel/jawn.git"
+))
+
+ThisBuild / developers += Developer(
+  name = "Erik Osheim",
+  email = "erik@plastic-idolatry.com",
+  id = "d_m",
+  url = url("http://github.com/non/")
+)
+
 lazy val stableCrossVersions =
-  Seq("2.10.7", "2.11.12", "2.12.6")
+  Seq(scala210, scala211, scala212)
 
 // we'll support 2.13.0-M1 soon but not yet
 lazy val allCrossVersions =
-  stableCrossVersions :+ "2.13.0-M4"
+  stableCrossVersions :+ scala213
 
 lazy val benchmarkVersion =
-  "2.12.6"
+  scala212
 
 lazy val jawnSettings = Seq(
-  organization := "org.typelevel",
-  scalaVersion := "2.12.6",
-
   //crossScalaVersions := allCrossVersions,
   crossScalaVersions := stableCrossVersions,
 
@@ -23,12 +41,14 @@ lazy val jawnSettings = Seq(
 
   resolvers += Resolver.sonatypeRepo("releases"),
 
+  Test / fork := true,
+
   libraryDependencies += {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, v)) if v < 13 =>
         "org.scalatest" %% "scalatest" % "3.0.5" % Test
       case _ =>
-        "org.scalatest" %% "scalatest" % "3.0.6-SNAP1" % Test
+        "org.scalatest" %% "scalatest" % "3.0.6-SNAP5" % Test
     }
   },
 
@@ -54,9 +74,6 @@ lazy val jawnSettings = Seq(
     }
   },
 
-  licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-  homepage := Some(url("http://github.com/typelevel/jawn")),
-
   // release stuff
   releaseCrossBuild := true,
   publishMavenStyle := true,
@@ -71,18 +88,6 @@ lazy val jawnSettings = Seq(
       Some("Releases" at nexus + "service/local/staging/deploy/maven2")
     }
   },
-
-  scmInfo := Some(ScmInfo(
-    browseUrl = url("https://github.com/typelevel/jawn"),
-    connection = "scm:git:git@github.com:typelevel/jawn.git"
-  )),
-
-  developers += Developer(
-    name = "Erik Osheim",
-    email = "erik@plastic-idolatry.com",
-    id = "d_m",
-    url = url("http://github.com/non/")
-  ),
 
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
@@ -99,15 +104,14 @@ lazy val jawnSettings = Seq(
     pushChanges))
 
 lazy val noPublish = Seq(
-  publish := {},
-  publishLocal := {},
-  publishArtifact := false,
+  publish / skip := true,
   mimaPreviousArtifacts := Set())
 
 lazy val root = project.in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
   .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
+  .settings(crossScalaVersions := List())
   .settings(jawnSettings: _*)
   .settings(noPublish: _*)
 
@@ -150,7 +154,7 @@ lazy val supportArgonaut = support("argonaut")
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
   .settings(crossScalaVersions := allCrossVersions)
-  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.0")
+  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.1")
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := stableCrossVersions)
