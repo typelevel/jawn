@@ -97,13 +97,33 @@ abstract class Parser[J] {
     arr
   }
 
+  protected[this] final val ErrorContext = 6
+
+  protected[this] def die(i: Int, msg: String): Nothing =
+    die(i, msg, ErrorContext)
+
   /**
    * Used to generate error messages with character info and offsets.
+   *
+   * Parameters:
+   *
+   *   - i (>=0): the position in the input where the error occurred.
+   *   - msg: the error message to give the user.
+   *   - chars (>=1): the number of characters to provide as context.
    */
-  protected[this] def die(i: Int, msg: String): Nothing = {
+  protected[this] def die(i: Int, msg: String, chars: Int): Nothing = {
     val y = line() + 1
     val x = column(i) + 1
-    val s = "%s got %s (line %d, column %d)" format (msg, at(i), y, x)
+    val got: String =
+      if (atEof(i)) {
+        "eof"
+      } else {
+        var offset = 0
+        while (offset < chars && !atEof(i + offset)) offset += 1
+        val txt = at(i, i + offset)
+        if (atEof(i + offset)) s"'$txt'" else s"'$txt...'"
+      }
+    val s = "%s got %s (line %d, column %d)" format (msg, got, y, x)
     throw ParseException(s, i, y, x)
   }
 
