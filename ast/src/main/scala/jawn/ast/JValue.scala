@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 package ast
 
 import java.lang.Double.{isNaN, isInfinite}

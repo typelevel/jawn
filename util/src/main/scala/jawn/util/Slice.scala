@@ -1,4 +1,4 @@
-package jawn.util
+package org.typelevel.jawn.util
 
 /**
  * Character sequence representing a lazily-calculated substring.

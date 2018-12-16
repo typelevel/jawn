@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 import java.lang.Integer.{ bitCount, highestOneBit }
 import java.io.{File, FileInputStream}

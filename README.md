@@ -45,10 +45,10 @@ your own SBT project:
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.13.0"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.0"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.spire-math" %% "jawn-ast" % "0.13.0"
+libraryDependencies += "org.typelevel" %% "jawn-ast" % "0.14.0"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -56,7 +56,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.spire-math" %% "jawn-spray" % "0.13.0"
+libraryDependencies += "org.typelevel" %% "jawn-spray" % "0.14.0"
 ```
 
 There are a few reasons you might want to do this:
@@ -102,9 +102,9 @@ the parser with data as it is available. There are three modes:
 Here's an example:
 
 ```scala
-import jawn.ast
-import jawn.AsyncParser
-import jawn.ParseException
+import org.typelevel.jawn.ast
+import org.typelevel.jawn.AsyncParser
+import org.typelevel.jawn.ParseException
 
 val p = ast.JParser.async(mode = AsyncParser.UnwrapArray)
 
@@ -128,7 +128,7 @@ def loop(st: Stream[String]): Either[ParseException, Unit] =
 loop(chunks)
 ```
 
-You can also call `jawn.Parser.async[J]` to use async parsing with an
+You can also call `Parser.async[J]` to use async parsing with an
 arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 ### Supporting external ASTs with Jawn
@@ -157,7 +157,7 @@ Parser.parseFromChannel(ReadableByteChannel) → Try[J]
 Parser.parseFromByteBuffer(ByteBuffer) → Try[J]
 ```
 
-These methods parallel those provided by `jawn.Parser`.
+These methods parallel those provided by `org.typelevel.jawn.Parser`.
 
 For the following snippets, `XYZ` is one of (`argonaut`, `json4s`,
 `play`, `rojoma`, `rojoma-v3` or `spray`):
@@ -167,13 +167,15 @@ This is how you would include the subproject in build.sbt:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% jawn-"XYZ" % "0.13.0"
+libraryDependencies += "org.typelevel" %% jawn-"XYZ" % "0.14.0"
 ```
+
+(Note that prior to the 0.14.0 release, the group ID was `"org.spire-math"`.)
 
 This is an example of how you might use the parser into your code:
 
 ```scala
-import jawn.support.XYZ.Parser
+import org.typelevel.jawn.support.XYZ.Parser
 
 val myResult = Parser.parseFromString(myString)
 ```
@@ -191,7 +193,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.spire-math" %% "jawn-parser" % "0.13.0"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.0"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
@@ -418,6 +420,13 @@ standard tools.
 Jawn's AST is intended to be very lightweight and simple. It supports
 simple access, and limited mutable updates. It intentionally lacks the
 power and sophistication of many other JSON libraries.
+
+### Community
+
+People are expected to follow the
+[Typelevel Code of Conduct](http://typelevel.org/conduct.html) when
+discussing Jawn on GitHub, the Gitter channel, or other
+venues.
 
 ### Copyright and License
 

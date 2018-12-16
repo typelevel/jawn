@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 package support.json4s
 
 import scala.collection.mutable

@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 import org.scalatest._
 import org.scalatest.prop._

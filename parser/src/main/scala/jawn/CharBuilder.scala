@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 /**
  * CharBuilder is a specialized way to build Strings.

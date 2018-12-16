@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 package support.play
 
 import play.api.libs.json._

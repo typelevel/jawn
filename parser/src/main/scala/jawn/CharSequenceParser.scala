@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 /**
  * Lazy character sequence parsing.

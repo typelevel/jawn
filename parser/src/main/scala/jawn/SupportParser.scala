@@ -1,4 +1,4 @@
-package jawn
+package org.typelevel.jawn
 
 import java.io.File
 import java.nio.ByteBuffer
