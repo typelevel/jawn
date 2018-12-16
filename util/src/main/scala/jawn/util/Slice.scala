@@ -47,7 +47,7 @@ final class Slice private[jawn] (s: String, start: Int, limit: Int) extends Char
     val start2 = start + i
     val limit2 = start + j
     if (start2 > limit) throw new StringIndexOutOfBoundsException(s"i ($i) should be <= limit (${limit - start})")
-    if (limit2 > limit) throw new StringIndexOutOfBoundsException(s"i ($i) should be <= limit (${limit - start})")
+    if (limit2 > limit) throw new StringIndexOutOfBoundsException(s"j ($j) should be <= limit (${limit - start})")
     Slice.unsafe(s, start2, limit2)
   }
 
