@@ -428,6 +428,13 @@ People are expected to follow the
 discussing Jawn on GitHub, the Gitter channel, or other
 venues.
 
+Jawn's current maintainers are:
+
+ * [Ross A. Baker](https://github.com/rossabaker)
+ * [Travis Brown](https://github.com/travisbrown)
+ * [Erik Osheim](https://github.com/non)
+ * [Dale Wijnand](https://github.com/dwijnand)
+
 ### Copyright and License
 
 All code is available to you under the MIT license, available at
