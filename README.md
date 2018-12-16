@@ -434,6 +434,7 @@ Jawn's current maintainers are:
  * [Travis Brown](https://github.com/travisbrown)
  * [Erik Osheim](https://github.com/non)
  * [Dale Wijnand](https://github.com/dwijnand)
+ * [Eugene Yokota](https://github.com/eed3si9n))
 
 ### Copyright and License
 
