@@ -2,6 +2,7 @@ sudo: false
 dist: xenial
 group: stable
 
+language: scala
 jdk: openjdk8
 
 apt:
