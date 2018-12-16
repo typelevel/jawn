@@ -424,7 +424,7 @@ power and sophistication of many other JSON libraries.
 ### Community
 
 People are expected to follow the
-[Typelevel Code of Conduct](http://typelevel.org/conduct.html) when
+[Scala Code of Conduct](https://scala-lang.org/conduct/) when
 discussing Jawn on GitHub, the Gitter channel, or other
 venues.
 
