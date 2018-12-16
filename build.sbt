@@ -162,7 +162,7 @@ lazy val supportPlay = support("play")
     "com.typesafe.play" %% "play-json" % (
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v >= 13 =>
-          "2.7.0-M1"
+          "2.7.0-RC2"
         case _ =>
           "2.6.9"
       }
