@@ -41,8 +41,15 @@ final class Slice private[jawn] (s: String, start: Int, limit: Int) extends Char
     if (i < 0 || length <= i) throw new StringIndexOutOfBoundsException(s"index out of range: $i")
     else s.charAt(start + i)
 
-  def subSequence(i: Int, j: Int): Slice =
-    Slice(s, start + i, start + j)
+  def subSequence(i: Int, j: Int): Slice = {
+    if (i < 0) throw new StringIndexOutOfBoundsException(s"i ($i) should be >= 0")
+    if (j < i) throw new StringIndexOutOfBoundsException(s"j ($j) should be >= i ($i)")
+    val start2 = start + i
+    val limit2 = start + j
+    if (start2 > limit) throw new StringIndexOutOfBoundsException(s"i ($i) should be <= limit (${limit - start})")
+    if (limit2 > limit) throw new StringIndexOutOfBoundsException(s"i ($i) should be <= limit (${limit - start})")
+    Slice.unsafe(s, start2, limit2)
+  }
 
   override def toString: String =
     s.substring(start, limit)

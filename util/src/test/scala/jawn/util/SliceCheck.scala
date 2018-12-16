@@ -11,6 +11,10 @@ import scala.util._
 
 class SliceCheck extends PropSpec with Matchers with PropertyChecks {
 
+  // crank this up to stress-test the Slice class.
+  implicit override val generatorDrivenConfig =
+    PropertyCheckConfiguration(minSuccessful = 100)
+
   val genSlice: Gen[Slice] = {
     val g = arbitrary[String]
     def c(start: Int, end: Int): Gen[Int] =
