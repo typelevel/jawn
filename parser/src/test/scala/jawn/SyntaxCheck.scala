@@ -75,10 +75,14 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
     }
 
     val async = AsyncParser[Unit](AsyncParser.SingleValue)
-    val r3 = (for {
-      xs <- async.absorb(s)(NullFacade).right
-      ys <- async.finish()(NullFacade).right
-    } yield (xs.size + ys.size) == 1).right.getOrElse(false)
+    val r3 = async.absorb(s)(NullFacade) match {
+      case Right(xs) =>
+        async.finish()(NullFacade) match {
+          case Right(ys) => (xs.size + ys.size) == 1
+          case Left(_) => false
+        }
+      case Left(_) => false
+    }
 
     if (r1 == r3) r1 else sys.error(s"Sync/Async parsing disagree($r1, $r3): $s")
   }
