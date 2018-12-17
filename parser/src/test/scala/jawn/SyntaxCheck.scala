@@ -203,7 +203,7 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
         case otherwise => fail(s"expected Failure(ParseException), got $otherwise")
       }
 
-    def extract2(e: Either[ParseException, Seq[Unit]]): Unit =
+    def extract2(e: Either[ParseException, collection.Seq[Unit]]): Unit =
       e match {
         case Left(p) => assertLoc(p)
         case right => fail(s"expected Left(ParseException), got $right")
