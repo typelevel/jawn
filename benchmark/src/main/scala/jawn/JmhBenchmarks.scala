@@ -28,15 +28,15 @@ abstract class JmhBenchmarks(name: String) {
 
   @Benchmark
   def jawnCheckSyntax() =
-    jawn.Syntax.checkString(load(path))
+    Syntax.checkString(load(path))
 
   @Benchmark
   def jawnParse() =
-    jawn.ast.JParser.parseFromFile(new File(path)).get
+    ast.JParser.parseFromFile(new File(path)).get
 
   @Benchmark
   def jawnStringParse() =
-    jawn.ast.JParser.parseFromString(load(path)).get
+    ast.JParser.parseFromString(load(path)).get
 }
 
 trait OtherBenchmarks { self: JmhBenchmarks =>
@@ -82,19 +82,19 @@ trait OtherBenchmarks { self: JmhBenchmarks =>
 
   // @Benchmark
   // def json4sJawnParse() =
-  //   jawn.support.json4s.Parser.parseFromFile(new File(path)).get
+  //   support.json4s.Parser.parseFromFile(new File(path)).get
   //
   // @Benchmark
   // def rojomaV3JawnParse() =
-  //   jawn.support.rojoma.v3.Parser.parseFromFile(new File(path)).get
+  //   support.rojoma.v3.Parser.parseFromFile(new File(path)).get
   //
   // @Benchmark
   // def argonautJawnParse() =
-  //   jawn.support.argonaut.Parser.parseFromFile(new File(path)).get
+  //   support.argonaut.Parser.parseFromFile(new File(path)).get
   //
   // @Benchmark
   // def sprayJawnParse() =
-  //   jawn.support.spray.Parser.parseFromFile(new File(path)).get
+  //   support.spray.Parser.parseFromFile(new File(path)).get
 
   // native json4s parser is really, really slow, so it's disabled by default.
 

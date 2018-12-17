@@ -71,7 +71,10 @@ trait ByteBasedParser[J] extends Parser[J] {
           case 92 => { sb.append('\\'); j += 2 }
 
           // if there's a problem then descape will explode
-          case 117 => { sb.append(descape(at(j + 2, j + 6))); j += 6 }
+          case 117 =>
+            val jj = j + 2
+            sb.append(descape(jj, at(jj, jj + 4)))
+            j += 6
 
           case c => die(j, s"invalid escape sequence (\\${c.toChar})")
         }

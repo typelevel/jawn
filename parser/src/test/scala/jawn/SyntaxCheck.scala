@@ -75,7 +75,15 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
     }
 
     val async = AsyncParser[Unit](AsyncParser.SingleValue)
-    val r3 = async.absorb(s)(NullFacade).isRight && async.finish()(NullFacade).isRight
+    val r3 = async.absorb(s)(NullFacade) match {
+      case Right(xs) =>
+        async.finish()(NullFacade) match {
+          case Right(ys) => (xs.size + ys.size) == 1
+          case Left(_) => false
+        }
+      case Left(_) => false
+    }
+
     if (r1 == r3) r1 else sys.error(s"Sync/Async parsing disagree($r1, $r3): $s")
   }
 
@@ -90,6 +98,12 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
     isValidSyntax(qs("ö\\\\")) shouldBe true
     isValidSyntax(qs("\\\\ö")) shouldBe true
   }
+
+  property("invalid unicode is invalid") {
+    isValidSyntax("\"\\uqqqq\"") shouldBe false
+  }
+
+  property("empty is invalid") { isValidSyntax("") shouldBe false }
 
   property("literal TAB is invalid") { isValidSyntax(qs("\t")) shouldBe false }
   property("literal NL is invalid") { isValidSyntax(qs("\n")) shouldBe false }
@@ -128,4 +142,46 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   property("1.1e+1 is ok") { isValidSyntax("1.1e+1") shouldBe true }
   property("1+ is invalid") { isValidSyntax("1+") shouldBe false }
   property("1- is invalid") { isValidSyntax("1-") shouldBe false }
+
+  def isStackSafe(s: String): Try[Boolean] =
+    try {
+      Success(isValidSyntax(s))
+    } catch {
+      case (e: StackOverflowError) => Failure(e)
+      case (e: Exception) => Failure(e)
+    }
+
+  val S = "     " * 2000
+
+  property("stack-safety 1") {
+    isStackSafe(s"${S}[${S}null${S}]${S}") shouldBe Success(true)
+  }
+
+  property("stack-safety 2") {
+    isStackSafe(s"${S}[${S}nul${S}]${S}") shouldBe Success(false)
+  }
+
+  property("stack-safety 3") {
+    isStackSafe(S) shouldBe Success(false)
+  }
+
+  property("stack-safety 4") {
+    isStackSafe(s"${S}false${S}") shouldBe Success(true)
+  }
+
+  property("stack-safety 5") {
+    isStackSafe(s"${S}fals\\u0065${S}") shouldBe Success(false)
+  }
+
+  property("stack-safety 6") {
+    isStackSafe(s"${S}fals${S}") shouldBe Success(false)
+  }
+
+  property("stack-safety 7") {
+    isStackSafe(s"false${S}false") shouldBe Success(false)
+  }
+
+  property("stack-safety 8") {
+    isStackSafe(s"false${S},${S}false") shouldBe Success(false)
+  }
 }
