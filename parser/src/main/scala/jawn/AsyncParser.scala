@@ -93,6 +93,22 @@ final class AsyncParser[J] protected[jawn] (
   final def absorb(s: String)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
     absorb(ByteBuffer.wrap(s.getBytes(utf8)))
 
+  final def finalAbsorb(buf: ByteBuffer)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+    absorb(buf)(facade) match {
+      case Right(xs) =>
+        finish()(facade) match {
+          case Right(ys) => Right(xs ++ ys)
+          case left1 @ Left(_) => left1
+        }
+      case left0 @ Left(_) => left0
+    }
+
+  final def finalAbsorb(bytes: Array[Byte])(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+    finalAbsorb(ByteBuffer.wrap(bytes))
+
+  final def finalAbsorb(s: String)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+    finalAbsorb(ByteBuffer.wrap(s.getBytes(utf8)))
+
   final def finish()(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] = {
     done = true
     churn()

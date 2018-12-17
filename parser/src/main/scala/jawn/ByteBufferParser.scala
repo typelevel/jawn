@@ -18,10 +18,11 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
   private[this] final val limit = src.limit() - start
 
   private[this] var lineState = 0
+  private[this] var offset = 0
   protected[this] def line(): Int = lineState
 
-  protected[this] final def newline(i: Int): Unit = { lineState += 1 }
-  protected[this] final def column(i: Int) = i
+  protected[this] final def newline(i: Int): Unit = { lineState += 1; offset = i + 1 }
+  protected[this] final def column(i: Int) = i - offset
 
   protected[this] final def close(): Unit = { src.position(src.limit) }
   protected[this] final def reset(i: Int): Int = i
