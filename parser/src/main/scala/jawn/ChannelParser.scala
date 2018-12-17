@@ -66,7 +66,7 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
 
   var line = 0
   private var pos = 0
-  protected[this] final def newline(i: Int): Unit = { line += 1; pos = i }
+  protected[this] final def newline(i: Int): Unit = { line += 1; pos = i + 1 }
   protected[this] final def column(i: Int): Int = i - pos
 
   protected[this] final def close(): Unit = ch.close()

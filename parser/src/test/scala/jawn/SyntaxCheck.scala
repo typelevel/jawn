@@ -10,6 +10,8 @@ import Arbitrary.arbitrary
 
 import scala.util.{Try, Success, Failure}
 
+import java.nio.ByteBuffer
+
 class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
 
   sealed trait J {
@@ -59,8 +61,6 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   implicit lazy val arbJValue: Arbitrary[J] =
     Arbitrary(jvalue(0))
 
-  import java.nio.ByteBuffer
-
   def isValidSyntax(s: String): Boolean = {
     val cs = java.nio.CharBuffer.wrap(s.toCharArray)
     val r0 = Parser.parseFromCharSequence(cs)(NullFacade).isSuccess
@@ -75,12 +75,8 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
     }
 
     val async = AsyncParser[Unit](AsyncParser.SingleValue)
-    val r3 = async.absorb(s)(NullFacade) match {
-      case Right(xs) =>
-        async.finish()(NullFacade) match {
-          case Right(ys) => (xs.size + ys.size) == 1
-          case Left(_) => false
-        }
+    val r3 = async.finalAbsorb(s)(NullFacade) match {
+      case Right(xs) => xs.size == 1
       case Left(_) => false
     }
 
@@ -184,4 +180,44 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   property("stack-safety 8") {
     isStackSafe(s"false${S},${S}false") shouldBe Success(false)
   }
+
+  def testErrorLoc(json: String, line: Int, col: Int): Unit = {
+    import java.io.ByteArrayInputStream
+    import java.nio.channels.{Channels, ReadableByteChannel}
+    isValidSyntax(json) shouldBe false
+
+    def ch(s: String): ReadableByteChannel =
+      Channels.newChannel(new ByteArrayInputStream(s.getBytes("UTF-8")))
+
+    def bb(s: String): ByteBuffer =
+      ByteBuffer.wrap(s.getBytes("UTF-8"))
+
+    def assertLoc(p: ParseException): Unit = {
+      p.line shouldBe line
+      p.col shouldBe col
+    }
+
+    def extract1(t: Try[Unit]): Unit =
+      t match {
+        case Failure(p @ ParseException(_, _, _, _)) => assertLoc(p)
+        case otherwise => fail(s"expected Failure(ParseException), got $otherwise")
+      }
+
+    def extract2(e: Either[ParseException, collection.Seq[Unit]]): Unit =
+      e match {
+        case Left(p) => assertLoc(p)
+        case right => fail(s"expected Left(ParseException), got $right")
+      }
+
+    extract1(Parser.parseFromString(json)(NullFacade))
+    extract1(Parser.parseFromCharSequence(json)(NullFacade))
+    extract1(Parser.parseFromChannel(ch(json))(NullFacade))
+    extract1(Parser.parseFromByteBuffer(bb(json))(NullFacade))
+    extract2(Parser.async(AsyncParser.UnwrapArray)(NullFacade).finalAbsorb(json)(NullFacade))
+  }
+
+  property("error location 1") { testErrorLoc("[1, 2,\nx3]", 2, 1) }
+  property("error location 2") { testErrorLoc("[1, 2,    \n   x3]", 2, 4) }
+  property("error location 3") { testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1) }
+  property("error location 4") { testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2) }
 }
