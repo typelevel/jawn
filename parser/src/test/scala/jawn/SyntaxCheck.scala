@@ -187,7 +187,7 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
     isValidSyntax(json) shouldBe false
 
     def ch(s: String): ReadableByteChannel =
-      Channels.newChannel(new ByteArrayInputStream(s.getBytes))
+      Channels.newChannel(new ByteArrayInputStream(s.getBytes("UTF-8")))
 
     def bb(s: String): ByteBuffer =
       ByteBuffer.wrap(s.getBytes("UTF-8"))
