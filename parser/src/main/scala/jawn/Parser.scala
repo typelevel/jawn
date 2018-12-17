@@ -89,7 +89,8 @@ abstract class Parser[J] {
   protected[this] def column(i: Int): Int
 
   protected[this] final val HexChars: Array[Int] = {
-    val arr = new Array[Int](128)
+    //val arr = new Array[Int](128)
+    val arr = Array.fill(128)(-1)
     var i = 0
     while (i < 10) { arr(i + '0') = i; i += 1 }
     i = 0
@@ -292,12 +293,14 @@ abstract class Parser[J] {
    * NOTE: This is only capable of generating characters from the basic plane.
    * This is why it can only return Char instead of Int.
    */
-  protected[this] final def descape(s: CharSequence): Char = {
+  protected[this] final def descape(pos: Int, s: CharSequence): Char = {
     val hc = HexChars
     var i = 0
     var x = 0
     while (i < 4) {
-      x = (x << 4) | hc(s.charAt(i).toInt)
+      val n = hc(s.charAt(i).toInt)
+      if (n < 0) die(pos, "expected valid unicode escape")
+      x = (x << 4) | n
       i += 1
     }
     x.toChar
@@ -347,13 +350,20 @@ abstract class Parser[J] {
   /**
    * Parse and return the next JSON value and the position beyond it.
    */
-  protected[this] final def parse(i: Int)(implicit facade: RawFacade[J]): (J, Int) = try {
+  protected[this] final def parse(i: Int)(implicit facade: RawFacade[J]): (J, Int) =
+    try {
+      parseTop(i)
+    } catch {
+      case _: IndexOutOfBoundsException => throw IncompleteParseException("exhausted input")
+    }
+
+  @tailrec protected[this] final def parseTop(i: Int)(implicit facade: RawFacade[J]): (J, Int) =
     (at(i): @switch) match {
       // ignore whitespace
-      case ' ' => parse(i + 1)
-      case '\t' => parse(i + 1)
-      case '\r' => parse(i + 1)
-      case '\n' => newline(i); parse(i + 1)
+      case ' ' => parseTop(i + 1)
+      case '\t' => parseTop(i + 1)
+      case '\r' => parseTop(i + 1)
+      case '\n' => newline(i); parseTop(i + 1)
 
       // if we have a recursive top-level structure, we'll delegate the parsing
       // duties to our good friend rparse().
@@ -380,10 +390,6 @@ abstract class Parser[J] {
       // invalid
       case _ => die(i, "expected json value")
     }
-  } catch {
-    case _: IndexOutOfBoundsException =>
-      throw IncompleteParseException("exhausted input")
-  }
 
   /**
    * Tail-recursive parsing method to do the bulk of JSON parsing.
