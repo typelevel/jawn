@@ -35,6 +35,8 @@ abstract class Parser[J] {
 
   protected[this] final val utf8 = Charset.forName("UTF-8")
 
+  import Parser.{ARRBEG, OBJBEG, DATA, KEY, SEP, ARREND, OBJEND, HexChars, ErrorContext}
+
   /**
    * Read the byte/char at 'i' as a Char.
    *
@@ -73,33 +75,18 @@ abstract class Parser[J] {
    */
   protected[this] def close(): Unit
 
-  /**
-   * Valid parser states.
-   */
-  @inline protected[this] final val ARRBEG = 6
-  @inline protected[this] final val OBJBEG = 7
-  @inline protected[this] final val DATA = 1
-  @inline protected[this] final val KEY = 2
-  @inline protected[this] final val SEP = 3
-  @inline protected[this] final val ARREND = 4
-  @inline protected[this] final val OBJEND = 5
-
   protected[this] def newline(i: Int): Unit
   protected[this] def line(): Int
   protected[this] def column(i: Int): Int
 
-  protected[this] final val HexChars: Array[Int] = {
-    //val arr = new Array[Int](128)
-    val arr = Array.fill(128)(-1)
-    var i = 0
-    while (i < 10) { arr(i + '0') = i; i += 1 }
-    i = 0
-    while (i < 16) { arr(i + 'a') = 10 + i; arr(i + 'A') = 10 + i; i += 1 }
-    arr
-  }
-
-  protected[this] final val ErrorContext = 6
-
+  /**
+   * Used to generate error messages with character info and offsets.
+   *
+   * Parameters:
+   *
+   *   - i (>=0): the position in the input where the error occurred.
+   *   - msg: the error message to give the user.
+   */
   protected[this] def die(i: Int, msg: String): Nothing =
     die(i, msg, ErrorContext)
 
@@ -530,4 +517,30 @@ object Parser {
 
   def async[J](mode: AsyncParser.Mode)(implicit facade: RawFacade[J]): AsyncParser[J] =
     AsyncParser[J](mode)
+
+  /**
+   * Private variables.
+   */
+
+  /**
+   * Valid parser states.
+   */
+  @inline private[jawn] final val ARRBEG = 6
+  @inline private[jawn] final val OBJBEG = 7
+  @inline private[jawn] final val DATA = 1
+  @inline private[jawn] final val KEY = 2
+  @inline private[jawn] final val SEP = 3
+  @inline private[jawn] final val ARREND = 4
+  @inline private[jawn] final val OBJEND = 5
+
+  private[jawn] final val HexChars: Array[Int] = {
+    val arr = Array.fill(128)(-1)
+    var i = 0
+    while (i < 10) { arr(i + '0') = i; i += 1 }
+    i = 0
+    while (i < 16) { arr(i + 'a') = 10 + i; arr(i + 'A') = 10 + i; i += 1 }
+    arr
+  }
+
+  private[jawn] final val ErrorContext = 6
 }
