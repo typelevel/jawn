@@ -12,7 +12,7 @@ we get a catchy slogan.
 
 Jawn was designed to parse JSON into an AST as quickly as possible.
 
-[![Build Status](https://api.travis-ci.org/non/jawn.svg)](https://travis-ci.org/non/jawn)
+[![Build Status](https://api.travis-ci.org/typelevel/jawn.svg)](https://travis-ci.org/typelevel/jawn)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/non/jawn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Latest version](https://index.scala-lang.org/non/jawn/jawn-parser/latest.svg?color=orange)](https://index.scala-lang.org/non/jawn/jawn-parser)
 
