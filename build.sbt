@@ -154,7 +154,7 @@ lazy val supportArgonaut = support("argonaut")
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
   .settings(crossScalaVersions := allCrossVersions)
-  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.1")
+  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.2")
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := allCrossVersions)
@@ -164,7 +164,7 @@ lazy val supportPlay = support("play")
         case Some((2, v)) if v >= 13 =>
           "2.7.0-RC2"
         case _ =>
-          "2.6.9"
+          "2.6.12"
       }
     )
   })
@@ -175,11 +175,11 @@ lazy val supportRojoma = support("rojoma")
 
 lazy val supportRojomaV3 = support("rojoma-v3")
   .settings(crossScalaVersions := stableCrossVersions)
-  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.8.0")
+  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.9.1")
 
 lazy val supportSpray = support("spray")
   .settings(crossScalaVersions := allCrossVersions)
-  .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.4")
+  .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
 
 lazy val benchmark = project.in(file("benchmark"))
   .dependsOn(all.map(Project.classpathDependency[Project]): _*)
