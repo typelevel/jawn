@@ -375,7 +375,7 @@ abstract class Parser[J] {
       case 'n' => (parseNull(i), i + 4)
 
       // invalid
-      case _ => die(i, "expected json value", 1)
+      case _ => die(i, "expected json value")
     }
 
   /**
