@@ -220,4 +220,10 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   property("error location 2") { testErrorLoc("[1, 2,    \n   x3]", 2, 4) }
   property("error location 3") { testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1) }
   property("error location 4") { testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2) }
+
+  property("no extra \" in error message") {
+    val result = Parser.parseFromString("\"\u0000\"")(NullFacade)
+    val expected = "control char (0) in string got '\u0000...' (line 1, column 2)"
+    result.failed.get.getMessage shouldBe expected
+  }
 }
