@@ -26,7 +26,7 @@ trait CharBasedParser[J] extends Parser[J] {
     var j = i
     var c = at(j)
     while (c != '"') {
-      if (c < ' ') return die(j, s"control char (${c.toInt}) in string")
+      if (c < ' ') return die(j, s"control char (${c.toInt}) in string", 1)
       if (c == '\\') return -1
       j += 1
       c = at(j)
@@ -44,7 +44,7 @@ trait CharBasedParser[J] extends Parser[J] {
     var c = at(j)
     while (c != '"') {
       if (c < ' ') {
-        die(j, s"control char (${c.toInt}) in string")
+        die(j, s"control char (${c.toInt}) in string", 1)
       } else if (c == '\\') {
         (at(j + 1): @switch) match {
           case 'b' => { sb.append('\b'); j += 2 }
@@ -63,7 +63,7 @@ trait CharBasedParser[J] extends Parser[J] {
             sb.append(descape(jj, at(jj, jj + 4)))
             j += 6
 
-          case c => die(j, s"illegal escape sequence (\\$c)")
+          case c => die(j, s"illegal escape sequence (\\$c)", 1)
         }
       } else {
         // this case is for "normal" code points that are just one Char.
