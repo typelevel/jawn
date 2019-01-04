@@ -91,6 +91,23 @@ abstract class Parser[J] {
     die(i, msg, ErrorContext)
 
   /**
+   * A version of `at` that returns as much of the indicated substring as
+   * possible without throwing exceptions.
+   *
+   * This method is necessary because `at(i, j)` may fail with an exception even
+   * when `atEof(i, j)` returns false (see #143 for an example). This method is
+   * a workaround; it is not optimized or robust against invalid input and
+   * should not be used outside of the context of `die`.
+   */
+  private[this] def safeAt(i: Int, j: Int): CharSequence =
+    if (j <= i) "" else {
+      try at(i, j) catch {
+        case _: Exception =>
+          safeAt(i, j - 1)
+      }
+    }
+
+  /**
    * Used to generate error messages with character info and offsets.
    *
    * Parameters:
@@ -108,7 +125,7 @@ abstract class Parser[J] {
       } else {
         var offset = 0
         while (offset < chars && !atEof(i + offset)) offset += 1
-        val txt = at(i, i + offset)
+        val txt = safeAt(i, i + offset)
         if (atEof(i + offset)) s"'$txt'" else s"'$txt...'"
       }
     val s = "%s got %s (line %d, column %d)" format (msg, got, y, x)
