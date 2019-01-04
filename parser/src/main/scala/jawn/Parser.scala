@@ -99,7 +99,7 @@ abstract class Parser[J] {
    * a workaround; it is not optimized or robust against invalid input and
    * should not be used outside of the context of `die`.
    */
-  private[this] def safeAt(i: Int, j: Int): CharSequence =
+  @tailrec private[this] def safeAt(i: Int, j: Int): CharSequence =
     if (j <= i) "" else {
       try at(i, j) catch {
         case _: Exception =>
