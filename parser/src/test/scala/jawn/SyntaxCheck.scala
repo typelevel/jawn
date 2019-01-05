@@ -100,6 +100,7 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   }
 
   property("empty is invalid") { isValidSyntax("") shouldBe false }
+  property("} is invalid") { isValidSyntax("}") shouldBe false }
 
   property("literal TAB is invalid") { isValidSyntax(qs("\t")) shouldBe false }
   property("literal NL is invalid") { isValidSyntax(qs("\n")) shouldBe false }
@@ -220,4 +221,16 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   property("error location 2") { testErrorLoc("[1, 2,    \n   x3]", 2, 4) }
   property("error location 3") { testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1) }
   property("error location 4") { testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2) }
+
+  property("absorb should fail fast on bad inputs") {
+    def absorbFails(in: String): Boolean = {
+      val async = AsyncParser[Unit](AsyncParser.UnwrapArray)
+      async.absorb("}")(NullFacade).isLeft
+    }
+
+    val badInputs = Seq("}", "fälse", "n0ll", "try", "0x", "0.x", "0ex", "[1; 2]", "{\"a\"; 1}", "{1: 2}")
+    badInputs.foreach { input =>
+      absorbFails(input) shouldBe true
+    }
+  }
 }
