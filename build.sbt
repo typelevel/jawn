@@ -1,6 +1,6 @@
 import ReleaseTransformations._
 
-lazy val previousJawnVersion = "0.11.1"
+lazy val previousJawnVersion = "0.14.0"
 
 lazy val scala210 = "2.10.7"
 lazy val scala211 = "2.11.12"
