@@ -222,6 +222,12 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
   property("error location 3") { testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1) }
   property("error location 4") { testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2) }
 
+  property("no extra \" in error message") {
+    val result = Parser.parseFromString("\"\u0000\"")(NullFacade)
+    val expected = "control char (0) in string got '\u0000...' (line 1, column 2)"
+    result.failed.get.getMessage shouldBe expected
+  }
+
   property("absorb should fail fast on bad inputs") {
     def absorbFails(in: String): Boolean = {
       val async = AsyncParser[Unit](AsyncParser.UnwrapArray)
