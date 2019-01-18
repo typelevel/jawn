@@ -161,10 +161,11 @@ lazy val supportPlay = support("play")
   .settings(libraryDependencies += {
     "com.typesafe.play" %% "play-json" % (
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v >= 13 =>
-          "2.7.0-RC2"
+        case Some((2, 10)) =>
+          // play-json 2.7.x does not support Scala 2.10
+          "2.6.13"
         case _ =>
-          "2.6.12"
+          "2.7.0"
       }
     )
   })
