@@ -1,18 +1,15 @@
 package org.typelevel.jawn
 package parser
 
-import org.scalatest._
-import prop._
-import org.scalacheck.Arbitrary._
-import org.scalacheck._
-import Gen._
-import Arbitrary.arbitrary
-
+import claimant.Claim
+import java.nio.ByteBuffer
+import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import scala.util.{Try, Success, Failure}
 
-import java.nio.ByteBuffer
+import Arbitrary.arbitrary
+import Prop.forAll
 
-class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
+class SyntaxCheck extends Properties("SyntaxCheck") {
 
   sealed trait J {
     def build: String = this match {
@@ -83,62 +80,61 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
     if (r1 == r3) r1 else sys.error(s"Sync/Async parsing disagree($r1, $r3): $s")
   }
 
-  property("syntax-checking") {
-    forAll { (j: J) => isValidSyntax(j.build) shouldBe true }
-  }
+  property("syntax-checking") =
+    forAll { (j: J) => isValidSyntax(j.build)  }
 
   def qs(s: String): String = "\"" + s + "\""
 
-  property("unicode is ok") {
-    isValidSyntax(qs("ö")) shouldBe true
-    isValidSyntax(qs("ö\\\\")) shouldBe true
-    isValidSyntax(qs("\\\\ö")) shouldBe true
+  property("unicode is ok") = {
+    isValidSyntax(qs("ö")) 
+    isValidSyntax(qs("ö\\\\")) 
+    isValidSyntax(qs("\\\\ö")) 
   }
 
-  property("invalid unicode is invalid") {
-    isValidSyntax("\"\\uqqqq\"") shouldBe false
+  property("invalid unicode is invalid") = {
+    isValidSyntax("\"\\uqqqq\"") != true
   }
 
-  property("empty is invalid") { isValidSyntax("") shouldBe false }
-  property("} is invalid") { isValidSyntax("}") shouldBe false }
+  property("empty is invalid") = { isValidSyntax("") != true }
+  property("} is invalid") = { isValidSyntax("}") != true }
 
-  property("literal TAB is invalid") { isValidSyntax(qs("\t")) shouldBe false }
-  property("literal NL is invalid") { isValidSyntax(qs("\n")) shouldBe false }
-  property("literal CR is invalid") { isValidSyntax(qs("\r")) shouldBe false }
-  property("literal NUL is invalid") { isValidSyntax(qs("\u0000")) shouldBe false }
-  property("literal BS TAB is invalid") { isValidSyntax(qs("\\\t")) shouldBe false }
-  property("literal BS NL is invalid") { isValidSyntax(qs("\\\n")) shouldBe false }
-  property("literal BS CR is invalid") { isValidSyntax(qs("\\\r")) shouldBe false }
-  property("literal BS NUL is invalid") { isValidSyntax(qs("\\\u0000")) shouldBe false }
-  property("literal BS ZERO is invalid") { isValidSyntax(qs("\\0")) shouldBe false }
-  property("literal BS X is invalid") { isValidSyntax(qs("\\x")) shouldBe false }
+  property("literal TAB is invalid") = { isValidSyntax(qs("\t")) != true }
+  property("literal NL is invalid") = { isValidSyntax(qs("\n")) != true }
+  property("literal CR is invalid") = { isValidSyntax(qs("\r")) != true }
+  property("literal NUL is invalid") = { isValidSyntax(qs("\u0000")) != true }
+  property("literal BS TAB is invalid") = { isValidSyntax(qs("\\\t")) != true }
+  property("literal BS NL is invalid") = { isValidSyntax(qs("\\\n")) != true }
+  property("literal BS CR is invalid") = { isValidSyntax(qs("\\\r")) != true }
+  property("literal BS NUL is invalid") = { isValidSyntax(qs("\\\u0000")) != true }
+  property("literal BS ZERO is invalid") = { isValidSyntax(qs("\\0")) != true }
+  property("literal BS X is invalid") = { isValidSyntax(qs("\\x")) != true }
 
-  property("0 is ok") { isValidSyntax("0") shouldBe true }
-  property("0e is invalid") { isValidSyntax("0e") shouldBe false }
-  property("123e is invalid") { isValidSyntax("123e") shouldBe false }
-  property(".999 is invalid") { isValidSyntax(".999") shouldBe false }
-  property("0.999 is ok") { isValidSyntax("0.999") shouldBe true }
-  property("-.999 is invalid") { isValidSyntax("-.999") shouldBe false }
-  property("-0.999 is ok") { isValidSyntax("-0.999") shouldBe true }
-  property("+0.999 is invalid") { isValidSyntax("+0.999") shouldBe false }
-  property("--0.999 is invalid") { isValidSyntax("--0.999") shouldBe false }
-  property("01 is invalid") { isValidSyntax("01") shouldBe false }
-  property("1e is invalid") { isValidSyntax("1e") shouldBe false }
-  property("1e- is invalid") { isValidSyntax("1e+") shouldBe false }
-  property("1e+ is invalid") { isValidSyntax("1e-") shouldBe false }
-  property("1. is invalid") { isValidSyntax("1.") shouldBe false }
-  property("1.e is invalid") { isValidSyntax("1.e") shouldBe false }
-  property("1.e9 is invalid") { isValidSyntax("1.e9") shouldBe false }
-  property("1.e- is invalid") { isValidSyntax("1.e+") shouldBe false }
-  property("1.e+ is invalid") { isValidSyntax("1.e-") shouldBe false }
-  property("1.1e is invalid") { isValidSyntax("1.1e") shouldBe false }
-  property("1.1e- is invalid") { isValidSyntax("1.1e-") shouldBe false }
-  property("1.1e+ is invalid") { isValidSyntax("1.1e+") shouldBe false }
-  property("1.1e1 is ok") { isValidSyntax("1.1e1") shouldBe true }
-  property("1.1e-1 is ok") { isValidSyntax("1.1e-1") shouldBe true }
-  property("1.1e+1 is ok") { isValidSyntax("1.1e+1") shouldBe true }
-  property("1+ is invalid") { isValidSyntax("1+") shouldBe false }
-  property("1- is invalid") { isValidSyntax("1-") shouldBe false }
+  property("0 is ok") = { isValidSyntax("0")  }
+  property("0e is invalid") = { isValidSyntax("0e") != true }
+  property("123e is invalid") = { isValidSyntax("123e") != true }
+  property(".999 is invalid") = { isValidSyntax(".999") != true }
+  property("0.999 is ok") = { isValidSyntax("0.999")  }
+  property("-.999 is invalid") = { isValidSyntax("-.999") != true }
+  property("-0.999 is ok") = { isValidSyntax("-0.999")  }
+  property("+0.999 is invalid") = { isValidSyntax("+0.999") != true }
+  property("--0.999 is invalid") = { isValidSyntax("--0.999") != true }
+  property("01 is invalid") = { isValidSyntax("01") != true }
+  property("1e is invalid") = { isValidSyntax("1e") != true }
+  property("1e- is invalid") = { isValidSyntax("1e+") != true }
+  property("1e+ is invalid") = { isValidSyntax("1e-") != true }
+  property("1. is invalid") = { isValidSyntax("1.") != true }
+  property("1.e is invalid") = { isValidSyntax("1.e") != true }
+  property("1.e9 is invalid") = { isValidSyntax("1.e9") != true }
+  property("1.e- is invalid") = { isValidSyntax("1.e+") != true }
+  property("1.e+ is invalid") = { isValidSyntax("1.e-") != true }
+  property("1.1e is invalid") = { isValidSyntax("1.1e") != true }
+  property("1.1e- is invalid") = { isValidSyntax("1.1e-") != true }
+  property("1.1e+ is invalid") = { isValidSyntax("1.1e+") != true }
+  property("1.1e1 is ok") = { isValidSyntax("1.1e1")  }
+  property("1.1e-1 is ok") = { isValidSyntax("1.1e-1")  }
+  property("1.1e+1 is ok") = { isValidSyntax("1.1e+1")  }
+  property("1+ is invalid") = { isValidSyntax("1+") != true }
+  property("1- is invalid") = { isValidSyntax("1-") != true }
 
   def isStackSafe(s: String): Try[Boolean] =
     try {
@@ -150,42 +146,41 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
 
   val S = "     " * 2000
 
-  property("stack-safety 1") {
-    isStackSafe(s"${S}[${S}null${S}]${S}") shouldBe Success(true)
+  property("stack-safety 1") = {
+    Claim(isStackSafe(s"${S}[${S}null${S}]${S}") == Success(true))
   }
 
-  property("stack-safety 2") {
-    isStackSafe(s"${S}[${S}nul${S}]${S}") shouldBe Success(false)
+  property("stack-safety 2") = {
+    Claim(isStackSafe(s"${S}[${S}nul${S}]${S}") == Success(false))
   }
 
-  property("stack-safety 3") {
-    isStackSafe(S) shouldBe Success(false)
+  property("stack-safety 3") = {
+    Claim(isStackSafe(S) == Success(false))
   }
 
-  property("stack-safety 4") {
-    isStackSafe(s"${S}false${S}") shouldBe Success(true)
+  property("stack-safety 4") = {
+    Claim(isStackSafe(s"${S}false${S}") == Success(true))
   }
 
-  property("stack-safety 5") {
-    isStackSafe(s"${S}fals\\u0065${S}") shouldBe Success(false)
+  property("stack-safety 5") = {
+    Claim(isStackSafe(s"${S}fals\\u0065${S}") == Success(false))
   }
 
-  property("stack-safety 6") {
-    isStackSafe(s"${S}fals${S}") shouldBe Success(false)
+  property("stack-safety 6") = {
+    Claim(isStackSafe(s"${S}fals${S}") == Success(false))
   }
 
-  property("stack-safety 7") {
-    isStackSafe(s"false${S}false") shouldBe Success(false)
+  property("stack-safety 7") = {
+    Claim(isStackSafe(s"false${S}false") == Success(false))
   }
 
-  property("stack-safety 8") {
-    isStackSafe(s"false${S},${S}false") shouldBe Success(false)
+  property("stack-safety 8") = {
+    Claim(isStackSafe(s"false${S},${S}false") == Success(false))
   }
 
-  def testErrorLoc(json: String, line: Int, col: Int): Unit = {
+  def testErrorLoc(json: String, line: Int, col: Int): Prop = {
     import java.io.ByteArrayInputStream
     import java.nio.channels.{Channels, ReadableByteChannel}
-    isValidSyntax(json) shouldBe false
 
     def ch(s: String): ReadableByteChannel =
       Channels.newChannel(new ByteArrayInputStream(s.getBytes("UTF-8")))
@@ -193,50 +188,52 @@ class SyntaxCheck extends PropSpec with Matchers with PropertyChecks {
     def bb(s: String): ByteBuffer =
       ByteBuffer.wrap(s.getBytes("UTF-8"))
 
-    def assertLoc(p: ParseException): Unit = {
-      p.line shouldBe line
-      p.col shouldBe col
-    }
+    def assertLoc(p: ParseException): Prop =
+      Claim(p.line == line && p.col == col)
 
-    def extract1(t: Try[Unit]): Unit =
+    def fail(msg: String): Prop =
+      Prop.falsified :| msg
+
+    def extract1(t: Try[Unit]): Prop =
       t match {
         case Failure(p @ ParseException(_, _, _, _)) => assertLoc(p)
         case otherwise => fail(s"expected Failure(ParseException), got $otherwise")
       }
 
-    def extract2(e: Either[ParseException, collection.Seq[Unit]]): Unit =
+    def extract2(e: Either[ParseException, collection.Seq[Unit]]): Prop =
       e match {
         case Left(p) => assertLoc(p)
         case right => fail(s"expected Left(ParseException), got $right")
       }
 
-    extract1(Parser.parseFromString(json)(NullFacade))
-    extract1(Parser.parseFromCharSequence(json)(NullFacade))
-    extract1(Parser.parseFromChannel(ch(json))(NullFacade))
-    extract1(Parser.parseFromByteBuffer(bb(json))(NullFacade))
-    extract2(Parser.async(AsyncParser.UnwrapArray)(NullFacade).finalAbsorb(json)(NullFacade))
+    Claim(isValidSyntax(json) != true) &&
+      extract1(Parser.parseFromString(json)(NullFacade)) &&
+      extract1(Parser.parseFromCharSequence(json)(NullFacade)) &&
+      extract1(Parser.parseFromChannel(ch(json))(NullFacade)) &&
+      extract1(Parser.parseFromByteBuffer(bb(json))(NullFacade)) &&
+      extract2(Parser.async(AsyncParser.UnwrapArray)(NullFacade).finalAbsorb(json)(NullFacade))
   }
 
-  property("error location 1") { testErrorLoc("[1, 2,\nx3]", 2, 1) }
-  property("error location 2") { testErrorLoc("[1, 2,    \n   x3]", 2, 4) }
-  property("error location 3") { testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1) }
-  property("error location 4") { testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2) }
+  property("error location 1") = { testErrorLoc("[1, 2,\nx3]", 2, 1) }
+  property("error location 2") = { testErrorLoc("[1, 2,    \n   x3]", 2, 4) }
+  property("error location 3") = { testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1) }
+  property("error location 4") = { testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2) }
 
-  property("no extra \" in error message") {
+  property("no extra \" in error message") = {
     val result = Parser.parseFromString("\"\u0000\"")(NullFacade)
     val expected = "control char (0) in string got '\u0000...' (line 1, column 2)"
-    result.failed.get.getMessage shouldBe expected
+    Claim(result.failed.get.getMessage == expected)
   }
 
-  property("absorb should fail fast on bad inputs") {
+  property("absorb should fail fast on bad inputs") = {
+
     def absorbFails(in: String): Boolean = {
       val async = AsyncParser[Unit](AsyncParser.UnwrapArray)
       async.absorb("}")(NullFacade).isLeft
     }
 
     val badInputs = Seq("}", "fälse", "n0ll", "try", "0x", "0.x", "0ex", "[1; 2]", "{\"a\"; 1}", "{1: 2}")
-    badInputs.foreach { input =>
-      absorbFails(input) shouldBe true
-    }
+
+    Claim(badInputs.forall(absorbFails))
   }
 }

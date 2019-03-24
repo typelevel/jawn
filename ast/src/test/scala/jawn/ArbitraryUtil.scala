@@ -1,8 +1,8 @@
 package org.typelevel.jawn
 package ast
 
-import org.scalacheck._
-import Gen._
+import org.scalacheck.{Arbitrary, Gen}
+
 import Arbitrary.arbitrary
 
 object ArbitraryUtil {

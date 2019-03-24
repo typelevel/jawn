@@ -1,7 +1,7 @@
 package org.typelevel.jawn
 package parser
 
-import java.io._
+import java.io.{File, PrintWriter}
 
 object TestUtil {
   def withTemp[A](s: String)(f: File => A): A = {

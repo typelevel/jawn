@@ -1,79 +1,74 @@
 package org.typelevel.jawn
 package ast
 
-import org.scalatest._
-import org.scalatest.prop._
-
+import claimant.Claim
+import org.scalacheck.{Prop, Properties}
 import scala.collection.mutable
 import scala.util.{Try, Success}
 
 import ArbitraryUtil._
+import Prop.forAll
 
-class AstTest extends PropSpec with Matchers with PropertyChecks {
+class AstTest extends Properties("AstTest") {
 
-  property("calling .get never crashes") {
+  property("calling .get never crashes") =
     forAll { (v: JValue, s: String, i: Int) =>
-      Try(v.get(i).get(s)).isSuccess shouldBe true
-      Try(v.get(s).get(i)).isSuccess shouldBe true
-      Try(v.get(i).get(i)).isSuccess shouldBe true
-      Try(v.get(s).get(s)).isSuccess shouldBe true
+      Claim(
+        Try(v.get(i).get(s)).isSuccess &&
+          Try(v.get(s).get(i)).isSuccess &&
+          Try(v.get(i).get(i)).isSuccess &&
+          Try(v.get(s).get(s)).isSuccess)
     }
-  }
 
-  property(".getX and .asX agree") {
+  property(".getX and .asX agree") =
     forAll { (v: JValue) =>
-      v.getBoolean shouldBe Try(v.asBoolean).toOption
-      v.getString shouldBe Try(v.asString).toOption
-      v.getInt shouldBe Try(v.asInt).toOption
-      v.getLong shouldBe Try(v.asLong).toOption
-      v.getDouble shouldBe Try(v.asDouble).toOption
-      v.getBigInt shouldBe Try(v.asBigInt).toOption
-      v.getBigDecimal shouldBe Try(v.asBigDecimal).toOption
+      Claim(
+        v.getBoolean == Try(v.asBoolean).toOption &&
+          v.getString == Try(v.asString).toOption &&
+          v.getInt == Try(v.asInt).toOption &&
+          v.getLong == Try(v.asLong).toOption &&
+          v.getDouble == Try(v.asDouble).toOption &&
+          v.getBigInt == Try(v.asBigInt).toOption &&
+          v.getBigDecimal == Try(v.asBigDecimal).toOption)
     }
-  }
 
-  property(".getBoolean") {
-    forAll((b: Boolean) => JBool(b).getBoolean shouldBe Some(b))
-  }
+  property(".getBoolean") =
+    forAll((b: Boolean) => Claim(JBool(b).getBoolean == Some(b)))
 
-  property(".getString") {
-    forAll((s: String) => JString(s).getString shouldBe Some(s))
-  }
+  property(".getString") =
+    forAll((s: String) => Claim(JString(s).getString == Some(s)))
 
-  property(".getInt") {
+  property(".getInt") =
     forAll { (n: Int) =>
-      JNum(n).getInt shouldBe Some(n)
-      JParser.parseUnsafe(n.toString).getInt shouldBe Some(n)
+      Claim(JNum(n).getInt == Some(n) &&
+        JParser.parseUnsafe(n.toString).getInt == Some(n))
     }
-  }
 
-  property(".getLong") {
+  property(".getLong") =
     forAll { (n: Long) =>
-      JNum(n).getLong shouldBe Some(n)
-      JParser.parseUnsafe(n.toString).getLong shouldBe Some(n)
+      Claim(JNum(n).getLong == Some(n) &&
+        JParser.parseUnsafe(n.toString).getLong == Some(n))
     }
-  }
 
-  property(".getDouble") {
+  property(".getDouble") =
     forAll { (n: Double) =>
-      JNum(n).getDouble shouldBe Some(n)
-      JParser.parseUnsafe(n.toString).getDouble shouldBe Some(n)
+      Claim(JNum(n).getDouble == Some(n) &&
+        JParser.parseUnsafe(n.toString).getDouble == Some(n))
     }
-  }
 
-  property(".getBigInt") {
+  property(".getBigInt") =
     forAll { (n: BigInt) =>
-      JNum(n.toString).getBigInt shouldBe Some(n)
-      JParser.parseUnsafe(n.toString).getBigInt shouldBe Some(n)
+      Claim(JNum(n.toString).getBigInt == Some(n) &&
+        JParser.parseUnsafe(n.toString).getBigInt == Some(n))
     }
-  }
 
-  property(".getBigDecimal") {
+  property(".getBigDecimal") =
     forAll { (n: BigDecimal) =>
       if (Try(BigDecimal(n.toString)) == Success(n)) {
-        JNum(n.toString).getBigDecimal shouldBe Some(n)
-        JParser.parseUnsafe(n.toString).getBigDecimal shouldBe Some(n)
+        Claim(JNum(n.toString).getBigDecimal == Some(n) &&
+          JParser.parseUnsafe(n.toString).getBigDecimal == Some(n))
+      } else {
+        Claim(true)
       }
     }
-  }
 }
