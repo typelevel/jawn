@@ -1,19 +1,14 @@
 package org.typelevel.jawn
 package util
 
-import org.scalatest._
-import prop._
-import org.scalacheck._
+import claimant.Claim
+import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
+import scala.util.{Failure, Success, Try}
 
 import Arbitrary.arbitrary
+import Prop.forAll
 
-import scala.util._
-
-class SliceCheck extends PropSpec with Matchers with PropertyChecks {
-
-  // crank this up to stress-test the Slice class.
-  implicit override val generatorDrivenConfig =
-    PropertyCheckConfiguration(minSuccessful = 100)
+class SliceCheck extends Properties("SliceCheck") {
 
   val genSlice: Gen[Slice] = {
     val g = arbitrary[String]
@@ -30,94 +25,82 @@ class SliceCheck extends PropSpec with Matchers with PropertyChecks {
   implicit val arbitrarySlice: Arbitrary[Slice] =
     Arbitrary(genSlice)
 
-  def tryEqual[A](got0: => A, expected0: => A): Unit = {
+  def tryEqual[A](got0: => A, expected0: => A): Prop = {
     val got = Try(got0)
     val expected = Try(expected0)
     got match {
-      case Success(_) => got shouldBe expected
-      case Failure(_) => assert(expected.isFailure)
+      case Success(_) => Claim(got == expected)
+      case Failure(_) => Claim(expected.isFailure)
     }
   }
 
-  property("Slice(s, i, j) ~ s.substring(i, j)") {
+  property("Slice(s, i, j) ~ s.substring(i, j)") =
     forAll { (s: String, i: Int, j: Int) =>
       tryEqual(
         Slice(s, i, j).toString,
         s.substring(i, j))
     }
-  }
 
-  property("Slice(s, i, j).charAt(k) ~ s.substring(i, j).charAt(k)") {
+  property("Slice(s, i, j).charAt(k) ~ s.substring(i, j).charAt(k)") =
     forAll { (s: String, i: Int, j: Int, k: Int) =>
       tryEqual(
         Slice(s, i, j).charAt(k),
         s.substring(i, j).charAt(k))
     }
-  }
 
-  property("slice.length >= 0") {
+  property("slice.length >= 0") =
     forAll { (cs: Slice) =>
-      cs.length should be >= 0
+      Claim(cs.length >= 0)
     }
-  }
 
-  property("slice.charAt(i) ~ slice.toString.charAt(i)") {
+  property("slice.charAt(i) ~ slice.toString.charAt(i)") =
     forAll { (cs: Slice, i: Int) =>
       tryEqual(
         cs.charAt(i),
         cs.toString.charAt(i))
     }
-  }
 
-  property("Slice(s, i, j).subSequence(k, l) ~ s.substring(i, j).substring(k, l)") {
+  property("Slice(s, i, j).subSequence(k, l) ~ s.substring(i, j).substring(k, l)") =
     forAll { (s: String, i: Int, j: Int, k: Int, l: Int) =>
       tryEqual(
         Slice(s, i, j).subSequence(k, l).toString,
         s.substring(i, j).substring(k, l))
     }
-  }
 
-  property("Slice(s) ~ Slice(s, 0, s.length)") {
+  property("Slice(s) ~ Slice(s, 0, s.length)") =
     forAll { (s: String) =>
       tryEqual(
         Slice(s).toString,
         Slice(s, 0, s.length).toString)
     }
-  }
 
-  property("Slice(s, i, j) => Slice.unsafe(s, i, j)") {
+  property("Slice(s, i, j) => Slice.unsafe(s, i, j)") =
     forAll { (s: String, i: Int, j: Int) =>
       Try(Slice(s, i, j).toString) match {
-        case Success(r) => r shouldBe Slice.unsafe(s, i, j).toString
-        case Failure(_) => succeed
+        case Success(r) => Claim(r == Slice.unsafe(s, i, j).toString)
+        case Failure(_) => Claim(true)
       }
     }
-  }
 
-  property("x == x") {
-    forAll { (x: Slice) => x shouldBe x }
-  }
+  property("x == x") =
+    forAll { (x: Slice) => Claim(x == x) }
 
-  property("(x == y) = (x.toString == y.toString)") {
+  property("(x == y) = (x.toString == y.toString)") =
     forAll { (x: Slice, y: Slice) =>
-      (x == y) shouldBe (x.toString == y.toString)
+      Claim((x == y) == (x.toString == y.toString))
     }
-  }
 
-  property("(x == y) -> (x.## == y.##)") {
+  property("(x == y) -> (x.## == y.##)") =
     forAll { (x: Slice, y: Slice) =>
-      if (x == y) x.## shouldBe y.##
-      else (x.## == y.##) shouldBe false
+      if (x == y) Claim(x.## == y.##) else Claim(x.## != y.##)
     }
-  }
 
-  property("x == Slice(x.toString)") {
+  property("x == Slice(x.toString)") =
     forAll { (x: Slice) =>
-      Slice(x.toString) shouldBe x
+      Claim(Slice(x.toString) == x)
     }
-  }
 
-  property("slice is serializable") {
+  property("slice is serializable") = {
     import java.io._
 
     forAll { (x: Slice) =>
@@ -128,8 +111,9 @@ class SliceCheck extends PropSpec with Matchers with PropertyChecks {
       val bytes = baos.toByteArray
       val bais = new ByteArrayInputStream(bytes)
       val ois = new ObjectInputStream(bais)
-      Try(ois.readObject()) shouldBe Try(x)
+      val res = Claim(Try(ois.readObject()) == Try(x))
       ois.close()
+      res
     }
   }
 }

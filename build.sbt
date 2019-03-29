@@ -2,7 +2,6 @@ import ReleaseTransformations._
 
 lazy val previousJawnVersion = "0.14.0"
 
-lazy val scala210 = "2.10.7"
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.8"
 lazy val scala213 = "2.13.0-M5"
@@ -24,9 +23,9 @@ ThisBuild / developers += Developer(
 )
 
 lazy val stableCrossVersions =
-  Seq(scala210, scala211, scala212)
+  Seq(scala211, scala212)
 
-// we'll support 2.13.0-M1 soon but not yet
+// we'll support 2.13.0-M5 soon but not yet
 lazy val allCrossVersions =
   stableCrossVersions :+ scala213
 
@@ -43,17 +42,9 @@ lazy val jawnSettings = Seq(
 
   Test / fork := true,
 
-  libraryDependencies += {
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, v)) if v < 13 =>
-        "org.scalatest" %% "scalatest" % "3.0.5" % Test
-      case _ =>
-        "org.scalatest" %% "scalatest" % "3.0.6-SNAP5" % Test
-    }
-  },
-
   libraryDependencies ++=
     "org.scalacheck" %% "scalacheck" % "1.14.0" % Test ::
+    "org.spire-math" %% "claimant" % "0.0.4" % Test ::
     Nil,
 
   scalacOptions ++=
@@ -158,17 +149,7 @@ lazy val supportJson4s = support("json4s")
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := allCrossVersions)
-  .settings(libraryDependencies += {
-    "com.typesafe.play" %% "play-json" % (
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 10)) =>
-          // play-json 2.7.x does not support Scala 2.10
-          "2.6.13"
-        case _ =>
-          "2.7.0"
-      }
-    )
-  })
+  .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.0")
 
 lazy val supportRojoma = support("rojoma")
   .settings(crossScalaVersions := stableCrossVersions)
