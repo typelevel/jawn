@@ -140,7 +140,7 @@ def support(s: String) =
 
 lazy val supportArgonaut = support("argonaut")
   .settings(crossScalaVersions := stableCrossVersions)
-  .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.2")
+  .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.3")
 
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)

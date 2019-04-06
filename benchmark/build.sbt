@@ -3,7 +3,7 @@ name := "jawn-benchmarks"
 javaOptions in run += "-Xmx6G"
 
 libraryDependencies ++= Seq(
-  "io.argonaut" %% "argonaut" % "6.2.2",
+  "io.argonaut" %% "argonaut" % "6.2.3",
   "org.json4s" %% "json4s-native" % "3.5.4",
   "org.json4s" %% "json4s-jackson" % "3.5.4",
   "com.typesafe.play" %% "play-json" % "2.6.9",
