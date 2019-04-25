@@ -4,7 +4,7 @@ lazy val previousJawnVersion = "0.14.0"
 
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.8"
-lazy val scala213 = "2.13.0-M5"
+lazy val scala213 = "2.13.0-RC1"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -25,7 +25,6 @@ ThisBuild / developers += Developer(
 lazy val stableCrossVersions =
   Seq(scala211, scala212)
 
-// we'll support 2.13.0-M5 soon but not yet
 lazy val allCrossVersions =
   stableCrossVersions :+ scala213
 
@@ -33,8 +32,7 @@ lazy val benchmarkVersion =
   scala212
 
 lazy val jawnSettings = Seq(
-  //crossScalaVersions := allCrossVersions,
-  crossScalaVersions := stableCrossVersions,
+  crossScalaVersions := allCrossVersions,
 
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
 
@@ -44,7 +42,7 @@ lazy val jawnSettings = Seq(
 
   libraryDependencies ++=
     "org.scalacheck" %% "scalacheck" % "1.14.0" % Test ::
-    "org.spire-math" %% "claimant" % "0.0.4" % Test ::
+    "org.typelevel" %% "claimant" % "0.0.5-SNAPSHOT" % Test ::
     Nil,
 
   scalacOptions ++=
@@ -52,7 +50,7 @@ lazy val jawnSettings = Seq(
     "-encoding" :: "utf-8" ::
     "-feature" ::
     "-unchecked" ::
-    "-Xfatal-warnings" ::
+    //"-Xfatal-warnings" ::
     "-Xfuture" ::
     Nil,
 
@@ -102,15 +100,14 @@ lazy val root = project.in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
   .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
-  .settings(crossScalaVersions := List())
   .settings(jawnSettings: _*)
+  .settings(crossScalaVersions := List())
   .settings(noPublish: _*)
 
 lazy val parser = project.in(file("parser"))
   .settings(name := "parser")
   .settings(moduleName := "jawn-parser")
   .settings(jawnSettings: _*)
-  .settings(crossScalaVersions := allCrossVersions)
   .disablePlugins(JmhPlugin)
 
 lazy val util = project.in(file("util"))
@@ -118,7 +115,6 @@ lazy val util = project.in(file("util"))
   .settings(name := "util")
   .settings(moduleName := "jawn-util")
   .settings(jawnSettings: _*)
-  .settings(crossScalaVersions := allCrossVersions)
   .disablePlugins(JmhPlugin)
 
 lazy val ast = project.in(file("ast"))
@@ -127,7 +123,6 @@ lazy val ast = project.in(file("ast"))
   .settings(name := "ast")
   .settings(moduleName := "jawn-ast")
   .settings(jawnSettings: _*)
-  .settings(crossScalaVersions := allCrossVersions)
   .disablePlugins(JmhPlugin)
 
 def support(s: String) =
@@ -139,12 +134,10 @@ def support(s: String) =
     .disablePlugins(JmhPlugin)
 
 lazy val supportArgonaut = support("argonaut")
-  .settings(crossScalaVersions := stableCrossVersions)
   .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.3")
 
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
-  .settings(crossScalaVersions := allCrossVersions)
   .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.5")
 
 lazy val supportPlay = support("play")
@@ -160,7 +153,6 @@ lazy val supportRojomaV3 = support("rojoma-v3")
   .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.9.1")
 
 lazy val supportSpray = support("spray")
-  .settings(crossScalaVersions := allCrossVersions)
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
 
 lazy val benchmark = project.in(file("benchmark"))
@@ -173,4 +165,4 @@ lazy val benchmark = project.in(file("benchmark"))
   .enablePlugins(JmhPlugin)
 
 lazy val all =
-  Seq(parser, util, ast, supportArgonaut, supportJson4s, supportPlay, supportRojoma, supportRojomaV3, supportSpray)
+  Seq(parser, util, ast, supportArgonaut, supportJson4s, supportPlay, supportSpray)

@@ -1,8 +1,8 @@
 package org.typelevel.jawn
 
-import claimant.Claim
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
+import org.typelevel.claimant.Claim
 
 class CharBuilderSpec extends Properties("CharBuilderSpec") {
 

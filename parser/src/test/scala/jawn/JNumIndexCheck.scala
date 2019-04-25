@@ -1,10 +1,10 @@
 package org.typelevel.jawn
 package parser
 
-import claimant.Claim
 import java.nio.ByteBuffer
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
+import org.typelevel.claimant.Claim
 import scala.util.Success
 
 class JNumIndexCheck extends Properties("JNumIndexCheck") {
