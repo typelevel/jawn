@@ -42,7 +42,7 @@ lazy val jawnSettings = Seq(
 
   libraryDependencies ++=
     "org.scalacheck" %% "scalacheck" % "1.14.0" % Test ::
-    "org.typelevel" %% "claimant" % "0.0.5-SNAPSHOT" % Test ::
+    "org.typelevel" %% "claimant" % "0.1.0" % Test ::
     Nil,
 
   scalacOptions ++=
