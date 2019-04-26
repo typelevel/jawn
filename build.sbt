@@ -53,8 +53,16 @@ lazy val jawnSettings = Seq(
     "-feature" ::
     "-unchecked" ::
     "-Xfatal-warnings" ::
-    "-Xfuture" ::
     Nil,
+
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, v)) if v <= 12 =>
+        Seq("-Xfuture")
+      case _ =>
+        Nil
+    }
+  },
 
   scalacOptions += {
     CrossVersion.partialVersion(scalaVersion.value) match {
