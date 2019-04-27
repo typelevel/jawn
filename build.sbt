@@ -140,9 +140,6 @@ def support(s: String) =
     .settings(jawnSettings: _*)
     .disablePlugins(JmhPlugin)
 
-lazy val supportArgonaut = support("argonaut")
-  .settings(libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.3")
-
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
   .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.5")
@@ -150,14 +147,6 @@ lazy val supportJson4s = support("json4s")
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := allCrossVersions)
   .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.3")
-
-lazy val supportRojoma = support("rojoma")
-  .settings(crossScalaVersions := stableCrossVersions)
-  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json" % "2.4.3")
-
-lazy val supportRojomaV3 = support("rojoma-v3")
-  .settings(crossScalaVersions := stableCrossVersions)
-  .settings(libraryDependencies += "com.rojoma" %% "rojoma-json-v3" % "3.9.1")
 
 lazy val supportSpray = support("spray")
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
@@ -172,4 +161,4 @@ lazy val benchmark = project.in(file("benchmark"))
   .enablePlugins(JmhPlugin)
 
 lazy val all =
-  Seq(parser, util, ast, supportArgonaut, supportJson4s, supportPlay, supportSpray)
+  Seq(parser, util, ast, supportJson4s, supportPlay, supportSpray)
