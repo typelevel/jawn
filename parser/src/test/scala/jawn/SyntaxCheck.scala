@@ -1,9 +1,9 @@
 package org.typelevel.jawn
 package parser
 
-import claimant.Claim
 import java.nio.ByteBuffer
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
+import org.typelevel.claimant.Claim
 import scala.util.{Try, Success, Failure}
 
 import Arbitrary.arbitrary

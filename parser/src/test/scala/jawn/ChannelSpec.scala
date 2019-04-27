@@ -1,9 +1,9 @@
 package org.typelevel.jawn
 package parser
 
-import claimant.Claim
 import java.nio.channels.ByteChannel
 import org.scalacheck.Properties
+import org.typelevel.claimant.Claim
 import scala.util.Success
 
 class ChannelSpec extends Properties("ChannelSpec") {

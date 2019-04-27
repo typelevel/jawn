@@ -1,8 +1,8 @@
 package org.typelevel.jawn
 package util
 
-import claimant.Claim
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
+import org.typelevel.claimant.Claim
 import scala.util.{Failure, Success, Try}
 
 import Arbitrary.arbitrary

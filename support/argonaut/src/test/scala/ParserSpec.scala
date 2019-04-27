@@ -2,8 +2,8 @@ package org.typelevel.jawn
 package support.argonaut
 
 import argonaut.{Argonaut, CodecJson, Json}
-import claimant.Claim
 import org.scalacheck.{Arbitrary, Prop, Properties}
+import org.typelevel.claimant.Claim
 import scala.util.Try
 
 import Arbitrary.arbitrary

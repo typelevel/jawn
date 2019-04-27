@@ -1,8 +1,8 @@
 package org.typelevel.jawn
 package ast
 
-import claimant.Claim
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
+import org.typelevel.claimant.Claim
 import org.typelevel.jawn.parser.TestUtil
 import scala.collection.mutable
 import scala.util.{Try, Success}

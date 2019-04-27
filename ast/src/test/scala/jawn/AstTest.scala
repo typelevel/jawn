@@ -1,8 +1,8 @@
 package org.typelevel.jawn
 package ast
 
-import claimant.Claim
 import org.scalacheck.{Prop, Properties}
+import org.typelevel.claimant.Claim
 import scala.collection.mutable
 import scala.util.{Try, Success}
 
