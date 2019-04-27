@@ -36,7 +36,7 @@ support package.
 
 ### Quick Start
 
-Jawn supports Scala 2.10, 2.11, 2.12, and 2.13.0-M5.
+Jawn supports Scala 2.11, 2.12, and 2.13.0-RC1.
 
 Here's a `build.sbt` snippet that shows you how to depend on Jawn in
 your own SBT project:
@@ -45,10 +45,10 @@ your own SBT project:
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.0"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.2"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.typelevel" %% "jawn-ast" % "0.14.0"
+libraryDependencies += "org.typelevel" %% "jawn-ast" % "0.14.2"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -56,7 +56,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.typelevel" %% "jawn-spray" % "0.14.0"
+libraryDependencies += "org.typelevel" %% "jawn-spray" % "0.14.2"
 ```
 
 There are a few reasons you might want to do this:
@@ -167,7 +167,7 @@ This is how you would include the subproject in build.sbt:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.typelevel" %% jawn-"XYZ" % "0.14.0"
+libraryDependencies += "org.typelevel" %% jawn-"XYZ" % "0.14.2"
 ```
 
 (Note that prior to the 0.14.0 release, the group ID was `"org.spire-math"`.)
@@ -193,7 +193,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.0"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.2"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
