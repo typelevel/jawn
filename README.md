@@ -133,16 +133,16 @@ arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 ### Supporting external ASTs with Jawn
 
-Jawn currently supports six external ASTs directly:
+Jawn currently integrates three external ASTs directly:
 
-| AST       | 2.10   | 2.11   | 2.12  |
-|-----------|--------|--------|-------|
-| Argonaut  | 6.2.2  | 6.2.2  | 6.2.2 |
-| Json4s    | 3.5.4  | 3.5.4  | 3.5.4 |
-| Play-json | 2.6.9  | 2.6.9  | 2.6.9 |
-| Rojoma    | 2.4.3  | 2.4.3  | 2.4.3 |
-| Rojoma-v3 | 3.8.0  | 3.8.0  | 3.8.0 |
-| Spray     | 1.3.4  | 1.3.4  | 1.3.4 |
+| AST       | Version |
+|-----------|---------|
+| Json4s    | 3.6.5   |
+| Play-json | 2.7.3   |
+| Spray     | 1.3.5   |
+
+Integrations for [circe] and [argonaut] are maintained by those
+projects.
 
 Each of these subprojects provides a `Parser` object (an instance of
 `SupportParser[J]`) that is parameterized on the given project's
@@ -159,8 +159,8 @@ Parser.parseFromByteBuffer(ByteBuffer) → Try[J]
 
 These methods parallel those provided by `org.typelevel.jawn.Parser`.
 
-For the following snippets, `XYZ` is one of (`argonaut`, `json4s`,
-`play`, `rojoma`, `rojoma-v3` or `spray`):
+For the following snippets, `XYZ` is one of (`json4s`, `play`, or
+`spray`):
 
 This is how you would include the subproject in build.sbt:
 
@@ -442,3 +442,6 @@ All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
 Copyright Erik Osheim, 2012-2017.
+
+[circe]: https://circe.github.io/circe/
+[argonaut]: http://argonaut.io
