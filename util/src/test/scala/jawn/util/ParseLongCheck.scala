@@ -43,18 +43,17 @@ class ParseLongCheck extends Properties("ParseLongCheck") {
   property("safe parser fails on invalid input") =
     forAll { (n1: Long, m: Long, suffix: String) =>
       val s1 = n1.toString + suffix
-      val p1 = Try(parseLong(s1)) match {
-        case Success(x) => Claim(x == s1.toLong)
-        case Failure(_) => Claim(Try(s1.toLong).isFailure)
-      }
+      val t = Try(parseLong(s1))
+      // .toLong is laxer than parseLong, so a parseLong failure does
+      // not imply a .toLong failure.
+      val p1 = Claim(t.isFailure || t == Try(s1.toLong))
 
       // avoid leading zeros, which .toLong is lax about
       val n2 = if (n1 == 0L) 1L else n1
       val s2 = n2.toString + (m & 0x7fffffffffffffffL).toString
-      val p2 = Try(parseLong(s2)) match {
-        case Success(x) => Claim(x == s2.toLong)
-        case Failure(_) => Claim(Try(s2.toLong).isFailure)
-      }
+      val tx = Try(parseLong(s2)).toOption
+      val ty = Try(s2.toLong).toOption
+      val p2 = Claim(tx == ty)
 
       p1 && p2
     }
