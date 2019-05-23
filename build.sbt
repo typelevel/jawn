@@ -143,7 +143,7 @@ def support(s: String) =
 
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
-  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.5")
+  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.6")
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := allCrossVersions)
