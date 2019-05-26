@@ -4,7 +4,7 @@ lazy val previousJawnVersion = "0.14.0"
 
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.8"
-lazy val scala213 = "2.13.0-RC1"
+lazy val scala213 = "2.13.0-RC2"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -36,14 +36,14 @@ lazy val jawnSettings = Seq(
 
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
 
-  resolvers += Resolver.sonatypeRepo("releases"),
+  resolvers += Resolver.sonatypeRepo("public"),
 
   Test / fork := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
 
   libraryDependencies ++=
     "org.scalacheck" %% "scalacheck" % "1.14.0" % Test ::
-    "org.typelevel" %% "claimant" % "0.1.0" % Test ::
+    "org.typelevel" %% "claimant" % "0.1.1" % Test ::
     Nil,
 
   scalacOptions ++=
@@ -147,7 +147,7 @@ lazy val supportJson4s = support("json4s")
 
 lazy val supportPlay = support("play")
   .settings(crossScalaVersions := allCrossVersions)
-  .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.3")
+  .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.0-M1")
 
 lazy val supportSpray = support("spray")
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
