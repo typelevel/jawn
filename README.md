@@ -135,11 +135,11 @@ arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 Jawn currently integrates three external ASTs directly:
 
-| AST       | Version |
-|-----------|---------|
-| Json4s    | 3.6.5   |
-| Play-json | 2.7.3   |
-| Spray     | 1.3.5   |
+| AST       | Scala 2.11 | Scala 2.12 | Scala 2.13 |
+|-----------|------------|------------|------------|
+| Json4s    | 3.6.6      | 3.6.6      | 3.6.6      |
+| Play-json | 2.7.3      | 2.8.0-M1   | 2.8.0-M1   |
+| Spray     | 1.3.5      | 1.3.5      | 1.3.5      |
 
 Integrations for [circe] and [argonaut] are maintained by those
 projects.
