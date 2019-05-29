@@ -4,7 +4,7 @@ lazy val previousJawnVersion = "0.14.0"
 
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.8"
-lazy val scala213 = "2.13.0-RC1"
+lazy val scala213 = "2.13.0-RC2"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -22,17 +22,11 @@ ThisBuild / developers += Developer(
   url = url("http://github.com/non/")
 )
 
-lazy val stableCrossVersions =
-  Seq(scala211, scala212)
-
-lazy val allCrossVersions =
-  stableCrossVersions :+ scala213
-
 lazy val benchmarkVersion =
   scala212
 
 lazy val jawnSettings = Seq(
-  crossScalaVersions := allCrossVersions,
+  crossScalaVersions := Seq(scala211, scala212, scala213),
 
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
 
@@ -43,7 +37,7 @@ lazy val jawnSettings = Seq(
 
   libraryDependencies ++=
     "org.scalacheck" %% "scalacheck" % "1.14.0" % Test ::
-    "org.typelevel" %% "claimant" % "0.1.0" % Test ::
+    "org.typelevel" %% "claimant" % "0.1.1" % Test ::
     Nil,
 
   scalacOptions ++=
@@ -146,8 +140,8 @@ lazy val supportJson4s = support("json4s")
   .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.6")
 
 lazy val supportPlay = support("play")
-  .settings(crossScalaVersions := allCrossVersions)
-  .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.3")
+  .settings(crossScalaVersions := Seq(scala212, scala213))
+  .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.0-M1")
 
 lazy val supportSpray = support("spray")
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
