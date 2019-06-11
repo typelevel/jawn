@@ -4,7 +4,7 @@ lazy val previousJawnVersion = "0.14.0"
 
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.8"
-lazy val scala213 = "2.13.0-RC3"
+lazy val scala213 = "2.13.0"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -144,6 +144,7 @@ lazy val supportPlay = support("play")
   .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.3")
 
 lazy val supportSpray = support("spray")
+  .settings(crossScalaVersions := Seq(scala211, scala212))
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
 
 lazy val benchmark = project.in(file("benchmark"))
