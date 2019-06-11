@@ -46,10 +46,10 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
 
   def jvalue(lvl: Int): Gen[J] =
     if (lvl < 3) {
-      Gen.frequency((16, 'ato), (1, 'arr), (2, 'obj)).flatMap {
-        case 'ato => jatom
-        case 'arr => jarray(lvl)
-        case 'obj => jobject(lvl)
+      Gen.frequency((16, Symbol("ato")), (1, Symbol("arr")), (2, Symbol("obj"))).flatMap {
+        case Symbol("ato") => jatom
+        case Symbol("arr") => jarray(lvl)
+        case Symbol("obj") => jobject(lvl)
       }
     } else {
       jatom
