@@ -140,7 +140,6 @@ lazy val supportJson4s = support("json4s")
   .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.6")
 
 lazy val supportPlay = support("play")
-  .settings(crossScalaVersions := Seq(scala211, scala212))
   .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.4")
 
 lazy val supportSpray = support("spray")
