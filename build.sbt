@@ -137,7 +137,7 @@ def support(s: String) =
 
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
-  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.6")
+  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.7")
 
 lazy val supportPlay = support("play")
   .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.4")
