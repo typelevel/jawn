@@ -36,7 +36,7 @@ lazy val jawnSettings = Seq(
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
 
   libraryDependencies ++=
-    "org.scalacheck" %% "scalacheck" % "1.14.1" % Test ::
+    "org.scalacheck" %% "scalacheck" % "1.14.2" % Test ::
     "org.typelevel" %% "claimant" % "0.1.1" % Test ::
     Nil,
 
