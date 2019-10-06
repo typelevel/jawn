@@ -13,7 +13,7 @@ import scala.annotation.{switch, tailrec}
  */
 trait CharBasedParser[J] extends Parser[J] {
 
-  private[this] final val charBuilder = new CharBuilder()
+  private[this] final val builder = new StringBuilder()
 
   /**
    * See if the string has any escape sequences. If not, return the
@@ -39,7 +39,8 @@ trait CharBasedParser[J] extends Parser[J] {
    */
   protected[this] final def parseStringComplex(i: Int, ctxt: RawFContext[J]): Int = {
     var j = i + 1
-    val sb = charBuilder.reset()
+    val sb = builder
+    sb.setLength(0)
 
     var c = at(j)
     while (c != '"') {
@@ -77,7 +78,7 @@ trait CharBasedParser[J] extends Parser[J] {
       j = reset(j)
       c = at(j)
     }
-    ctxt.add(sb.makeString, i)
+    ctxt.add(sb.toString, i)
     j + 1
   }
 

@@ -54,7 +54,7 @@ trait ByteBasedParser[J] extends Parser[J] {
     // one go.
 
     var j = i + 1
-    val sb = new CharBuilder
+    val sb = new StringBuilder
 
     var c: Int = byte(j) & 0xff
     while (c != 34) { // "
@@ -86,22 +86,22 @@ trait ByteBasedParser[J] extends Parser[J] {
         j += 1
       } else if ((c & 224) == 192) {
         // 2-byte UTF-8 sequence
-        sb.extend(at(j, j + 2))
+        sb.append(at(j, j + 2))
         j += 2
       } else if ((c & 240) == 224) {
         // 3-byte UTF-8 sequence
-        sb.extend(at(j, j + 3))
+        sb.append(at(j, j + 3))
         j += 3
       } else if ((c & 248) == 240) {
         // 4-byte UTF-8 sequence
-        sb.extend(at(j, j + 4))
+        sb.append(at(j, j + 4))
         j += 4
       } else {
         die(j, "invalid UTF-8 encoding")
       }
       c = byte(j) & 0xff
     }
-    ctxt.add(sb.makeString, i)
+    ctxt.add(sb.toString, i)
     j + 1
   }
 }
