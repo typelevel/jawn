@@ -3,8 +3,8 @@ import ReleaseTransformations._
 lazy val previousJawnVersion = "0.14.0"
 
 lazy val scala211 = "2.11.12"
-lazy val scala212 = "2.12.8"
-lazy val scala213 = "2.13.0"
+lazy val scala212 = "2.12.10"
+lazy val scala213 = "2.13.1"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
