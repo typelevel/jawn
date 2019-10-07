@@ -52,9 +52,9 @@ object ChannelParser {
  */
 final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends SyncParser[J] with ByteBasedParser[J] {
 
-  var Bufsize: Int = ChannelParser.computeBufferSize(bufferSize)
-  var Mask: Int = Bufsize - 1
-  var Allsize: Int = Bufsize * 2
+  private[this] var Bufsize: Int = ChannelParser.computeBufferSize(bufferSize)
+  private[this] var Mask: Int = Bufsize - 1
+  private[this] var Allsize: Int = Bufsize * 2
 
   // these are the actual byte arrays we'll use
   private var curr = new Array[Byte](Bufsize)
@@ -64,7 +64,7 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
   private var ncurr = ch.read(ByteBuffer.wrap(curr))
   private var nnext = ch.read(ByteBuffer.wrap(next))
 
-  var line = 0
+  protected[this] var line = 0
   private var pos = 0
   protected[this] final def newline(i: Int): Unit = { line += 1; pos = i + 1 }
   protected[this] final def column(i: Int): Int = i - pos
