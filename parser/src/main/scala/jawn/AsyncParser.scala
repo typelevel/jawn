@@ -14,7 +14,7 @@ object AsyncParser {
   case object SingleValue extends Mode(-1, -1)
 
   def apply[J](mode: Mode = SingleValue): AsyncParser[J] =
-    new AsyncParser(state = mode.start, curr = 0, stack = Nil,
+    new AsyncParser(state = mode.start, curr = 0, context = null, stack = Nil,
       data = new Array[Byte](131072), len = 0, allocated = 131072,
       offset = 0, done = false, streamMode = mode.value)
 }
@@ -60,6 +60,7 @@ object AsyncParser {
 final class AsyncParser[J] protected[jawn] (
   protected[jawn] var state: Int,
   protected[jawn] var curr: Int,
+  protected[jawn] var context: RawFContext[J],
   protected[jawn] var stack: List[RawFContext[J]],
   protected[jawn] var data: Array[Byte],
   protected[jawn] var len: Int,
@@ -75,7 +76,7 @@ final class AsyncParser[J] protected[jawn] (
   protected[this] final def column(i: Int) = i - pos
 
   final def copy() =
-    new AsyncParser(state, curr, stack, data.clone, len, allocated, offset, done, streamMode)
+    new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode)
 
   final def absorb(buf: ByteBuffer)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] = {
     done = false
@@ -226,7 +227,7 @@ final class AsyncParser[J] protected[jawn] (
           val (value, j) = if (state <= 0) {
             parse(offset)
           } else {
-            rparse(state, curr, stack)
+            rparse(state, curr, context, stack)
           }
           if (streamMode > 0) {
             state = ASYNC_POSTVAL
@@ -237,6 +238,7 @@ final class AsyncParser[J] protected[jawn] (
           }
           curr = j
           offset = j
+          context = null
           stack = Nil
           results += value
         }
@@ -283,9 +285,10 @@ final class AsyncParser[J] protected[jawn] (
    * arguments are the exact arguments we can pass to rparse to
    * continue where we left off.
    */
-  protected[this] final def checkpoint(state: Int, i: Int, stack: List[RawFContext[J]]): Unit = {
+  protected[this] final def checkpoint(state: Int, i: Int, context: RawFContext[J], stack: List[RawFContext[J]]): Unit = {
     this.state = state
     this.curr = i
+    this.context = context
     this.stack = stack
   }
 
