@@ -555,7 +555,7 @@ object Parser {
     var i = 0
     while (i < 10) { arr(i + '0') = i; i += 1 }
     i = 0
-    while (i < 16) { arr(i + 'a') = 10 + i; arr(i + 'A') = 10 + i; i += 1 }
+    while (i < 6) { arr(i + 'a') = 10 + i; arr(i + 'A') = 10 + i; i += 1 }
     arr
   }
 
