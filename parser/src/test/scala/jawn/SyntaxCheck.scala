@@ -91,8 +91,24 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     isValidSyntax(qs("\\\\ö")) 
   }
 
+  property("valid unicode is ok") = {
+    isValidSyntax("\"\\u0000\"") &&
+    isValidSyntax("\"\\uffff\"") &&
+    isValidSyntax("\"\\uFFFF\"")
+  }
+
   property("invalid unicode is invalid") = {
-    isValidSyntax("\"\\uqqqq\"") != true
+    isValidSyntax("\"\\uqqqq\"") != true &&
+    isValidSyntax("\"\\ugggg\"") != true &&
+    isValidSyntax("\"\\uGGGG\"") != true &&
+    isValidSyntax("\"\\ughij\"") != true &&
+    isValidSyntax("\"\\uklmn\"") != true &&
+    isValidSyntax("\"\\uopqr\"") != true &&
+    isValidSyntax("\"\\ustuv\"") != true &&
+    isValidSyntax("\"\\uwxyz\"") != true &&
+    isValidSyntax("\"\\u1\"") != true &&
+    isValidSyntax("\"\\u12\"") != true &&
+    isValidSyntax("\"\\u123\"") != true
   }
 
   property("empty is invalid") = { isValidSyntax("") != true }
