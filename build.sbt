@@ -90,9 +90,7 @@ lazy val jawnSettings = Seq(
     tagRelease,
     releaseStepCommandAndRemaining("+publishSigned"),
     setNextVersion,
-    commitNextVersion,
-    releaseStepCommandAndRemaining("sonatypeReleaseAll"),
-    pushChanges))
+    commitNextVersion))
 
 lazy val noPublish = Seq(
   publish / skip := true,
