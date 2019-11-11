@@ -143,7 +143,6 @@ lazy val supportPlay = support("play")
   .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.4")
 
 lazy val supportSpray = support("spray")
-  .settings(crossScalaVersions := Seq(scala211, scala212))
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
 
 lazy val benchmark = project.in(file("benchmark"))
