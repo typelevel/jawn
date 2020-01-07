@@ -528,6 +528,9 @@ object Parser {
   def parseFromByteBuffer[J](buf: ByteBuffer)(implicit facade: RawFacade[J]): Try[J] =
     Try(new ByteBufferParser[J](buf).parse)
 
+  def parseFromByteArray[J](src: Array[Byte])(implicit facade: RawFacade[J]): Try[J] =
+    Try(new ByteArrayParser[J](src).parse())
+
   def async[J](mode: AsyncParser.Mode)(implicit facade: RawFacade[J]): AsyncParser[J] =
     AsyncParser[J](mode)
 

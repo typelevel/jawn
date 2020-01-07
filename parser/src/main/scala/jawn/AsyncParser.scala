@@ -1,6 +1,6 @@
 package org.typelevel.jawn
 
-import scala.annotation.{switch, tailrec}
+import scala.annotation.switch
 import scala.math.max
 import scala.collection.mutable
 import scala.util.control

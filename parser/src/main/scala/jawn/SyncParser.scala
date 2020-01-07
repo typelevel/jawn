@@ -1,7 +1,6 @@
 package org.typelevel.jawn
 
-import scala.annotation.{switch, tailrec}
-import scala.collection.mutable
+import scala.annotation.switch
 
 /**
  * SyncParser extends Parser to do all parsing synchronously.

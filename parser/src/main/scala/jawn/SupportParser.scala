@@ -26,6 +26,9 @@ trait SupportParser[J] {
   def parseFromByteBuffer(buf: ByteBuffer): Try[J] =
     Try(new ByteBufferParser[J](buf).parse)
 
+  def parseFromByteArray(src: Array[Byte]): Try[J] =
+    Try(new ByteArrayParser[J](src).parse())
+
   def async(mode: AsyncParser.Mode): AsyncParser[J] =
     AsyncParser[J](mode)
 }

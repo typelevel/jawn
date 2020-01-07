@@ -1,6 +1,6 @@
 package org.typelevel.jawn
 
-import scala.annotation.{switch, tailrec}
+import scala.annotation.switch
 
 /**
  * Trait used when the data to be parsed is in UTF-16.

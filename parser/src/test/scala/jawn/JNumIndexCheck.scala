@@ -49,6 +49,13 @@ class JNumIndexCheck extends Properties("JNumIndexCheck") {
       Claim(Parser.parseFromByteBuffer(bb)(JNumIndexCheckFacade) == Success(true))
     }
 
+  property("jnum provides the correct indices with parseFromByteArray") =
+    forAll { (value: BigDecimal) =>
+      val json = s"""{ "num": ${value.toString} }"""
+      val ba = json.getBytes("UTF-8")
+      Claim(Parser.parseFromByteArray(ba)(JNumIndexCheckFacade) == Success(true))
+    }
+
   property("jnum provides the correct indices with parseFromFile") =
     forAll { (value: BigDecimal) =>
       val json = s"""{ "num": ${value.toString} }"""
@@ -66,6 +73,12 @@ class JNumIndexCheck extends Properties("JNumIndexCheck") {
     forAll { (value: BigDecimal) =>
       val bb = ByteBuffer.wrap(value.toString.getBytes("UTF-8"))
       Claim(Parser.parseFromByteBuffer(bb)(JNumIndexCheckFacade) == Success(true))
+    }
+
+  property("jnum provides the correct indices at the top level with parseFromByteArray") =
+    forAll { (value: BigDecimal) =>
+      val ba = value.toString.getBytes("UTF-8")
+      Claim(Parser.parseFromByteArray(ba)(JNumIndexCheckFacade) == Success(true))
     }
 
   property("jnum provides the correct indices at the top level with parseFromFile") =

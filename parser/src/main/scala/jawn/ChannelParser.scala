@@ -79,8 +79,8 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
    * clear that data and swap the buffers.
    */
   protected[this] final def swap(): Unit = {
-    var tmp = curr; curr = next; next = tmp
-    var ntmp = ncurr; ncurr = nnext; nnext = ntmp
+    val tmp = curr; curr = next; next = tmp
+    val ntmp = ncurr; ncurr = nnext; nnext = ntmp
   }
 
   protected[this] final def grow(): Unit = {
