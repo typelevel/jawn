@@ -15,12 +15,12 @@ class JNumIndexCheck extends Properties("JNumIndexCheck") {
       def add(s: CharSequence): Unit = ()
       def add(v: Boolean): Unit =
         if (!v) failed = true
-      def finish: Boolean = !failed
+      def finish(): Boolean = !failed
     }
 
-    val singleContext: RawFContext[Boolean] = new JNumIndexCheckContext(false)
-    val arrayContext: RawFContext[Boolean] = new JNumIndexCheckContext(false)
-    val objectContext: RawFContext[Boolean] = new JNumIndexCheckContext(true)
+    def singleContext(): RawFContext[Boolean] = new JNumIndexCheckContext(false)
+    def arrayContext(): RawFContext[Boolean] = new JNumIndexCheckContext(false)
+    def objectContext(): RawFContext[Boolean] = new JNumIndexCheckContext(true)
 
     def jnull(): Boolean = true
     def jfalse(): Boolean = true
