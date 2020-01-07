@@ -78,6 +78,9 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     }
 
     if (r1 == r3) r1 else sys.error(s"Sync/Async parsing disagree($r1, $r3): $s")
+
+    val r4 = Parser.parseFromByteArray(s.getBytes("UTF-8"))(NullFacade).isSuccess
+    if (r1 == r4) r1 else sys.error(s"String/ByteArray parsing disagree($r1, $r4): $s")
   }
 
   property("syntax-checking") =
