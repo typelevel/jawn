@@ -13,22 +13,22 @@ object JParser {
     new StringParser(s).parse()
 
   def parseFromString(s: String): Try[JValue] =
-    Try(new StringParser[JValue](s).parse)
+    Try(new StringParser[JValue](s).parse())
 
   def parseFromCharSequence(cs: CharSequence): Try[JValue] =
-    Try(new CharSequenceParser[JValue](cs).parse)
+    Try(new CharSequenceParser[JValue](cs).parse())
 
   def parseFromPath(path: String): Try[JValue] =
     parseFromFile(new File(path))
 
   def parseFromFile(file: File): Try[JValue] =
-    Try(ChannelParser.fromFile[JValue](file).parse)
+    Try(ChannelParser.fromFile[JValue](file).parse())
 
   def parseFromChannel(ch: ReadableByteChannel): Try[JValue] =
-    Try(ChannelParser.fromChannel(ch).parse)
+    Try(ChannelParser.fromChannel(ch).parse())
 
   def parseFromByteBuffer(buf: ByteBuffer): Try[JValue] =
-    Try(new ByteBufferParser[JValue](buf).parse)
+    Try(new ByteBufferParser[JValue](buf).parse())
 
   def async(mode: AsyncParser.Mode): AsyncParser[JValue] =
     AsyncParser(mode)

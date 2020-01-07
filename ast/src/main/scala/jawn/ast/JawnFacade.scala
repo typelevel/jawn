@@ -24,7 +24,7 @@ object JawnFacade extends Facade[JValue] {
       var value: JValue = _
       def add(s: CharSequence): Unit = { value = JString(s.toString) }
       def add(v: JValue): Unit = { value = v }
-      def finish: JValue = value
+      def finish(): JValue = value
       def isObj: Boolean = false
     }
 
@@ -33,7 +33,7 @@ object JawnFacade extends Facade[JValue] {
       val vs = mutable.ArrayBuffer.empty[JValue]
       def add(s: CharSequence): Unit = { vs += JString(s.toString) }
       def add(v: JValue): Unit = { vs += v }
-      def finish: JValue = JArray(vs.toArray)
+      def finish(): JValue = JArray(vs.toArray)
       def isObj: Boolean = false
     }
 
@@ -45,7 +45,7 @@ object JawnFacade extends Facade[JValue] {
         if (key == null) { key = s.toString } else { vs(key.toString) = JString(s.toString); key = null }
       def add(v: JValue): Unit =
         { vs(key) = v; key = null }
-      def finish = JObject(vs)
-      def isObj = true
+      def finish() = JObject(vs)
+      def isObj: Boolean = true
     }
 }

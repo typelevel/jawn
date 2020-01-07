@@ -10,7 +10,7 @@ trait MutableFacade[J] extends Facade[J] {
     var value: J = _
     def add(s: CharSequence): Unit = { value = jstring(s) }
     def add(v: J): Unit = { value = v }
-    def finish: J = value
+    def finish(): J = value
     def isObj: Boolean = false
   }
 
@@ -18,7 +18,7 @@ trait MutableFacade[J] extends Facade[J] {
     val vs = mutable.ArrayBuffer.empty[J]
     def add(s: CharSequence): Unit = { vs += jstring(s) }
     def add(v: J): Unit = { vs += v }
-    def finish: J = jarray(vs)
+    def finish(): J = jarray(vs)
     def isObj: Boolean = false
   }
 
@@ -29,7 +29,7 @@ trait MutableFacade[J] extends Facade[J] {
       if (key == null) { key = s.toString } else { vs(key) = jstring(s); key = null }
     def add(v: J): Unit =
       { vs(key) = v; key = null }
-    def finish = jobject(vs)
-    def isObj = true
+    def finish() = jobject(vs)
+    def isObj: Boolean = true
   }
 }

@@ -514,22 +514,22 @@ object Parser {
     new StringParser(s).parse()
 
   def parseFromString[J](s: String)(implicit facade: RawFacade[J]): Try[J] =
-    Try(new StringParser[J](s).parse)
+    Try(new StringParser[J](s).parse())
 
   def parseFromCharSequence[J](cs: CharSequence)(implicit facade: RawFacade[J]): Try[J] =
-    Try(new CharSequenceParser[J](cs).parse)
+    Try(new CharSequenceParser[J](cs).parse())
 
   def parseFromPath[J](path: String)(implicit facade: RawFacade[J]): Try[J] =
-    Try(ChannelParser.fromFile[J](new File(path)).parse)
+    Try(ChannelParser.fromFile[J](new File(path)).parse())
 
   def parseFromFile[J](file: File)(implicit facade: RawFacade[J]): Try[J] =
-    Try(ChannelParser.fromFile[J](file).parse)
+    Try(ChannelParser.fromFile[J](file).parse())
 
   def parseFromChannel[J](ch: ReadableByteChannel)(implicit facade: RawFacade[J]): Try[J] =
-    Try(ChannelParser.fromChannel[J](ch).parse)
+    Try(ChannelParser.fromChannel[J](ch).parse())
 
   def parseFromByteBuffer[J](buf: ByteBuffer)(implicit facade: RawFacade[J]): Try[J] =
-    Try(new ByteBufferParser[J](buf).parse)
+    Try(new ByteBufferParser[J](buf).parse())
 
   def async[J](mode: AsyncParser.Mode)(implicit facade: RawFacade[J]): AsyncParser[J] =
     AsyncParser[J](mode)
