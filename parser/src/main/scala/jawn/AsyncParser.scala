@@ -70,9 +70,10 @@ final class AsyncParser[J] protected[jawn] (
   protected[jawn] var streamMode: Int
 ) extends ByteBasedParser[J] {
 
-  protected[this] var line = 0
+  private[this] var _line = 0
   protected[this] var pos = 0
-  protected[this] final def newline(i: Int): Unit = { line += 1; pos = i + 1 }
+  protected[this] final def newline(i: Int): Unit = { _line += 1; pos = i + 1 }
+  protected[this] def line(): Int = _line
   protected[this] final def column(i: Int) = i - pos
 
   final def copy() =
