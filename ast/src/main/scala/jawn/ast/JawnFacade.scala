@@ -5,9 +5,9 @@ import scala.collection.mutable
 
 object JawnFacade extends Facade[JValue] {
 
-  final val jnull = JNull
-  final val jfalse = JFalse
-  final val jtrue = JTrue
+  final def jnull(): JValue = JNull
+  final def jfalse(): JValue = JFalse
+  final def jtrue(): JValue = JTrue
 
   final def jnum(s: CharSequence, decIndex: Int, expIndex: Int): JValue =
     if (decIndex == -1 && expIndex == -1) {
