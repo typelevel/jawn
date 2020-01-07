@@ -64,9 +64,10 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
   private var ncurr = ch.read(ByteBuffer.wrap(curr))
   private var nnext = ch.read(ByteBuffer.wrap(next))
 
-  protected[this] var line = 0
+  private[this] var _line = 0
   private var pos = 0
-  final protected[this] def newline(i: Int): Unit = { line += 1; pos = i + 1 }
+  final protected[this] def newline(i: Int): Unit = { _line += 1; pos = i + 1 }
+  final protected[this] def line(): Int = _line
   final protected[this] def column(i: Int): Int = i - pos
 
   final protected[this] def close(): Unit = ch.close()
