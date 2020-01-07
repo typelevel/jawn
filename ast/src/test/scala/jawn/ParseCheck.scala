@@ -5,7 +5,7 @@ import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import org.typelevel.claimant.Claim
 import org.typelevel.jawn.parser.TestUtil
 import scala.collection.mutable
-import scala.util.{Try, Success}
+import scala.util.{Success, Try}
 
 import Arbitrary.arbitrary
 import ArbitraryUtil._
@@ -20,43 +20,44 @@ class AstCheck extends Properties("AstCheck") {
   // * jvalue equality
   //
   // not bad.
-  property("idempotent parsing/rendering") =
-    forAll { value1: JValue =>
-      val json1 = CanonicalRenderer.render(value1)
-      val value2 = JParser.parseFromString(json1).get
-      val json2 = CanonicalRenderer.render(value2)
+  property("idempotent parsing/rendering") = forAll { value1: JValue =>
+    val json1 = CanonicalRenderer.render(value1)
+    val value2 = JParser.parseFromString(json1).get
+    val json2 = CanonicalRenderer.render(value2)
 
-      val p0: Prop = Claim(json2 == json1 &&
+    val p0: Prop = Claim(
+      json2 == json1 &&
         json2.## == json1.## &&
         value1 == value2 &&
-        value1.## == value2.##)
+        value1.## == value2.##
+    )
 
-      val p1: Prop = TestUtil.withTemp(json1) { t =>
-        Claim(JParser.parseFromFile(t).get == value2)
-      }
-
-      p0 && p1
+    val p1: Prop = TestUtil.withTemp(json1) { t =>
+      Claim(JParser.parseFromFile(t).get == value2)
     }
 
-  property("string encoding/decoding") =
-    forAll { s: String =>
-      val jstr1 = JString(s)
-      val json1 = CanonicalRenderer.render(jstr1)
-      val jstr2 = JParser.parseFromString(json1).get
-      val json2 = CanonicalRenderer.render(jstr2)
-      Claim(jstr2 == jstr1 &&
+    p0 && p1
+  }
+
+  property("string encoding/decoding") = forAll { s: String =>
+    val jstr1 = JString(s)
+    val json1 = CanonicalRenderer.render(jstr1)
+    val jstr2 = JParser.parseFromString(json1).get
+    val json2 = CanonicalRenderer.render(jstr2)
+    Claim(
+      jstr2 == jstr1 &&
         json2 == json1 &&
-        json2.## == json1.##)
-    }
+        json2.## == json1.##
+    )
+  }
 
-  property("string/charSequence parsing") =
-    forAll { value: JValue =>
-      val s = CanonicalRenderer.render(value)
-      val j1 = JParser.parseFromString(s)
-      val cs = java.nio.CharBuffer.wrap(s.toCharArray)
-      val j2 = JParser.parseFromCharSequence(cs)
-      Claim(j1 == j2 && j1.## == j2.##)
-    }
+  property("string/charSequence parsing") = forAll { value: JValue =>
+    val s = CanonicalRenderer.render(value)
+    val j1 = JParser.parseFromString(s)
+    val cs = java.nio.CharBuffer.wrap(s.toCharArray)
+    val j2 = JParser.parseFromCharSequence(cs)
+    Claim(j1 == j2 && j1.## == j2.##)
+  }
 
   implicit val facade = JawnFacade
 
@@ -71,7 +72,7 @@ class AstCheck extends Properties("AstCheck") {
   def splitIntoSegments(json: String): List[String] =
     if (json.length >= 8) {
       val offsets = percs.map(n => (json.length * n).toInt)
-      val pairs = offsets zip offsets.drop(1)
+      val pairs = offsets.zip(offsets.drop(1))
       pairs.map { case (i, j) => json.substring(i, j) }
     } else {
       json :: Nil
@@ -82,7 +83,7 @@ class AstCheck extends Properties("AstCheck") {
       rs ++ checkRight(p.absorb(s))
     } ++ checkRight(p.finish())
 
-  import AsyncParser.{UnwrapArray, ValueStream, SingleValue}
+  import AsyncParser.{SingleValue, UnwrapArray, ValueStream}
 
   property("async multi") = {
     val data = "[1,2,3][4,5,6]"
@@ -92,49 +93,44 @@ class AstCheck extends Properties("AstCheck") {
     Claim(true)
   }
 
-  property("async parsing") =
-    forAll { (v: JValue) =>
-      val json = CanonicalRenderer.render(v)
-      val segments = splitIntoSegments(json)
-      val parsed = parseSegments(AsyncParser[JValue](SingleValue), segments)
-      Claim(parsed == List(v))
-    }
+  property("async parsing") = forAll { (v: JValue) =>
+    val json = CanonicalRenderer.render(v)
+    val segments = splitIntoSegments(json)
+    val parsed = parseSegments(AsyncParser[JValue](SingleValue), segments)
+    Claim(parsed == List(v))
+  }
 
-  property("async unwrapping") =
-    forAll { (vs0: List[Int]) =>
-      val vs = vs0.map(LongNum(_))
-      val arr = JArray(vs.toArray)
-      val json = CanonicalRenderer.render(arr)
-      val segments = splitIntoSegments(json)
-      Claim(parseSegments(AsyncParser[JValue](UnwrapArray), segments) == vs)
-    }
+  property("async unwrapping") = forAll { (vs0: List[Int]) =>
+    val vs = vs0.map(LongNum(_))
+    val arr = JArray(vs.toArray)
+    val json = CanonicalRenderer.render(arr)
+    val segments = splitIntoSegments(json)
+    Claim(parseSegments(AsyncParser[JValue](UnwrapArray), segments) == vs)
+  }
 
-  property("unicode string round-trip") =
-    forAll { (s: String) =>
-      Claim(JParser.parseFromString(JString(s).render(FastRenderer)) == Success(JString(s)))
-    }
+  property("unicode string round-trip") = forAll { (s: String) =>
+    Claim(JParser.parseFromString(JString(s).render(FastRenderer)) == Success(JString(s)))
+  }
 
-  property("if x == y, then x.## == y.##") =
-    forAll { (x: JValue, y: JValue) =>
-      if (x == y) Claim(x.## == y.##) else Claim(true)
-    }
+  property("if x == y, then x.## == y.##") = forAll { (x: JValue, y: JValue) =>
+    if (x == y) Claim(x.## == y.##) else Claim(true)
+  }
 
-  property("ignore trailing zeros") =
-    forAll { (n: Int) =>
-      val s = n.toString
-      val n1 = LongNum(n)
-      val n2 = DoubleNum(n)
+  property("ignore trailing zeros") = forAll { (n: Int) =>
+    val s = n.toString
+    val n1 = LongNum(n)
+    val n2 = DoubleNum(n)
 
-      def check(j: JValue): Prop =
-        Claim(j == n1 && n1 == j && j == n2 && n2 == j)
+    def check(j: JValue): Prop =
+      Claim(j == n1 && n1 == j && j == n2 && n2 == j)
 
-      check(DeferNum(s)) &&
-        check(DeferNum(s + ".0")) &&
-        check(DeferNum(s + ".00")) &&
-        check(DeferNum(s + ".000")) &&
-        check(DeferNum(s + "e0")) &&
-        check(DeferNum(s + ".0e0"))
-    }
+    check(DeferNum(s)) &&
+    check(DeferNum(s + ".0")) &&
+    check(DeferNum(s + ".00")) &&
+    check(DeferNum(s + ".000")) &&
+    check(DeferNum(s + "e0")) &&
+    check(DeferNum(s + ".0e0"))
+  }
 
   property("large strings") = {
     val M = 1000000

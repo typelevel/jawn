@@ -28,8 +28,8 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def singleContext() =
         new FContext[JValue] {
           var value: JValue = null
-          def add(s: CharSequence): Unit = { value = jstring(s) }
-          def add(v: JValue): Unit = { value = v }
+          def add(s: CharSequence): Unit = value = jstring(s)
+          def add(v: JValue): Unit = value = v
           def finish: JValue = value
           def isObj: Boolean = false
         }
@@ -37,8 +37,8 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       def arrayContext() =
         new FContext[JValue] {
           val vs = mutable.ListBuffer.empty[JValue]
-          def add(s: CharSequence): Unit = { vs += jstring(s) }
-          def add(v: JValue): Unit = { vs += v }
+          def add(s: CharSequence): Unit = vs += jstring(s)
+          def add(v: JValue): Unit = vs += v
           def finish: JValue = JArray(vs.toList)
           def isObj: Boolean = false
         }
@@ -49,9 +49,10 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
           val vs = mutable.ListBuffer.empty[JField]
           def add(s: CharSequence): Unit =
             if (key == null) key = s.toString
-            else { vs += JField(key, jstring(s)); key = null }
-          def add(v: JValue): Unit =
-            { vs += JField(key, v); key = null }
+            else {
+              vs += JField(key, jstring(s)); key = null
+            }
+          def add(v: JValue): Unit = { vs += JField(key, v); key = null }
           def finish: JValue = JObject(vs.toList)
           def isObj: Boolean = true
         }

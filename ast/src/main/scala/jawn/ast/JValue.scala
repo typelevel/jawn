@@ -1,7 +1,7 @@
 package org.typelevel.jawn
 package ast
 
-import java.lang.Double.{isNaN, isInfinite}
+import java.lang.Double.{isInfinite, isNaN}
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
 

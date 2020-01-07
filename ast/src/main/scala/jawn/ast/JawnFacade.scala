@@ -22,8 +22,8 @@ object JawnFacade extends Facade[JValue] {
   final def singleContext(): RawFContext[JValue] =
     new FContext[JValue] {
       var value: JValue = _
-      def add(s: CharSequence): Unit = { value = JString(s.toString) }
-      def add(v: JValue): Unit = { value = v }
+      def add(s: CharSequence): Unit = value = JString(s.toString)
+      def add(v: JValue): Unit = value = v
       def finish: JValue = value
       def isObj: Boolean = false
     }
@@ -31,8 +31,8 @@ object JawnFacade extends Facade[JValue] {
   final def arrayContext(): RawFContext[JValue] =
     new FContext[JValue] {
       val vs = mutable.ArrayBuffer.empty[JValue]
-      def add(s: CharSequence): Unit = { vs += JString(s.toString) }
-      def add(v: JValue): Unit = { vs += v }
+      def add(s: CharSequence): Unit = vs += JString(s.toString)
+      def add(v: JValue): Unit = vs += v
       def finish: JValue = JArray(vs.toArray)
       def isObj: Boolean = false
     }
@@ -42,9 +42,12 @@ object JawnFacade extends Facade[JValue] {
       var key: String = null
       val vs = mutable.Map.empty[String, JValue]
       def add(s: CharSequence): Unit =
-        if (key == null) { key = s.toString } else { vs(key.toString) = JString(s.toString); key = null }
-      def add(v: JValue): Unit =
-        { vs(key) = v; key = null }
+        if (key == null) {
+          key = s.toString
+        } else {
+          vs(key.toString) = JString(s.toString); key = null
+        }
+      def add(v: JValue): Unit = { vs(key) = v; key = null }
       def finish = JObject(vs)
       def isObj = true
     }

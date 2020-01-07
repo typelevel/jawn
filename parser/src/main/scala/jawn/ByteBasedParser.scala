@@ -25,7 +25,7 @@ trait ByteBasedParser[J] extends Parser[J] {
    * This method expects the data to be in UTF-8 and accesses it as bytes. Thus
    * we can just ignore any bytes with the highest bit set.
    */
-  protected[this] final def parseStringSimple(i: Int, ctxt: RawFContext[J]): Int = {
+  final protected[this] def parseStringSimple(i: Int, ctxt: RawFContext[J]): Int = {
     var j = i
     var c: Int = byte(j) & 0xff
     while (c != 34) {
@@ -42,7 +42,7 @@ trait ByteBasedParser[J] extends Parser[J] {
    *
    * This method expects the data to be in UTF-8 and accesses it as bytes.
    */
-  protected[this] final def parseString(i: Int, ctxt: RawFContext[J]): Int = {
+  final protected[this] def parseString(i: Int, ctxt: RawFContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)
     if (k != -1) {
       ctxt.add(at(i + 1, k - 1), i)

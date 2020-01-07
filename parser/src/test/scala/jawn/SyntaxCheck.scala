@@ -4,7 +4,7 @@ package parser
 import java.nio.ByteBuffer
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import org.typelevel.claimant.Claim
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 import Arbitrary.arbitrary
 import Prop.forAll
@@ -15,11 +15,14 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     def build: String = this match {
       case JAtom(s) => s
       case JArray(js) => js.map(_.build).mkString("[", ",", "]")
-      case JObject(js) => js.map { case (k, v) =>
-        val kk = "\"" + k + "\""
-        val vv = v.build
-        s"$kk: $vv"
-      }.mkString("{", ",", "}")
+      case JObject(js) =>
+        js.map {
+            case (k, v) =>
+              val kk = "\"" + k + "\""
+              val vv = v.build
+              s"$kk: $vv"
+          }
+          .mkString("{", ",", "}")
     }
   }
 
@@ -28,11 +31,28 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
   case class JObject(js: Map[String, J]) extends J
 
   val jatom: Gen[JAtom] =
-    Gen.oneOf(
-      "null", "true", "false", "1234", "-99", "16.0", "2e9",
-      "-4.44E-10", "11e+14", "\"foo\"", "\"\"", "\"bar\"",
-      "\"qux\"", "\"duh\"", "\"abc\"", "\"xyz\"", "\"zzzzzz\"",
-      "\"\\u1234\"").map(JAtom(_))
+    Gen
+      .oneOf(
+        "null",
+        "true",
+        "false",
+        "1234",
+        "-99",
+        "16.0",
+        "2e9",
+        "-4.44E-10",
+        "11e+14",
+        "\"foo\"",
+        "\"\"",
+        "\"bar\"",
+        "\"qux\"",
+        "\"duh\"",
+        "\"abc\"",
+        "\"xyz\"",
+        "\"zzzzzz\"",
+        "\"\\u1234\""
+      )
+      .map(JAtom(_))
 
   def jarray(lvl: Int): Gen[JArray] =
     Gen.containerOf[List, J](jvalue(lvl + 1)).map(JArray(_))
@@ -83,15 +103,16 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     if (r1 == r4) r1 else sys.error(s"String/ByteArray parsing disagree($r1, $r4): $s")
   }
 
-  property("syntax-checking") =
-    forAll { (j: J) => isValidSyntax(j.build)  }
+  property("syntax-checking") = forAll { (j: J) =>
+    isValidSyntax(j.build)
+  }
 
   def qs(s: String): String = "\"" + s + "\""
 
   property("unicode is ok") = {
-    isValidSyntax(qs("ö")) 
-    isValidSyntax(qs("ö\\\\")) 
-    isValidSyntax(qs("\\\\ö")) 
+    isValidSyntax(qs("ö"))
+    isValidSyntax(qs("ö\\\\"))
+    isValidSyntax(qs("\\\\ö"))
   }
 
   property("valid unicode is ok") = {
@@ -128,13 +149,13 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
   property("literal BS ZERO is invalid") = { isValidSyntax(qs("\\0")) != true }
   property("literal BS X is invalid") = { isValidSyntax(qs("\\x")) != true }
 
-  property("0 is ok") = { isValidSyntax("0")  }
+  property("0 is ok") = { isValidSyntax("0") }
   property("0e is invalid") = { isValidSyntax("0e") != true }
   property("123e is invalid") = { isValidSyntax("123e") != true }
   property(".999 is invalid") = { isValidSyntax(".999") != true }
-  property("0.999 is ok") = { isValidSyntax("0.999")  }
+  property("0.999 is ok") = { isValidSyntax("0.999") }
   property("-.999 is invalid") = { isValidSyntax("-.999") != true }
-  property("-0.999 is ok") = { isValidSyntax("-0.999")  }
+  property("-0.999 is ok") = { isValidSyntax("-0.999") }
   property("+0.999 is invalid") = { isValidSyntax("+0.999") != true }
   property("--0.999 is invalid") = { isValidSyntax("--0.999") != true }
   property("01 is invalid") = { isValidSyntax("01") != true }
@@ -149,9 +170,9 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
   property("1.1e is invalid") = { isValidSyntax("1.1e") != true }
   property("1.1e- is invalid") = { isValidSyntax("1.1e-") != true }
   property("1.1e+ is invalid") = { isValidSyntax("1.1e+") != true }
-  property("1.1e1 is ok") = { isValidSyntax("1.1e1")  }
-  property("1.1e-1 is ok") = { isValidSyntax("1.1e-1")  }
-  property("1.1e+1 is ok") = { isValidSyntax("1.1e+1")  }
+  property("1.1e1 is ok") = { isValidSyntax("1.1e1") }
+  property("1.1e-1 is ok") = { isValidSyntax("1.1e-1") }
+  property("1.1e+1 is ok") = { isValidSyntax("1.1e+1") }
   property("1+ is invalid") = { isValidSyntax("1+") != true }
   property("1- is invalid") = { isValidSyntax("1-") != true }
 
@@ -226,11 +247,11 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
       }
 
     Claim(isValidSyntax(json) != true) &&
-      extract1(Parser.parseFromString(json)(NullFacade)) &&
-      extract1(Parser.parseFromCharSequence(json)(NullFacade)) &&
-      extract1(Parser.parseFromChannel(ch(json))(NullFacade)) &&
-      extract1(Parser.parseFromByteBuffer(bb(json))(NullFacade)) &&
-      extract2(Parser.async(AsyncParser.UnwrapArray)(NullFacade).finalAbsorb(json)(NullFacade))
+    extract1(Parser.parseFromString(json)(NullFacade)) &&
+    extract1(Parser.parseFromCharSequence(json)(NullFacade)) &&
+    extract1(Parser.parseFromChannel(ch(json))(NullFacade)) &&
+    extract1(Parser.parseFromByteBuffer(bb(json))(NullFacade)) &&
+    extract2(Parser.async(AsyncParser.UnwrapArray)(NullFacade).finalAbsorb(json)(NullFacade))
   }
 
   property("error location 1") = { testErrorLoc("[1, 2,\nx3]", 2, 1) }
