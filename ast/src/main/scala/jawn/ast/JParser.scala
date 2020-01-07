@@ -7,7 +7,7 @@ import java.nio.channels.ReadableByteChannel
 import scala.util.Try
 
 object JParser {
-  implicit val facade = JawnFacade
+  implicit val facade: Facade[JValue] = JawnFacade
 
   def parseUnsafe(s: String): JValue =
     new StringParser(s).parse()

@@ -58,7 +58,7 @@ class AstCheck extends Properties("AstCheck") {
       Claim(j1 == j2 && j1.## == j2.##)
     }
 
-  implicit val facade = JawnFacade
+  implicit val facade: Facade[JValue] = JawnFacade
 
   val percs = List(0.0, 0.2, 0.4, 0.8, 1.0)
 
