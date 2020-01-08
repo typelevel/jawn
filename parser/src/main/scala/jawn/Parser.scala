@@ -167,7 +167,7 @@ abstract class Parser[J] {
       j += 1
       c = at(j)
     } else if ('1' <= c && c <= '9') {
-      do { j += 1; c = at(j) } while ('0' <= c && c <= '9')
+      while ({ j += 1; c = at(j); '0' <= c && c <= '9' }) ()
     } else {
       die(i, "expected digit")
     }
@@ -177,7 +177,7 @@ abstract class Parser[J] {
       j += 1
       c = at(j)
       if ('0' <= c && c <= '9') {
-        do { j += 1; c = at(j) } while ('0' <= c && c <= '9')
+        while ({ j += 1; c = at(j); '0' <= c && c <= '9' }) ()
       } else {
         die(i, "expected digit")
       }
@@ -192,7 +192,7 @@ abstract class Parser[J] {
         c = at(j)
       }
       if ('0' <= c && c <= '9') {
-        do { j += 1; c = at(j) } while ('0' <= c && c <= '9')
+        while ({ j += 1; c = at(j); '0' <= c && c <= '9' }) ()
       } else {
         die(i, "expected digit")
       }
@@ -235,14 +235,15 @@ abstract class Parser[J] {
       }
       c = at(j)
     } else if ('1' <= c && c <= '9') {
-      do {
+      while ({
         j += 1
         if (atEof(j)) {
           ctxt.add(facade.jnum(at(i, j), decIndex, expIndex, i), i)
           return j
         }
         c = at(j)
-      } while ('0' <= c && c <= '9')
+        '0' <= c && c <= '9'
+      }) ()
     } else {
       die(i, "expected digit")
     }
@@ -253,14 +254,15 @@ abstract class Parser[J] {
       j += 1
       c = at(j)
       if ('0' <= c && c <= '9') {
-        do {
+        while ({
           j += 1
           if (atEof(j)) {
             ctxt.add(facade.jnum(at(i, j), decIndex, expIndex, i), i)
             return j
           }
           c = at(j)
-        } while ('0' <= c && c <= '9')
+          '0' <= c && c <= '9'
+        }) ()
       } else {
         die(i, "expected digit")
       }
@@ -276,14 +278,15 @@ abstract class Parser[J] {
         c = at(j)
       }
       if ('0' <= c && c <= '9') {
-        do {
+        while ({
           j += 1
           if (atEof(j)) {
             ctxt.add(facade.jnum(at(i, j), decIndex, expIndex, i), i)
             return j
           }
           c = at(j)
-        } while ('0' <= c && c <= '9')
+          '0' <= c && c <= '9'
+        }) ()
       } else {
         die(i, "expected digit")
       }
@@ -510,22 +513,22 @@ object Parser {
     new StringParser(s).parse()
 
   def parseFromString[J](s: String)(implicit facade: RawFacade[J]): Try[J] =
-    Try(new StringParser[J](s).parse)
+    Try(new StringParser[J](s).parse())
 
   def parseFromCharSequence[J](cs: CharSequence)(implicit facade: RawFacade[J]): Try[J] =
-    Try(new CharSequenceParser[J](cs).parse)
+    Try(new CharSequenceParser[J](cs).parse())
 
   def parseFromPath[J](path: String)(implicit facade: RawFacade[J]): Try[J] =
-    Try(ChannelParser.fromFile[J](new File(path)).parse)
+    Try(ChannelParser.fromFile[J](new File(path)).parse())
 
   def parseFromFile[J](file: File)(implicit facade: RawFacade[J]): Try[J] =
-    Try(ChannelParser.fromFile[J](file).parse)
+    Try(ChannelParser.fromFile[J](file).parse())
 
   def parseFromChannel[J](ch: ReadableByteChannel)(implicit facade: RawFacade[J]): Try[J] =
-    Try(ChannelParser.fromChannel[J](ch).parse)
+    Try(ChannelParser.fromChannel[J](ch).parse())
 
   def parseFromByteBuffer[J](buf: ByteBuffer)(implicit facade: RawFacade[J]): Try[J] =
-    Try(new ByteBufferParser[J](buf).parse)
+    Try(new ByteBufferParser[J](buf).parse())
 
   def parseFromByteArray[J](src: Array[Byte])(implicit facade: RawFacade[J]): Try[J] =
     Try(new ByteArrayParser[J](src).parse())

@@ -5,6 +5,7 @@ lazy val previousJawnVersion = "0.14.0"
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.10"
 lazy val scala213 = "2.13.1"
+lazy val dotty = "0.21.0-RC1"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -28,15 +29,16 @@ lazy val benchmarkVersion =
   scala212
 
 lazy val jawnSettings = Seq(
-  crossScalaVersions := Seq(scala211, scala212, scala213),
+  crossScalaVersions := Seq(scala211, scala212, scala213, dotty),
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
   resolvers += Resolver.sonatypeRepo("releases"),
   Test / fork := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-  libraryDependencies ++=
-    "org.scalacheck" %% "scalacheck" % "1.14.3" % Test ::
-      "org.typelevel" %% "claimant" % "0.1.2" % Test ::
-      Nil,
+  libraryDependencies += ("org.scalacheck" %% "scalacheck" % "1.14.3" % Test).withDottyCompat(scalaVersion.value),
+  libraryDependencies ++= (
+    if (isDotty.value) Nil
+    else List("org.typelevel" %% "claimant" % "0.1.2" % Test)
+  ),
   scalacOptions ++=
     "-deprecation" ::
       "-encoding" :: "utf-8" ::
@@ -63,6 +65,7 @@ lazy val jawnSettings = Seq(
   releaseCrossBuild := true,
   publishMavenStyle := true,
   publishArtifact in Test := false,
+  publishArtifact in (Compile, packageDoc) := !isDotty.value,
   pomIncludeRepository := Function.const(false),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
@@ -104,6 +107,13 @@ lazy val parser = project
   .settings(name := "parser")
   .settings(moduleName := "jawn-parser")
   .settings(jawnSettings: _*)
+  .settings(
+    Test / unmanagedSourceDirectories ++= (
+      if (isDotty.value) {
+        List(baseDirectory.value / "src" / "test" / "dotty")
+      } else Nil
+    )
+  )
   .disablePlugins(JmhPlugin)
 
 lazy val util = project
@@ -133,13 +143,13 @@ def support(s: String) =
 
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
-  .settings(libraryDependencies += "org.json4s" %% "json4s-ast" % "3.6.7")
+  .settings(libraryDependencies += ("org.json4s" %% "json4s-ast" % "3.6.7").withDottyCompat(scalaVersion.value))
 
 lazy val supportPlay = support("play")
-  .settings(libraryDependencies += "com.typesafe.play" %% "play-json" % "2.7.4")
+  .settings(libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.7.4").withDottyCompat(scalaVersion.value))
 
 lazy val supportSpray = support("spray")
-  .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
+  .settings(libraryDependencies += ("io.spray" %% "spray-json" % "1.3.5").withDottyCompat(scalaVersion.value))
 
 lazy val benchmark = project
   .in(file("benchmark"))

@@ -20,7 +20,7 @@ class AstCheck extends Properties("AstCheck") {
   // * jvalue equality
   //
   // not bad.
-  property("idempotent parsing/rendering") = forAll { value1: JValue =>
+  property("idempotent parsing/rendering") = forAll { (value1: JValue) =>
     val json1 = CanonicalRenderer.render(value1)
     val value2 = JParser.parseFromString(json1).get
     val json2 = CanonicalRenderer.render(value2)
@@ -39,7 +39,7 @@ class AstCheck extends Properties("AstCheck") {
     p0 && p1
   }
 
-  property("string encoding/decoding") = forAll { s: String =>
+  property("string encoding/decoding") = forAll { (s: String) =>
     val jstr1 = JString(s)
     val json1 = CanonicalRenderer.render(jstr1)
     val jstr2 = JParser.parseFromString(json1).get
@@ -51,7 +51,7 @@ class AstCheck extends Properties("AstCheck") {
     )
   }
 
-  property("string/charSequence parsing") = forAll { value: JValue =>
+  property("string/charSequence parsing") = forAll { (value: JValue) =>
     val s = CanonicalRenderer.render(value)
     val j1 = JParser.parseFromString(s)
     val cs = java.nio.CharBuffer.wrap(s.toCharArray)
@@ -59,7 +59,7 @@ class AstCheck extends Properties("AstCheck") {
     Claim(j1 == j2 && j1.## == j2.##)
   }
 
-  implicit val facade = JawnFacade
+  implicit val facade: Facade[JValue] = JawnFacade
 
   val percs = List(0.0, 0.2, 0.4, 0.8, 1.0)
 
@@ -89,7 +89,7 @@ class AstCheck extends Properties("AstCheck") {
     val data = "[1,2,3][4,5,6]"
     val p = AsyncParser[JValue](ValueStream)
     val res0 = p.absorb(data)
-    val res1 = p.finish
+    val res1 = p.finish()
     Claim(true)
   }
 
@@ -101,7 +101,7 @@ class AstCheck extends Properties("AstCheck") {
   }
 
   property("async unwrapping") = forAll { (vs0: List[Int]) =>
-    val vs = vs0.map(LongNum(_))
+    val vs = vs0.map(v0 => LongNum(v0.toLong))
     val arr = JArray(vs.toArray)
     val json = CanonicalRenderer.render(arr)
     val segments = splitIntoSegments(json)
@@ -118,8 +118,8 @@ class AstCheck extends Properties("AstCheck") {
 
   property("ignore trailing zeros") = forAll { (n: Int) =>
     val s = n.toString
-    val n1 = LongNum(n)
-    val n2 = DoubleNum(n)
+    val n1 = LongNum(n.toLong)
+    val n2 = DoubleNum(n.toDouble)
 
     def check(j: JValue): Prop =
       Claim(j == n1 && n1 == j && j == n2 && n2 == j)

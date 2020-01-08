@@ -38,7 +38,7 @@ class AstTest extends Properties("AstTest") {
 
   property(".getInt") = forAll { (n: Int) =>
     Claim(
-      JNum(n).getInt == Some(n) &&
+      JNum(n.toLong).getInt == Some(n) &&
         JParser.parseUnsafe(n.toString).getInt == Some(n)
     )
   }
