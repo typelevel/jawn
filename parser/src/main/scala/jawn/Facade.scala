@@ -7,7 +7,7 @@ package org.typelevel.jawn
  * Facade[J] also uses FContext[J] instances, so implementors will
  * usually want to define both.
  */
-trait Facade[J] extends RawFacade[J]{
+trait Facade[J] extends RawFacade[J] {
   def singleContext(): RawFContext[J]
   def arrayContext(): RawFContext[J]
   def objectContext(): RawFContext[J]
@@ -29,6 +29,7 @@ trait Facade[J] extends RawFacade[J]{
     jnum(s, decIndex, expIndex)
   def jstring(s: CharSequence, index: Int) = jstring(s)
 }
+
 /**
  * Facade is a type class that describes how Jawn should construct
  * JSON AST elements of type J.
@@ -55,11 +56,10 @@ trait RawFacade[J] {
  * this type is also used to build a single top-level JSON element, in
  * cases where the entire JSON document consists of "333.33".
  */
-trait FContext[J] extends RawFContext[J]{
+trait FContext[J] extends RawFContext[J] {
   def add(s: CharSequence): Unit
   def add(v: J): Unit
   def finish(): J
-
 
   def add(s: CharSequence, index: Int) = add(s)
   def add(v: J, index: Int) = add(v)

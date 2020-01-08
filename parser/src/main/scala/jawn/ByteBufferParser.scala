@@ -1,6 +1,6 @@
 package org.typelevel.jawn
 
-import java.nio.{ByteBuffer, Buffer}
+import java.nio.{Buffer, ByteBuffer}
 
 /**
  * Basic ByteBuffer parser.
@@ -13,23 +13,28 @@ import java.nio.{ByteBuffer, Buffer}
  * update its own mutable position fields.
  */
 final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with ByteBasedParser[J] {
-  private[this] final val start = src.position()
-  private[this] final val limit = src.limit() - start
+  final private[this] val start = src.position()
+  final private[this] val limit = src.limit() - start
 
   private[this] var lineState = 0
   private[this] var offset = 0
   protected[this] def line(): Int = lineState
 
-  protected[this] final def newline(i: Int): Unit = { lineState += 1; offset = i + 1 }
-  protected[this] final def column(i: Int) = i - offset
+  final protected[this] def newline(i: Int): Unit = { lineState += 1; offset = i + 1 }
+  final protected[this] def column(i: Int) = i - offset
 
-  protected[this] final def close(): Unit = { (src: Buffer).position(src.limit) }
-  protected[this] final def reset(i: Int): Int = i
-  protected[this] final def checkpoint(state: Int, i: Int, context: RawFContext[J], stack: List[RawFContext[J]]): Unit = {}
-  protected[this] final def byte(i: Int): Byte = src.get(i + start)
-  protected[this] final def at(i: Int): Char = src.get(i + start).toChar
+  final protected[this] def close(): Unit = (src: Buffer).position(src.limit)
+  final protected[this] def reset(i: Int): Int = i
+  final protected[this] def checkpoint(
+    state: Int,
+    i: Int,
+    context: RawFContext[J],
+    stack: List[RawFContext[J]]
+  ): Unit = {}
+  final protected[this] def byte(i: Int): Byte = src.get(i + start)
+  final protected[this] def at(i: Int): Char = src.get(i + start).toChar
 
-  protected[this] final def at(i: Int, k: Int): CharSequence = {
+  final protected[this] def at(i: Int, k: Int): CharSequence = {
     val len = k - i
     val arr = new Array[Byte](len)
     (src: Buffer).position(i + start)
@@ -38,5 +43,5 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
     new String(arr, utf8)
   }
 
-  protected[this] final def atEof(i: Int) = i >= limit
+  final protected[this] def atEof(i: Int) = i >= limit
 }

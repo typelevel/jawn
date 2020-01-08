@@ -17,7 +17,7 @@ matrix:
   - jdk: openjdk11
 
 script:
-  - sbt "+ test"
+  - sbt ";scalafmtSbtCheck; +scalafmtCheckAll; +test"
 
 before_cache:
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -delete

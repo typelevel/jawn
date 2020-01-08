@@ -74,7 +74,7 @@ sealed trait Renderer {
         case '\r' => sb.append("\\r")
         case '\t' => sb.append("\\t")
         case c =>
-          if (c < ' ' || (c > '~' && unicode)) sb.append("\\u%04x" format c.toInt)
+          if (c < ' ' || (c > '~' && unicode)) sb.append("\\u%04x".format(c.toInt))
           else sb.append(c)
       }
       i += 1

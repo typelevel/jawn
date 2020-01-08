@@ -5,7 +5,7 @@ package org.typelevel.jawn
  *
  * This is similar to StringParser, but acts on character sequences.
  */
-private[jawn] final class CharSequenceParser[J](cs: CharSequence) extends SyncParser[J] with CharBasedParser[J] {
+final private[jawn] class CharSequenceParser[J](cs: CharSequence) extends SyncParser[J] with CharBasedParser[J] {
   var line = 0
   var offset = 0
   final def column(i: Int) = i - offset

@@ -19,7 +19,8 @@ class SliceCheck extends Properties("SliceCheck") {
       g.map(Slice(_)),
       for { s <- g; n = s.length; i <- c(0, n) } yield Slice(s, i, n),
       for { s <- g; n = s.length; j <- c(0, n) } yield Slice(s, 0, j),
-      for { s <- g; n = s.length; i <- c(0, n); j <- c(i, n) } yield Slice(s, i, j))
+      for { s <- g; n = s.length; i <- c(0, n); j <- c(i, n) } yield Slice(s, i, j)
+    )
   }
 
   implicit val arbitrarySlice: Arbitrary[Slice] =
@@ -34,71 +35,53 @@ class SliceCheck extends Properties("SliceCheck") {
     }
   }
 
-  property("Slice(s, i, j) ~ s.substring(i, j)") =
-    forAll { (s: String, i: Int, j: Int) =>
-      tryEqual(
-        Slice(s, i, j).toString,
-        s.substring(i, j))
-    }
+  property("Slice(s, i, j) ~ s.substring(i, j)") = forAll { (s: String, i: Int, j: Int) =>
+    tryEqual(Slice(s, i, j).toString, s.substring(i, j))
+  }
 
-  property("Slice(s, i, j).charAt(k) ~ s.substring(i, j).charAt(k)") =
-    forAll { (s: String, i: Int, j: Int, k: Int) =>
-      tryEqual(
-        Slice(s, i, j).charAt(k),
-        s.substring(i, j).charAt(k))
-    }
+  property("Slice(s, i, j).charAt(k) ~ s.substring(i, j).charAt(k)") = forAll { (s: String, i: Int, j: Int, k: Int) =>
+    tryEqual(Slice(s, i, j).charAt(k), s.substring(i, j).charAt(k))
+  }
 
-  property("slice.length >= 0") =
-    forAll { (cs: Slice) =>
-      Claim(cs.length >= 0)
-    }
+  property("slice.length >= 0") = forAll { (cs: Slice) =>
+    Claim(cs.length >= 0)
+  }
 
-  property("slice.charAt(i) ~ slice.toString.charAt(i)") =
-    forAll { (cs: Slice, i: Int) =>
-      tryEqual(
-        cs.charAt(i),
-        cs.toString.charAt(i))
-    }
+  property("slice.charAt(i) ~ slice.toString.charAt(i)") = forAll { (cs: Slice, i: Int) =>
+    tryEqual(cs.charAt(i), cs.toString.charAt(i))
+  }
 
-  property("Slice(s, i, j).subSequence(k, l) ~ s.substring(i, j).substring(k, l)") =
-    forAll { (s: String, i: Int, j: Int, k: Int, l: Int) =>
-      tryEqual(
-        Slice(s, i, j).subSequence(k, l).toString,
-        s.substring(i, j).substring(k, l))
-    }
+  property("Slice(s, i, j).subSequence(k, l) ~ s.substring(i, j).substring(k, l)") = forAll {
+    (s: String, i: Int, j: Int, k: Int, l: Int) =>
+      tryEqual(Slice(s, i, j).subSequence(k, l).toString, s.substring(i, j).substring(k, l))
+  }
 
-  property("Slice(s) ~ Slice(s, 0, s.length)") =
-    forAll { (s: String) =>
-      tryEqual(
-        Slice(s).toString,
-        Slice(s, 0, s.length).toString)
-    }
+  property("Slice(s) ~ Slice(s, 0, s.length)") = forAll { (s: String) =>
+    tryEqual(Slice(s).toString, Slice(s, 0, s.length).toString)
+  }
 
-  property("Slice(s, i, j) => Slice.unsafe(s, i, j)") =
-    forAll { (s: String, i: Int, j: Int) =>
-      Try(Slice(s, i, j).toString) match {
-        case Success(r) => Claim(r == Slice.unsafe(s, i, j).toString)
-        case Failure(_) => Claim(true)
-      }
+  property("Slice(s, i, j) => Slice.unsafe(s, i, j)") = forAll { (s: String, i: Int, j: Int) =>
+    Try(Slice(s, i, j).toString) match {
+      case Success(r) => Claim(r == Slice.unsafe(s, i, j).toString)
+      case Failure(_) => Claim(true)
     }
+  }
 
-  property("x == x") =
-    forAll { (x: Slice) => Claim(x == x) }
+  property("x == x") = forAll { (x: Slice) =>
+    Claim(x == x)
+  }
 
-  property("(x == y) = (x.toString == y.toString)") =
-    forAll { (x: Slice, y: Slice) =>
-      Claim((x == y) == (x.toString == y.toString))
-    }
+  property("(x == y) = (x.toString == y.toString)") = forAll { (x: Slice, y: Slice) =>
+    Claim((x == y) == (x.toString == y.toString))
+  }
 
-  property("(x == y) -> (x.## == y.##)") =
-    forAll { (x: Slice, y: Slice) =>
-      if (x == y) Claim(x.## == y.##) else Claim(x.## != y.##)
-    }
+  property("(x == y) -> (x.## == y.##)") = forAll { (x: Slice, y: Slice) =>
+    if (x == y) Claim(x.## == y.##) else Claim(x.## != y.##)
+  }
 
-  property("x == Slice(x.toString)") =
-    forAll { (x: Slice) =>
-      Claim(Slice(x.toString) == x)
-    }
+  property("x == Slice(x.toString)") = forAll { (x: Slice) =>
+    Claim(Slice(x.toString) == x)
+  }
 
   property("slice is serializable") = {
     import java.io._

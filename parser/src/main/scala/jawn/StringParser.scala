@@ -12,7 +12,7 @@ package org.typelevel.jawn
  * memory at once. So this limit will probably not be a problem in
  * practice.
  */
-private[jawn] final class StringParser[J](s: String) extends SyncParser[J] with CharBasedParser[J] {
+final private[jawn] class StringParser[J](s: String) extends SyncParser[J] with CharBasedParser[J] {
   var line = 0
   var offset = 0
   final def column(i: Int) = i - offset

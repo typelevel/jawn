@@ -10,10 +10,12 @@ ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 ThisBuild / homepage := Some(url("http://github.com/typelevel/jawn"))
 
-ThisBuild / scmInfo := Some(ScmInfo(
-  browseUrl = url("https://github.com/typelevel/jawn"),
-  connection = "scm:git:git@github.com:typelevel/jawn.git"
-))
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    browseUrl = url("https://github.com/typelevel/jawn"),
+    connection = "scm:git:git@github.com:typelevel/jawn.git"
+  )
+)
 
 ThisBuild / developers += Developer(
   name = "Erik Osheim",
@@ -27,26 +29,20 @@ lazy val benchmarkVersion =
 
 lazy val jawnSettings = Seq(
   crossScalaVersions := Seq(scala211, scala212, scala213),
-
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
-
   resolvers += Resolver.sonatypeRepo("releases"),
-
   Test / fork := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-
   libraryDependencies ++=
     "org.scalacheck" %% "scalacheck" % "1.14.3" % Test ::
-    "org.typelevel" %% "claimant" % "0.1.2" % Test ::
-    Nil,
-
+      "org.typelevel" %% "claimant" % "0.1.2" % Test ::
+      Nil,
   scalacOptions ++=
     "-deprecation" ::
-    "-encoding" :: "utf-8" ::
-    "-feature" ::
-    "-unchecked" ::
-    Nil,
-
+      "-encoding" :: "utf-8" ::
+      "-feature" ::
+      "-unchecked" ::
+      Nil,
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, v)) if v <= 12 =>
@@ -55,7 +51,6 @@ lazy val jawnSettings = Seq(
         Nil
     }
   },
-
   scalacOptions += {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, v)) if v <= 11 =>
@@ -64,22 +59,19 @@ lazy val jawnSettings = Seq(
         "-opt:l:method"
     }
   },
-
   // release stuff
   releaseCrossBuild := true,
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := Function.const(false),
-
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value) {
-      Some("Snapshots" at nexus + "content/repositories/snapshots")
+      Some("Snapshots".at(nexus + "content/repositories/snapshots"))
     } else {
-      Some("Releases" at nexus + "service/local/staging/deploy/maven2")
+      Some("Releases".at(nexus + "service/local/staging/deploy/maven2"))
     }
   },
-
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,
@@ -92,13 +84,14 @@ lazy val jawnSettings = Seq(
     setNextVersion,
     commitNextVersion,
     releaseStepCommandAndRemaining("sonatypeReleaseAll"),
-    pushChanges))
+    pushChanges
+  )
+)
 
-lazy val noPublish = Seq(
-  publish / skip := true,
-  mimaPreviousArtifacts := Set())
+lazy val noPublish = Seq(publish / skip := true, mimaPreviousArtifacts := Set())
 
-lazy val root = project.in(file("."))
+lazy val root = project
+  .in(file("."))
   .aggregate(all.map(Project.projectToRef): _*)
   .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
@@ -106,20 +99,23 @@ lazy val root = project.in(file("."))
   .settings(crossScalaVersions := List())
   .settings(noPublish: _*)
 
-lazy val parser = project.in(file("parser"))
+lazy val parser = project
+  .in(file("parser"))
   .settings(name := "parser")
   .settings(moduleName := "jawn-parser")
   .settings(jawnSettings: _*)
   .disablePlugins(JmhPlugin)
 
-lazy val util = project.in(file("util"))
+lazy val util = project
+  .in(file("util"))
   .dependsOn(parser % "compile->compile;test->test")
   .settings(name := "util")
   .settings(moduleName := "jawn-util")
   .settings(jawnSettings: _*)
   .disablePlugins(JmhPlugin)
 
-lazy val ast = project.in(file("ast"))
+lazy val ast = project
+  .in(file("ast"))
   .dependsOn(parser % "compile->compile;test->test")
   .dependsOn(util % "compile->compile;test->test")
   .settings(name := "ast")
@@ -145,7 +141,8 @@ lazy val supportPlay = support("play")
 lazy val supportSpray = support("spray")
   .settings(libraryDependencies += "io.spray" %% "spray-json" % "1.3.5")
 
-lazy val benchmark = project.in(file("benchmark"))
+lazy val benchmark = project
+  .in(file("benchmark"))
   .dependsOn(all.map(Project.classpathDependency[Project]): _*)
   .settings(name := "jawn-benchmark")
   .settings(jawnSettings: _*)

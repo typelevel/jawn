@@ -14,9 +14,18 @@ object AsyncParser {
   case object SingleValue extends Mode(-1, -1)
 
   def apply[J](mode: Mode = SingleValue): AsyncParser[J] =
-    new AsyncParser(state = mode.start, curr = 0, context = null, stack = Nil,
-      data = new Array[Byte](131072), len = 0, allocated = 131072,
-      offset = 0, done = false, streamMode = mode.value)
+    new AsyncParser(
+      state = mode.start,
+      curr = 0,
+      context = null,
+      stack = Nil,
+      data = new Array[Byte](131072),
+      len = 0,
+      allocated = 131072,
+      offset = 0,
+      done = false,
+      streamMode = mode.value
+    )
 }
 
 /**
@@ -72,8 +81,8 @@ final class AsyncParser[J] protected[jawn] (
 
   protected[this] var line = 0
   protected[this] var pos = 0
-  protected[this] final def newline(i: Int): Unit = { line += 1; pos = i + 1 }
-  protected[this] final def column(i: Int) = i - pos
+  final protected[this] def newline(i: Int): Unit = { line += 1; pos = i + 1 }
+  final protected[this] def column(i: Int) = i - pos
 
   final def copy() =
     new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode)
@@ -115,7 +124,7 @@ final class AsyncParser[J] protected[jawn] (
     churn()
   }
 
-  protected[this] final def resizeIfNecessary(need: Int): Unit = {
+  final protected[this] def resizeIfNecessary(need: Int): Unit =
     // if we don't have enough free space available we'll need to grow our
     // data array. we never shrink the data array, assuming users will call
     // feed with similarly-sized buffers.
@@ -127,7 +136,6 @@ final class AsyncParser[J] protected[jawn] (
       data = newdata
       allocated = newsize
     }
-  }
 
   /**
    * Explanation of the new synthetic states. The parser machinery
@@ -151,11 +159,11 @@ final class AsyncParser[J] protected[jawn] (
    * ASYNC_PREVAL: We are in an array and we just saw a comma. We
    * expect to see whitespace or a JSON value.
    */
-  @inline private[this] final def ASYNC_PRESTART = -5
-  @inline private[this] final def ASYNC_START = -4
-  @inline private[this] final def ASYNC_END = -3
-  @inline private[this] final def ASYNC_POSTVAL = -2
-  @inline private[this] final def ASYNC_PREVAL = -1
+  @inline final private[this] def ASYNC_PRESTART = -5
+  @inline final private[this] def ASYNC_START = -4
+  @inline final private[this] def ASYNC_END = -3
+  @inline final private[this] def ASYNC_POSTVAL = -2
+  @inline final private[this] def ASYNC_PREVAL = -1
 
   protected[jawn] def churn()(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] = {
 
@@ -262,7 +270,7 @@ final class AsyncParser[J] protected[jawn] (
   }
 
   // every 1M we shift our array back to the beginning.
-  protected[this] final def reset(i: Int): Int = {
+  final protected[this] def reset(i: Int): Int =
     if (offset >= 1048576) {
       val diff = offset
       curr -= diff
@@ -274,7 +282,6 @@ final class AsyncParser[J] protected[jawn] (
     } else {
       i
     }
-  }
 
   /**
    * We use this to keep track of the last recoverable place we've
@@ -285,7 +292,12 @@ final class AsyncParser[J] protected[jawn] (
    * arguments are the exact arguments we can pass to rparse to
    * continue where we left off.
    */
-  protected[this] final def checkpoint(state: Int, i: Int, context: RawFContext[J], stack: List[RawFContext[J]]): Unit = {
+  final protected[this] def checkpoint(
+    state: Int,
+    i: Int,
+    context: RawFContext[J],
+    stack: List[RawFContext[J]]
+  ): Unit = {
     this.state = state
     this.curr = i
     this.context = context
@@ -296,11 +308,11 @@ final class AsyncParser[J] protected[jawn] (
    * This is a specialized accessor for the case where our underlying data are
    * bytes not chars.
    */
-  protected[this] final def byte(i: Int): Byte =
+  final protected[this] def byte(i: Int): Byte =
     if (i >= len) throw new AsyncException else data(i)
 
   // we need to signal if we got out-of-bounds
-  protected[this] final def at(i: Int): Char =
+  final protected[this] def at(i: Int): Char =
     if (i >= len) throw new AsyncException else data(i).toChar
 
   /**
@@ -310,7 +322,7 @@ final class AsyncParser[J] protected[jawn] (
    * boundaries. Also, the resulting String is not guaranteed to have length
    * (k - i).
    */
-  protected[this] final def at(i: Int, k: Int): CharSequence = {
+  final protected[this] def at(i: Int, k: Int): CharSequence = {
     if (k > len) throw new AsyncException
     val size = k - i
     val arr = new Array[Byte](size)
@@ -320,11 +332,11 @@ final class AsyncParser[J] protected[jawn] (
 
   // the basic idea is that we don't signal EOF until done is true, which means
   // the client explicitly send us an EOF.
-  protected[this] final def atEof(i: Int): Boolean =
+  final protected[this] def atEof(i: Int): Boolean =
     if (done) i >= len else false
 
   // we don't have to do anything special on close.
-  protected[this] final def close(): Unit = ()
+  final protected[this] def close(): Unit = ()
 }
 
 /**
