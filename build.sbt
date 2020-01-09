@@ -2,7 +2,6 @@ import ReleaseTransformations._
 
 lazy val previousJawnVersion = "0.14.0"
 
-lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.10"
 lazy val scala213 = "2.13.1"
 lazy val dotty = "0.21.0-RC1"
@@ -29,7 +28,7 @@ lazy val benchmarkVersion =
   scala212
 
 lazy val jawnSettings = Seq(
-  crossScalaVersions := Seq(scala211, scala212, scala213, dotty),
+  crossScalaVersions := Seq(scala212, scala213, dotty),
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
   resolvers += Resolver.sonatypeRepo("releases"),
   Test / fork := true,
