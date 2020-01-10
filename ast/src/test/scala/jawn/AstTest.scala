@@ -3,7 +3,6 @@ package ast
 
 import org.scalacheck.{Prop, Properties}
 import org.typelevel.claimant.Claim
-import scala.collection.mutable
 import scala.util.{Success, Try}
 
 import ArbitraryUtil._

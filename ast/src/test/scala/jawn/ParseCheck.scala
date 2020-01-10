@@ -1,13 +1,11 @@
 package org.typelevel.jawn
 package ast
 
-import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
+import org.scalacheck.{Prop, Properties}
 import org.typelevel.claimant.Claim
 import org.typelevel.jawn.parser.TestUtil
-import scala.collection.mutable
-import scala.util.{Success, Try}
+import scala.util.Success
 
-import Arbitrary.arbitrary
 import ArbitraryUtil._
 import Prop.forAll
 
@@ -88,8 +86,8 @@ class AstCheck extends Properties("AstCheck") {
   property("async multi") = {
     val data = "[1,2,3][4,5,6]"
     val p = AsyncParser[JValue](ValueStream)
-    val res0 = p.absorb(data)
-    val res1 = p.finish()
+    p.absorb(data)
+    p.finish()
     Claim(true)
   }
 

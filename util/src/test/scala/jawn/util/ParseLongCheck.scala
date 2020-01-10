@@ -1,11 +1,10 @@
 package org.typelevel.jawn
 package util
 
-import org.scalacheck.{Arbitrary, Gen, Prop, Properties, Test}
+import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import org.typelevel.claimant.Claim
 import scala.util.{Failure, Success, Try}
 
-import Arbitrary.arbitrary
 import Prop.forAll
 
 class ParseLongCheck extends Properties("ParseLongCheck") {

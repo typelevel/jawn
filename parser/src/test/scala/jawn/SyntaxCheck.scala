@@ -6,7 +6,6 @@ import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import org.typelevel.claimant.Claim
 import scala.util.{Failure, Success, Try}
 
-import Arbitrary.arbitrary
 import Prop.forAll
 
 class SyntaxCheck extends Properties("SyntaxCheck") {
