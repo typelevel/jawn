@@ -114,7 +114,7 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
       i
     }
 
-  final protected[this] def checkpoint(state: Int, i: Int, context: RawFContext[J], stack: List[RawFContext[J]]): Unit =
+  final protected[this] def checkpoint(state: Int, i: Int, context: FContext[J], stack: List[FContext[J]]): Unit =
     ()
 
   /**

@@ -9,8 +9,8 @@ import scala.util.Success
 
 class JNumIndexCheck extends Properties("JNumIndexCheck") {
 
-  object JNumIndexCheckFacade extends Facade[Boolean] {
-    class JNumIndexCheckContext(val isObj: Boolean) extends FContext[Boolean] {
+  object JNumIndexCheckFacade extends Facade.NoIndexFacade[Boolean] {
+    class JNumIndexCheckContext(val isObj: Boolean) extends FContext.NoIndexFContext[Boolean] {
       var failed = false
       def add(s: CharSequence): Unit = ()
       def add(v: Boolean): Unit =
@@ -18,13 +18,13 @@ class JNumIndexCheck extends Properties("JNumIndexCheck") {
       def finish(): Boolean = !failed
     }
 
-    def singleContext(): RawFContext[Boolean] = new JNumIndexCheckContext(false)
-    def arrayContext(): RawFContext[Boolean] = new JNumIndexCheckContext(false)
-    def objectContext(): RawFContext[Boolean] = new JNumIndexCheckContext(true)
+    def singleContext(): FContext[Boolean] = new JNumIndexCheckContext(false)
+    def arrayContext(): FContext[Boolean] = new JNumIndexCheckContext(false)
+    def objectContext(): FContext[Boolean] = new JNumIndexCheckContext(true)
 
-    def jnull(): Boolean = true
-    def jfalse(): Boolean = true
-    def jtrue(): Boolean = true
+    def jnull: Boolean = true
+    def jfalse: Boolean = true
+    def jtrue: Boolean = true
     def jnum(s: CharSequence, decIndex: Int, expIndex: Int): Boolean = {
       val input = s.toString
       val inputDecIndex = input.indexOf('.')

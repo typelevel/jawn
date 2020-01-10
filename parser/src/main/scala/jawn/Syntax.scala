@@ -6,7 +6,7 @@ import java.nio.channels.ReadableByteChannel
 import scala.util.Try
 
 object Syntax {
-  implicit def unitFacade: RawFacade[Unit] = NullFacade
+  implicit def unitFacade: Facade[Unit] = Facade.NullFacade
 
   def checkString(s: String): Boolean =
     Try(new StringParser(s).parse()).isSuccess

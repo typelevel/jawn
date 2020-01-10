@@ -7,6 +7,7 @@ import org.typelevel.claimant.Claim
 import scala.util.{Failure, Success, Try}
 
 import Prop.forAll
+import Facade.NullFacade
 
 class SyntaxCheck extends Properties("SyntaxCheck") {
 
