@@ -251,7 +251,7 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     extract1(Parser.parseFromCharSequence(json)(NullFacade)) &&
     extract1(Parser.parseFromChannel(ch(json))(NullFacade)) &&
     extract1(Parser.parseFromByteBuffer(bb(json))(NullFacade)) &&
-    extract2(Parser.async(AsyncParser.UnwrapArray)(NullFacade).finalAbsorb(json)(NullFacade))
+    extract2(Parser.async(AsyncParser.UnwrapArray).finalAbsorb(json)(NullFacade))
   }
 
   property("error location 1") = { testErrorLoc("[1, 2,\nx3]", 2, 1) }
