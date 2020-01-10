@@ -43,6 +43,7 @@ lazy val jawnSettings = Seq(
       "-encoding" :: "utf-8" ::
       "-feature" ::
       "-unchecked" ::
+      "-Xlint" ::
       Nil,
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
