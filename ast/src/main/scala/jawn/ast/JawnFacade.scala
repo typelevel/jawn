@@ -40,7 +40,7 @@ object JawnFacade extends Facade[JValue] {
   final def objectContext(): RawFContext[JValue] =
     new FContext[JValue] {
       var key: String = null
-      val vs = mutable.Map.empty[String, JValue]
+      val vs = mutable.TreeMap.empty[String, JValue]
       def add(s: CharSequence): Unit =
         if (key == null) {
           key = s.toString

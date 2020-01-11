@@ -307,10 +307,10 @@ case class JObject(vs: mutable.Map[String, JValue]) extends JValue {
 
 object JObject { self =>
   final def empty: JObject =
-    JObject(mutable.Map.empty)
+    JObject(mutable.TreeMap.empty)
 
   final def fromSeq(js: collection.Seq[(String, JValue)]): JObject = {
-    val builder = mutable.Map.newBuilder[String, JValue]
+    val builder = mutable.TreeMap.newBuilder[String, JValue]
     builder ++= js
     JObject(builder.result)
   }
