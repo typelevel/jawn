@@ -63,6 +63,7 @@ lazy val jawnSettings = Seq(
   },
   // release stuff
   releaseCrossBuild := true,
+  releaseVcsSign := true,
   publishMavenStyle := true,
   publishArtifact in Test := false,
   publishArtifact in (Compile, packageDoc) := !isDotty.value,
