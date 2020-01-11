@@ -69,8 +69,8 @@ object AsyncParser {
 final class AsyncParser[J] protected[jawn] (
   protected[jawn] var state: Int,
   protected[jawn] var curr: Int,
-  protected[jawn] var context: RawFContext[J],
-  protected[jawn] var stack: List[RawFContext[J]],
+  protected[jawn] var context: FContext[J],
+  protected[jawn] var stack: List[FContext[J]],
   protected[jawn] var data: Array[Byte],
   protected[jawn] var len: Int,
   protected[jawn] var allocated: Int,
@@ -88,7 +88,7 @@ final class AsyncParser[J] protected[jawn] (
   final def copy() =
     new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode)
 
-  final def absorb(buf: ByteBuffer)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] = {
+  final def absorb(buf: ByteBuffer)(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
     done = false
     val buflen = buf.limit() - buf.position()
     val need = len + buflen
@@ -98,13 +98,13 @@ final class AsyncParser[J] protected[jawn] (
     churn()
   }
 
-  final def absorb(bytes: Array[Byte])(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+  final def absorb(bytes: Array[Byte])(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] =
     absorb(ByteBuffer.wrap(bytes))
 
-  final def absorb(s: String)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+  final def absorb(s: String)(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] =
     absorb(ByteBuffer.wrap(s.getBytes(utf8)))
 
-  final def finalAbsorb(buf: ByteBuffer)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+  final def finalAbsorb(buf: ByteBuffer)(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] =
     absorb(buf)(facade) match {
       case Right(xs) =>
         finish()(facade) match {
@@ -114,13 +114,13 @@ final class AsyncParser[J] protected[jawn] (
       case left0 @ Left(_) => left0
     }
 
-  final def finalAbsorb(bytes: Array[Byte])(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+  final def finalAbsorb(bytes: Array[Byte])(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] =
     finalAbsorb(ByteBuffer.wrap(bytes))
 
-  final def finalAbsorb(s: String)(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] =
+  final def finalAbsorb(s: String)(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] =
     finalAbsorb(ByteBuffer.wrap(s.getBytes(utf8)))
 
-  final def finish()(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] = {
+  final def finish()(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
     done = true
     churn()
   }
@@ -166,7 +166,7 @@ final class AsyncParser[J] protected[jawn] (
   @inline final private[this] def ASYNC_POSTVAL = -2
   @inline final private[this] def ASYNC_PREVAL = -1
 
-  protected[jawn] def churn()(implicit facade: RawFacade[J]): Either[ParseException, collection.Seq[J]] = {
+  protected[jawn] def churn()(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
 
     // accumulates json values
     val results = mutable.ArrayBuffer.empty[J]
@@ -296,8 +296,8 @@ final class AsyncParser[J] protected[jawn] (
   final protected[this] def checkpoint(
     state: Int,
     i: Int,
-    context: RawFContext[J],
-    stack: List[RawFContext[J]]
+    context: FContext[J],
+    stack: List[FContext[J]]
   ): Unit = {
     this.state = state
     this.curr = i

@@ -16,8 +16,8 @@ final class ByteArrayParser[J](src: Array[Byte]) extends SyncParser[J] with Byte
   final protected[this] def checkpoint(
     state: Int,
     i: Int,
-    context: RawFContext[J],
-    stack: List[RawFContext[J]]
+    context: FContext[J],
+    stack: List[FContext[J]]
   ): Unit = {}
   final protected[this] def byte(i: Int): Byte = src(i)
   final protected[this] def at(i: Int): Char = src(i).toChar

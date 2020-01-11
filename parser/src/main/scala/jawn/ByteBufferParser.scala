@@ -28,8 +28,8 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
   final protected[this] def checkpoint(
     state: Int,
     i: Int,
-    context: RawFContext[J],
-    stack: List[RawFContext[J]]
+    context: FContext[J],
+    stack: List[FContext[J]]
   ): Unit = {}
   final protected[this] def byte(i: Int): Byte = src.get(i + start)
   final protected[this] def at(i: Int): Char = src.get(i + start).toChar
