@@ -40,7 +40,7 @@ object JawnFacade extends Facade.NoIndexFacade[JValue] {
   final def objectContext(): FContext[JValue] =
     new FContext.NoIndexFContext[JValue] {
       private[this] var key: String = null
-      private[this] val vs = mutable.Map.empty[String, JValue]
+      private[this] val vs = mutable.TreeMap.empty[String, JValue]
       def add(s: CharSequence): Unit =
         if (key == null) {
           key = s.toString
