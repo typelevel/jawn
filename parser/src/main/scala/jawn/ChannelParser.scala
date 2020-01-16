@@ -57,15 +57,15 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
   private[this] var Allsize: Int = Bufsize * 2
 
   // these are the actual byte arrays we'll use
-  private var curr = new Array[Byte](Bufsize)
-  private var next = new Array[Byte](Bufsize)
+  private[this] var curr = new Array[Byte](Bufsize)
+  private[this] var next = new Array[Byte](Bufsize)
 
   // these are the bytecounts for each array
-  private var ncurr = ch.read(ByteBuffer.wrap(curr))
-  private var nnext = ch.read(ByteBuffer.wrap(next))
+  private[this] var ncurr = ch.read(ByteBuffer.wrap(curr))
+  private[this] var nnext = ch.read(ByteBuffer.wrap(next))
 
   private[this] var _line = 0
-  private var pos = 0
+  private[this] var pos = 0
   final protected[this] def newline(i: Int): Unit = { _line += 1; pos = i + 1 }
   final protected[this] def line(): Int = _line
   final protected[this] def column(i: Int): Int = i - pos
@@ -165,7 +165,7 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
     }
   }
 
-  final protected[this] def atEof(i: Int) =
+  final protected[this] def atEof(i: Int): Boolean =
     if (i < Bufsize) i >= ncurr
     else i >= (nnext + Bufsize)
 }
