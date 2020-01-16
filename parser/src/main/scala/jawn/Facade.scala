@@ -44,7 +44,7 @@ object Facade {
     final def jnull(index: Int): J = jnull
     final def jfalse(index: Int): J = jfalse
     final def jtrue(index: Int): J = jtrue
-    final def jnum(s: CharSequence, decIndex: Int, expIndex: Int, index: Int) =
+    final def jnum(s: CharSequence, decIndex: Int, expIndex: Int, index: Int): J =
       jnum(s, decIndex, expIndex)
     final def jstring(s: CharSequence, index: Int): J = jstring(s)
   }

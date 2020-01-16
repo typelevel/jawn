@@ -83,9 +83,9 @@ final class AsyncParser[J] protected[jawn] (
   protected[this] var pos = 0
   final protected[this] def newline(i: Int): Unit = { _line += 1; pos = i + 1 }
   final protected[this] def line(): Int = _line
-  final protected[this] def column(i: Int) = i - pos
+  final protected[this] def column(i: Int): Int = i - pos
 
-  final def copy() =
+  final def copy(): AsyncParser[J] =
     new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode)
 
   final def absorb(buf: ByteBuffer)(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
