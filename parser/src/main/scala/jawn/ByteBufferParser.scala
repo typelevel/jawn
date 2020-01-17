@@ -21,7 +21,7 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
   protected[this] def line(): Int = lineState
 
   final protected[this] def newline(i: Int): Unit = { lineState += 1; offset = i + 1 }
-  final protected[this] def column(i: Int) = i - offset
+  final protected[this] def column(i: Int): Int = i - offset
 
   final protected[this] def close(): Unit = (src: Buffer).position(src.limit)
   final protected[this] def reset(i: Int): Int = i
@@ -43,5 +43,5 @@ final class ByteBufferParser[J](src: ByteBuffer) extends SyncParser[J] with Byte
     new String(arr, utf8)
   }
 
-  final protected[this] def atEof(i: Int) = i >= limit
+  final protected[this] def atEof(i: Int): Boolean = i >= limit
 }

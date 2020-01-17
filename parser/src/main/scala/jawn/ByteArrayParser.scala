@@ -9,7 +9,7 @@ final class ByteArrayParser[J](src: Array[Byte]) extends SyncParser[J] with Byte
   protected[this] def line(): Int = lineState
 
   final protected[this] def newline(i: Int): Unit = { lineState += 1; offset = i + 1 }
-  final protected[this] def column(i: Int) = i - offset
+  final protected[this] def column(i: Int): Int = i - offset
 
   final protected[this] def close(): Unit = ()
   final protected[this] def reset(i: Int): Int = i
@@ -25,5 +25,5 @@ final class ByteArrayParser[J](src: Array[Byte]) extends SyncParser[J] with Byte
   final protected[this] def at(i: Int, k: Int): CharSequence =
     new String(src, i, k - i, utf8)
 
-  final protected[this] def atEof(i: Int) = i >= src.length
+  final protected[this] def atEof(i: Int): Boolean = i >= src.length
 }
