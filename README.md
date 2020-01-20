@@ -36,7 +36,7 @@ support package.
 
 ### Quick Start
 
-Jawn supports Scala 2.11, 2.12, and 2.13.0-RC1.
+Jawn supports Scala 2.12 and 2.13. Dotty support is cross-built, but not published.
 
 Here's a `build.sbt` snippet that shows you how to depend on Jawn in
 your own SBT project:
