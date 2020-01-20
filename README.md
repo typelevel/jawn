@@ -36,7 +36,8 @@ support package.
 
 ### Quick Start
 
-Jawn supports Scala 2.12 and 2.13. Dotty support is cross-built, but not published.
+Jawn supports Scala 2.12 and 2.13, and is cross-built on Dotty, although we're
+not yet publishing Dotty artifacts.
 
 Here's a `build.sbt` snippet that shows you how to depend on Jawn in
 your own SBT project:
@@ -45,10 +46,18 @@ your own SBT project:
 resolvers += Resolver.sonatypeRepo("releases")
 
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.2"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "1.0.0"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.typelevel" %% "jawn-ast" % "0.14.2"
+libraryDependencies += "org.typelevel" %% "jawn-ast" % "1.0.0"
+```
+
+If you want to use Jawn with Dotty, you can use the Scala 2 artifacts
+via `withDottyCompat`:
+
+```scala
+libraryDependencies +=
+  ("org.typelevel" %% "jawn-parser" % "1.0.0").withDottyCompat(scalaVersion.value)
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -56,7 +65,7 @@ If you want to use Jawn's parser with another project's AST, see the
 you would say:
 
 ```scala
-libraryDependencies += "org.typelevel" %% "jawn-spray" % "0.14.2"
+libraryDependencies += "org.typelevel" %% "jawn-spray" % "1.0.0"
 ```
 
 There are a few reasons you might want to do this:
@@ -138,7 +147,7 @@ Jawn currently integrates three external ASTs directly:
 | AST       | Version |
 |-----------|---------|
 | Json4s    | 3.6.5   |
-| Play-json | 2.7.3   |
+| Play-json | 2.8.1   |
 | Spray     | 1.3.5   |
 
 Integrations for [circe] and [argonaut] are maintained by those
@@ -167,7 +176,7 @@ This is how you would include the subproject in build.sbt:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.typelevel" %% jawn-"XYZ" % "0.14.2"
+libraryDependencies += "org.typelevel" %% jawn-"XYZ" % "1.0.0"
 ```
 
 (Note that prior to the 0.14.0 release, the group ID was `"org.spire-math"`.)
@@ -193,7 +202,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.typelevel" %% "jawn-parser" % "0.14.2"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "1.0.0"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
@@ -441,7 +450,7 @@ Jawn's current maintainers are:
 All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
-Copyright Erik Osheim, 2012-2017.
+Copyright Erik Osheim, 2012-2020.
 
 [circe]: https://circe.github.io/circe/
 [argonaut]: http://argonaut.io
