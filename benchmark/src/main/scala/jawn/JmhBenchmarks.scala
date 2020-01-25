@@ -3,8 +3,8 @@ package benchmark
 
 import java.io.{BufferedReader, File, FileInputStream, FileReader}
 import java.util.concurrent.TimeUnit
+
 import org.openjdk.jmh.annotations._
-import scala.collection.mutable
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -69,8 +69,7 @@ trait OtherBenchmarks { self: JmhBenchmarks =>
 
   @Benchmark
   def jacksonParse() = {
-    import com.fasterxml.jackson.databind.ObjectMapper
-    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
     new ObjectMapper().readValue(new File(path), classOf[JsonNode])
   }
 
