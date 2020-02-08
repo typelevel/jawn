@@ -36,7 +36,7 @@ lazy val jawnSettings = Seq(
   libraryDependencies += ("org.scalacheck" %% "scalacheck" % "1.14.3" % Test).withDottyCompat(scalaVersion.value),
   libraryDependencies ++= (
     if (isDotty.value) Nil
-    else List("org.typelevel" %% "claimant" % "0.1.2" % Test)
+    else List("org.typelevel" %% "claimant" % "0.1.3" % Test)
   ),
   scalacOptions ++=
     "-deprecation" ::
