@@ -21,3 +21,5 @@ jobs:
       run: sbt scalafmtSbtCheck scalafmtCheckAll
     - name: Run tests
       run: sbt ++${{matrix.scala}} test
+    - name: MiMa
+      run: sbt ++${{matrix.scala}} mimaReportBinaryIssues
