@@ -30,9 +30,7 @@ class AstCheck extends Properties("AstCheck") {
         value1.## == value2.##
     )
 
-    val p1: Prop = TestUtil.withTemp(json1) { t =>
-      Claim(JParser.parseFromFile(t).get == value2)
-    }
+    val p1: Prop = TestUtil.withTemp(json1)(t => Claim(JParser.parseFromFile(t).get == value2))
 
     p0 && p1
   }
@@ -136,15 +134,11 @@ class AstCheck extends Properties("AstCheck") {
 
     val s0 = ("x" * (40 * M))
     val e0 = q + s0 + q
-    val p0: Prop = TestUtil.withTemp(e0) { t =>
-      Claim(JParser.parseFromFile(t).filter(_ == JString(s0)).isSuccess)
-    }
+    val p0: Prop = TestUtil.withTemp(e0)(t => Claim(JParser.parseFromFile(t).filter(_ == JString(s0)).isSuccess))
 
     val s1 = "\\" * (20 * M)
     val e1 = q + s1 + s1 + q
-    val p1: Prop = TestUtil.withTemp(e1) { t =>
-      Claim(JParser.parseFromFile(t).filter(_ == JString(s1)).isSuccess)
-    }
+    val p1: Prop = TestUtil.withTemp(e1)(t => Claim(JParser.parseFromFile(t).filter(_ == JString(s1)).isSuccess))
 
     p0 && p1
   }

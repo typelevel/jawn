@@ -54,9 +54,7 @@ class JNumIndexCheck extends Properties("JNumIndexCheck") {
 
   property("jnum provides the correct indices with parseFromFile") = forAll { (value: BigDecimal) =>
     val json = s"""{ "num": ${value.toString} }"""
-    TestUtil.withTemp(json) { t =>
-      Claim(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true))
-    }
+    TestUtil.withTemp(json)(t => Claim(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true)))
   }
 
   property("jnum provides the correct indices at the top level with parseFromString") = forAll { (value: BigDecimal) =>
@@ -76,8 +74,6 @@ class JNumIndexCheck extends Properties("JNumIndexCheck") {
   }
 
   property("jnum provides the correct indices at the top level with parseFromFile") = forAll { (value: BigDecimal) =>
-    TestUtil.withTemp(value.toString) { t =>
-      Claim(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true))
-    }
+    TestUtil.withTemp(value.toString)(t => Claim(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true)))
   }
 }

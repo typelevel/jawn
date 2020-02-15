@@ -12,13 +12,9 @@ class ChannelSpec extends Properties("ChannelSpec") {
     val big = q + ("x" * (40 * M)) + q
     val bigEscaped = q + ("\\\\" * (20 * M)) + q
 
-    val ok1 = TestUtil.withTemp(big) { t =>
-      Parser.parseFromFile(t)(Facade.NullFacade).isSuccess
-    }
+    val ok1 = TestUtil.withTemp(big)(t => Parser.parseFromFile(t)(Facade.NullFacade).isSuccess)
 
-    val ok2 = TestUtil.withTemp(bigEscaped) { t =>
-      Parser.parseFromFile(t)(Facade.NullFacade).isSuccess
-    }
+    val ok2 = TestUtil.withTemp(bigEscaped)(t => Parser.parseFromFile(t)(Facade.NullFacade).isSuccess)
 
     Claim(ok1 && ok2)
   }

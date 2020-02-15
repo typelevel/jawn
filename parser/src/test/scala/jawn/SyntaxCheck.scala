@@ -87,9 +87,7 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     if (r0 == r1) r1 else sys.error(s"CharSequence/String parsing disagree($r0, $r1): $s")
     if (r1 == r2) r1 else sys.error(s"String/ByteBuffer parsing disagree($r1, $r2): $s")
 
-    TestUtil.withTemp(s) { t =>
-      Parser.parseFromFile(t)(NullFacade).isSuccess
-    }
+    TestUtil.withTemp(s)(t => Parser.parseFromFile(t)(NullFacade).isSuccess)
 
     val async = AsyncParser[Unit](AsyncParser.SingleValue)
     val r3 = async.finalAbsorb(s)(NullFacade) match {
@@ -103,9 +101,7 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     if (r1 == r4) r1 else sys.error(s"String/ByteArray parsing disagree($r1, $r4): $s")
   }
 
-  property("syntax-checking") = forAll { (j: J) =>
-    isValidSyntax(j.build)
-  }
+  property("syntax-checking") = forAll((j: J) => isValidSyntax(j.build))
 
   def qs(s: String): String = "\"" + s + "\""
 
