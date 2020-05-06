@@ -149,7 +149,7 @@ def support(s: String) =
 
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
-  .settings(libraryDependencies += ("org.json4s" %% "json4s-ast" % "3.6.7").withDottyCompat(scalaVersion.value))
+  .settings(libraryDependencies += ("org.json4s" %% "json4s-ast" % "3.6.8").withDottyCompat(scalaVersion.value))
 
 lazy val supportPlay = support("play")
   .settings(libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.8.1").withDottyCompat(scalaVersion.value))
