@@ -15,13 +15,11 @@ class Parser(useBigDecimalForDouble: Boolean, useBigIntForLong: Boolean) extends
       val jtrue: JValue = JBool(true)
 
       def jnum(s: CharSequence, decIndex: Int, expIndex: Int): JValue =
-        if (decIndex == -1 && expIndex == -1) {
+        if (decIndex == -1 && expIndex == -1)
           if (useBigIntForLong) JInt(BigInt(s.toString))
           else JLong(util.parseLongUnsafe(s))
-        } else {
-          if (useBigDecimalForDouble) JDecimal(BigDecimal(s.toString))
-          else JDouble(s.toString.toDouble)
-        }
+        else if (useBigDecimalForDouble) JDecimal(BigDecimal(s.toString))
+        else JDouble(s.toString.toDouble)
 
       def jstring(s: CharSequence): JValue = JString(s.toString)
 

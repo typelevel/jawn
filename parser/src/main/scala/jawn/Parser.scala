@@ -101,13 +101,12 @@ abstract class Parser[J] {
    */
   @tailrec private[this] def safeAt(i: Int, j: Int): CharSequence =
     if (j <= i) ""
-    else {
+    else
       try at(i, j)
       catch {
         case _: Exception =>
           safeAt(i, j - 1)
       }
-    }
 
   /**
    * Used to generate error messages with character info and offsets.
@@ -122,9 +121,9 @@ abstract class Parser[J] {
     val y = line() + 1
     val x = column(i) + 1
     val got: String =
-      if (atEof(i)) {
+      if (atEof(i))
         "eof"
-      } else {
+      else {
         var offset = 0
         while (offset < chars && !atEof(i + offset)) offset += 1
         val txt = safeAt(i, i + offset)
@@ -166,21 +165,19 @@ abstract class Parser[J] {
     if (c == '0') {
       j += 1
       c = at(j)
-    } else if ('1' <= c && c <= '9') {
+    } else if ('1' <= c && c <= '9')
       while ({ j += 1; c = at(j); '0' <= c && c <= '9' }) ()
-    } else {
+    else
       die(i, "expected digit")
-    }
 
     if (c == '.') {
       decIndex = j - i
       j += 1
       c = at(j)
-      if ('0' <= c && c <= '9') {
+      if ('0' <= c && c <= '9')
         while ({ j += 1; c = at(j); '0' <= c && c <= '9' }) ()
-      } else {
+      else
         die(i, "expected digit")
-      }
     }
 
     if (c == 'e' || c == 'E') {
@@ -191,11 +188,10 @@ abstract class Parser[J] {
         j += 1
         c = at(j)
       }
-      if ('0' <= c && c <= '9') {
+      if ('0' <= c && c <= '9')
         while ({ j += 1; c = at(j); '0' <= c && c <= '9' }) ()
-      } else {
+      else
         die(i, "expected digit")
-      }
     }
 
     ctxt.add(facade.jnum(at(i, j), decIndex, expIndex, i), i)
@@ -234,7 +230,7 @@ abstract class Parser[J] {
         return j
       }
       c = at(j)
-    } else if ('1' <= c && c <= '9') {
+    } else if ('1' <= c && c <= '9')
       while ({
         j += 1
         if (atEof(j)) {
@@ -244,16 +240,15 @@ abstract class Parser[J] {
         c = at(j)
         '0' <= c && c <= '9'
       }) ()
-    } else {
+    else
       die(i, "expected digit")
-    }
 
     if (c == '.') {
       // any valid input will require at least one digit after .
       decIndex = j - i
       j += 1
       c = at(j)
-      if ('0' <= c && c <= '9') {
+      if ('0' <= c && c <= '9')
         while ({
           j += 1
           if (atEof(j)) {
@@ -263,9 +258,8 @@ abstract class Parser[J] {
           c = at(j)
           '0' <= c && c <= '9'
         }) ()
-      } else {
+      else
         die(i, "expected digit")
-      }
     }
 
     if (c == 'e' || c == 'E') {
@@ -277,7 +271,7 @@ abstract class Parser[J] {
         j += 1
         c = at(j)
       }
-      if ('0' <= c && c <= '9') {
+      if ('0' <= c && c <= '9')
         while ({
           j += 1
           if (atEof(j)) {
@@ -287,9 +281,8 @@ abstract class Parser[J] {
           c = at(j)
           '0' <= c && c <= '9'
         }) ()
-      } else {
+      else
         die(i, "expected digit")
-      }
     }
 
     ctxt.add(facade.jnum(at(i, j), decIndex, expIndex, i), i)
@@ -326,11 +319,10 @@ abstract class Parser[J] {
    * Note that this method assumes that the first character has already been checked.
    */
   final protected[this] def parseTrue(i: Int)(implicit facade: Facade[J]): J =
-    if (at(i + 1) == 'r' && at(i + 2) == 'u' && at(i + 3) == 'e') {
+    if (at(i + 1) == 'r' && at(i + 2) == 'u' && at(i + 3) == 'e')
       facade.jtrue(i)
-    } else {
+    else
       die(i, "expected true")
-    }
 
   /**
    * Parse the JSON constant "false".
@@ -338,11 +330,10 @@ abstract class Parser[J] {
    * Note that this method assumes that the first character has already been checked.
    */
   final protected[this] def parseFalse(i: Int)(implicit facade: Facade[J]): J =
-    if (at(i + 1) == 'a' && at(i + 2) == 'l' && at(i + 3) == 's' && at(i + 4) == 'e') {
+    if (at(i + 1) == 'a' && at(i + 2) == 'l' && at(i + 3) == 's' && at(i + 4) == 'e')
       facade.jfalse(i)
-    } else {
+    else
       die(i, "expected false")
-    }
 
   /**
    * Parse the JSON constant "null".
@@ -350,19 +341,17 @@ abstract class Parser[J] {
    * Note that this method assumes that the first character has already been checked.
    */
   final protected[this] def parseNull(i: Int)(implicit facade: Facade[J]): J =
-    if (at(i + 1) == 'u' && at(i + 2) == 'l' && at(i + 3) == 'l') {
+    if (at(i + 1) == 'u' && at(i + 2) == 'l' && at(i + 3) == 'l')
       facade.jnull(i)
-    } else {
+    else
       die(i, "expected null")
-    }
 
   /**
    * Parse and return the next JSON value and the position beyond it.
    */
   final protected[this] def parse(i: Int)(implicit facade: Facade[J]): (J, Int) =
-    try {
-      parseTop(i)
-    } catch {
+    try parseTop(i)
+    catch {
       case _: IndexOutOfBoundsException => throw IncompleteParseException("exhausted input")
     }
 
@@ -429,81 +418,75 @@ abstract class Parser[J] {
     if (c == '\n') {
       newline(i)
       rparse(state, i + 1, context, stack)
-    } else if (c == ' ' || c == '\t' || c == '\r') {
+    } else if (c == ' ' || c == '\t' || c == '\r')
       rparse(state, i + 1, context, stack)
-    } else if (state == DATA) {
+    else if (state == DATA)
       // we are inside an object or array expecting to see data
-      if (c == '[') {
+      if (c == '[')
         rparse(ARRBEG, i + 1, facade.arrayContext(i), context :: stack)
-      } else if (c == '{') {
+      else if (c == '{')
         rparse(OBJBEG, i + 1, facade.objectContext(i), context :: stack)
-      } else {
-        if ((c >= '0' && c <= '9') || c == '-') {
-          val j = parseNum(i, context)
-          rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
-        } else if (c == '"') {
-          val j = parseString(i, context)
-          rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
-        } else if (c == 't') {
-          context.add(parseTrue(i), i)
-          rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
-        } else if (c == 'f') {
-          context.add(parseFalse(i), i)
-          rparse(if (context.isObj) OBJEND else ARREND, i + 5, context, stack)
-        } else if (c == 'n') {
-          context.add(parseNull(i), i)
-          rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
-        } else {
-          die(i, "expected json value")
-        }
-      }
-    } else if ((c == ']' && (state == ARREND || state == ARRBEG)) ||
-      (c == '}' && (state == OBJEND || state == OBJBEG))) {
+      else if ((c >= '0' && c <= '9') || c == '-') {
+        val j = parseNum(i, context)
+        rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
+      } else if (c == '"') {
+        val j = parseString(i, context)
+        rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
+      } else if (c == 't') {
+        context.add(parseTrue(i), i)
+        rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
+      } else if (c == 'f') {
+        context.add(parseFalse(i), i)
+        rparse(if (context.isObj) OBJEND else ARREND, i + 5, context, stack)
+      } else if (c == 'n') {
+        context.add(parseNull(i), i)
+        rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
+      } else
+        die(i, "expected json value")
+    else if (
+      (c == ']' && (state == ARREND || state == ARRBEG)) ||
+      (c == '}' && (state == OBJEND || state == OBJBEG))
+    )
       // we are inside an array or object and have seen a key or a closing
       // brace, respectively.
-      if (stack.isEmpty) {
+      if (stack.isEmpty)
         (context.finish(i), i + 1)
-      } else {
+      else {
         val ctxt2 = stack.head
         ctxt2.add(context.finish(i), i)
         rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2, stack.tail)
       }
-    } else if (state == KEY) {
+    else if (state == KEY)
       // we are in an object expecting to see a key.
       if (c == '"') {
         val j = parseString(i, context)
         rparse(SEP, j, context, stack)
-      } else {
+      } else
         die(i, "expected \"")
-      }
-    } else if (state == SEP) {
+    else if (state == SEP)
       // we are in an object just after a key, expecting to see a colon.
-      if (c == ':') {
+      if (c == ':')
         rparse(DATA, i + 1, context, stack)
-      } else {
+      else
         die(i, "expected :")
-      }
-    } else if (state == ARREND) {
+    else if (state == ARREND)
       // we are in an array, expecting to see a comma (before more data).
-      if (c == ',') {
+      if (c == ',')
         rparse(DATA, i + 1, context, stack)
-      } else {
+      else
         die(i, "expected ] or ,")
-      }
-    } else if (state == OBJEND) {
+    else if (state == OBJEND)
       // we are in an object, expecting to see a comma (before more data).
-      if (c == ',') {
+      if (c == ',')
         rparse(KEY, i + 1, context, stack)
-      } else {
+      else
         die(i, "expected } or ,")
-      }
-    } else if (state == ARRBEG) {
+    else if (state == ARRBEG)
       // we are starting an array, expecting to see data or a closing bracket.
       rparse(DATA, i, context, stack)
-    } else {
+    else
       // we are starting an object, expecting to see a key or a closing brace.
       rparse(KEY, i, context, stack)
-    }
   }
 }
 

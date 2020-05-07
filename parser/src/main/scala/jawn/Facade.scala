@@ -56,35 +56,38 @@ object Facade {
     def jarray(vs: List[J]): J
     def jobject(vs: Map[String, J]): J
 
-    final def singleContext(): FContext[J] = new FContext.NoIndexFContext[J] {
-      private[this] var value: J = _
-      def add(s: CharSequence): Unit = value = jstring(s)
-      def add(v: J): Unit = value = v
-      def finish(): J = value
-      def isObj: Boolean = false
-    }
+    final def singleContext(): FContext[J] =
+      new FContext.NoIndexFContext[J] {
+        private[this] var value: J = _
+        def add(s: CharSequence): Unit = value = jstring(s)
+        def add(v: J): Unit = value = v
+        def finish(): J = value
+        def isObj: Boolean = false
+      }
 
-    final def arrayContext(): FContext[J] = new FContext.NoIndexFContext[J] {
-      private[this] val vs = mutable.ListBuffer.empty[J]
-      def add(s: CharSequence): Unit = vs += jstring(s)
-      def add(v: J): Unit = vs += v
-      def finish(): J = jarray(vs.toList)
-      def isObj: Boolean = false
-    }
+    final def arrayContext(): FContext[J] =
+      new FContext.NoIndexFContext[J] {
+        private[this] val vs = mutable.ListBuffer.empty[J]
+        def add(s: CharSequence): Unit = vs += jstring(s)
+        def add(v: J): Unit = vs += v
+        def finish(): J = jarray(vs.toList)
+        def isObj: Boolean = false
+      }
 
-    final def objectContext(): FContext[J] = new FContext.NoIndexFContext[J] {
-      private[this] var key: String = null
-      private[this] var vs = Map.empty[String, J]
-      def add(s: CharSequence): Unit =
-        if (key == null) {
-          key = s.toString
-        } else {
-          vs = vs.updated(key, jstring(s)); key = null
-        }
-      def add(v: J): Unit = { vs = vs.updated(key, v); key = null }
-      def finish(): J = jobject(vs)
-      def isObj: Boolean = true
-    }
+    final def objectContext(): FContext[J] =
+      new FContext.NoIndexFContext[J] {
+        private[this] var key: String = null
+        private[this] var vs = Map.empty[String, J]
+        def add(s: CharSequence): Unit =
+          if (key == null)
+            key = s.toString
+          else {
+            vs = vs.updated(key, jstring(s)); key = null
+          }
+        def add(v: J): Unit = { vs = vs.updated(key, v); key = null }
+        def finish(): J = jobject(vs)
+        def isObj: Boolean = true
+      }
   }
 
   /**
@@ -95,35 +98,38 @@ object Facade {
     def jarray(vs: mutable.ArrayBuffer[J]): J
     def jobject(vs: mutable.Map[String, J]): J
 
-    final def singleContext(): FContext[J] = new FContext.NoIndexFContext[J] {
-      private[this] var value: J = _
-      def add(s: CharSequence): Unit = value = jstring(s)
-      def add(v: J): Unit = value = v
-      def finish(): J = value
-      def isObj: Boolean = false
-    }
+    final def singleContext(): FContext[J] =
+      new FContext.NoIndexFContext[J] {
+        private[this] var value: J = _
+        def add(s: CharSequence): Unit = value = jstring(s)
+        def add(v: J): Unit = value = v
+        def finish(): J = value
+        def isObj: Boolean = false
+      }
 
-    final def arrayContext(): FContext[J] = new FContext.NoIndexFContext[J] {
-      private[this] val vs = mutable.ArrayBuffer.empty[J]
-      def add(s: CharSequence): Unit = vs += jstring(s)
-      def add(v: J): Unit = vs += v
-      def finish(): J = jarray(vs)
-      def isObj: Boolean = false
-    }
+    final def arrayContext(): FContext[J] =
+      new FContext.NoIndexFContext[J] {
+        private[this] val vs = mutable.ArrayBuffer.empty[J]
+        def add(s: CharSequence): Unit = vs += jstring(s)
+        def add(v: J): Unit = vs += v
+        def finish(): J = jarray(vs)
+        def isObj: Boolean = false
+      }
 
-    final def objectContext(): FContext[J] = new FContext.NoIndexFContext[J] {
-      private[this] var key: String = null
-      private[this] val vs = mutable.Map.empty[String, J]
-      def add(s: CharSequence): Unit =
-        if (key == null) {
-          key = s.toString
-        } else {
-          vs(key) = jstring(s); key = null
-        }
-      def add(v: J): Unit = { vs(key) = v; key = null }
-      def finish(): J = jobject(vs)
-      def isObj: Boolean = true
-    }
+    final def objectContext(): FContext[J] =
+      new FContext.NoIndexFContext[J] {
+        private[this] var key: String = null
+        private[this] val vs = mutable.Map.empty[String, J]
+        def add(s: CharSequence): Unit =
+          if (key == null)
+            key = s.toString
+          else {
+            vs(key) = jstring(s); key = null
+          }
+        def add(v: J): Unit = { vs(key) = v; key = null }
+        def finish(): J = jobject(vs)
+        def isObj: Boolean = true
+      }
   }
 
   /**

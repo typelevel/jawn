@@ -47,7 +47,7 @@ class ParseLongCheck extends Properties("ParseLongCheck") {
 
     // avoid leading zeros, which .toLong is lax about
     val n2 = if (n1 == 0L) 1L else n1
-    val s2 = n2.toString + (m & 0x7FFFFFFFFFFFFFFFL).toString
+    val s2 = n2.toString + (m & 0x7fffffffffffffffL).toString
     val tx = Try(parseLong(s2)).toOption
     val ty = Try(s2.toLong).toOption
     val p2 = Claim(tx == ty)
@@ -55,20 +55,19 @@ class ParseLongCheck extends Properties("ParseLongCheck") {
     p1 && p2
   }
 
-  property("safe parser fails on test cases") = {
+  property("safe parser fails on test cases") =
     Claim(parseLong("9223372036854775807") == Long.MaxValue) &&
-    Claim(parseLong("-9223372036854775808") == Long.MinValue) &&
-    Claim(parseLong("-0") == 0L) &&
-    Claim(Try(parseLong("")).isFailure) &&
-    Claim(Try(parseLong("+0")).isFailure) &&
-    Claim(Try(parseLong("00")).isFailure) &&
-    Claim(Try(parseLong("01")).isFailure) &&
-    Claim(Try(parseLong("+1")).isFailure) &&
-    Claim(Try(parseLong("-")).isFailure) &&
-    Claim(Try(parseLong("--1")).isFailure) &&
-    Claim(Try(parseLong("9223372036854775808")).isFailure) &&
-    Claim(Try(parseLong("-9223372036854775809")).isFailure)
-  }
+      Claim(parseLong("-9223372036854775808") == Long.MinValue) &&
+      Claim(parseLong("-0") == 0L) &&
+      Claim(Try(parseLong("")).isFailure) &&
+      Claim(Try(parseLong("+0")).isFailure) &&
+      Claim(Try(parseLong("00")).isFailure) &&
+      Claim(Try(parseLong("01")).isFailure) &&
+      Claim(Try(parseLong("+1")).isFailure) &&
+      Claim(Try(parseLong("-")).isFailure) &&
+      Claim(Try(parseLong("--1")).isFailure) &&
+      Claim(Try(parseLong("9223372036854775808")).isFailure) &&
+      Claim(Try(parseLong("-9223372036854775809")).isFailure)
 
   // NOTE: parseLongUnsafe is not guaranteed to crash, or do anything
   // predictable, on invalid input, so we don't test this direction.

@@ -18,9 +18,8 @@ object ChannelParser {
       fis.read(bytes)
       fis.close()
       new StringParser[J](new String(bytes, "UTF-8"))
-    } else {
+    } else
       new ChannelParser[J](new FileInputStream(f).getChannel, bufferSize)
-    }
 
   def fromChannel[J](ch: ReadableByteChannel, bufferSize: Int = DefaultBufferSize): ChannelParser[J] =
     new ChannelParser[J](ch, bufferSize)
@@ -33,15 +32,14 @@ object ChannelParser {
    * or too large to have a valid power of two.
    */
   def computeBufferSize(x: Int): Int =
-    if (x < 0) {
+    if (x < 0)
       throw new IllegalArgumentException(s"negative bufferSize ($x)")
-    } else if (x > 0x40000000) {
+    else if (x > 0x40000000)
       throw new IllegalArgumentException(s"bufferSize too large ($x)")
-    } else if (bitCount(x) == 1) {
+    else if (bitCount(x) == 1)
       x
-    } else {
+    else
       highestOneBit(x) << 1
-    }
 }
 
 /**
@@ -110,9 +108,8 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
       nnext = ch.read(ByteBuffer.wrap(next))
       pos -= Bufsize
       i - Bufsize
-    } else {
+    } else
       i
-    }
 
   final protected[this] def checkpoint(state: Int, i: Int, context: FContext[J], stack: List[FContext[J]]): Unit =
     ()
@@ -152,11 +149,11 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
     if (k > Allsize) {
       grow()
       at(i, k)
-    } else if (k <= Bufsize) {
+    } else if (k <= Bufsize)
       new String(curr, i, len, utf8)
-    } else if (i >= Bufsize) {
+    else if (i >= Bufsize)
       new String(next, i - Bufsize, len, utf8)
-    } else {
+    else {
       val arr = new Array[Byte](len)
       val mid = Bufsize - i
       System.arraycopy(curr, i, arr, 0, mid)

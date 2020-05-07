@@ -58,17 +58,17 @@ trait ByteBasedParser[J] extends Parser[J] {
 
     var c: Int = byte(j) & 0xff
     while (c != 34) { // "
-      if (c == 92) { // \
+      if (c == 92) // \
         (byte(j + 1): @switch) match {
-          case 98 => { sb.append('\b'); j += 2 }
-          case 102 => { sb.append('\f'); j += 2 }
-          case 110 => { sb.append('\n'); j += 2 }
-          case 114 => { sb.append('\r'); j += 2 }
-          case 116 => { sb.append('\t'); j += 2 }
+          case 98 => sb.append('\b'); j += 2
+          case 102 => sb.append('\f'); j += 2
+          case 110 => sb.append('\n'); j += 2
+          case 114 => sb.append('\r'); j += 2
+          case 116 => sb.append('\t'); j += 2
 
-          case 34 => { sb.append('"'); j += 2 }
-          case 47 => { sb.append('/'); j += 2 }
-          case 92 => { sb.append('\\'); j += 2 }
+          case 34 => sb.append('"'); j += 2
+          case 47 => sb.append('/'); j += 2
+          case 92 => sb.append('\\'); j += 2
 
           // if there's a problem then descape will explode
           case 117 =>
@@ -78,9 +78,9 @@ trait ByteBasedParser[J] extends Parser[J] {
 
           case c => die(j, s"invalid escape sequence (\\${c.toChar})", 1)
         }
-      } else if (c < 32) {
+      else if (c < 32)
         die(j, s"control char ($c) in string", 1)
-      } else if (c < 128) {
+      else if (c < 128) {
         // 1-byte UTF-8 sequence
         sb.append(c.toChar)
         j += 1
@@ -96,9 +96,8 @@ trait ByteBasedParser[J] extends Parser[J] {
         // 4-byte UTF-8 sequence
         sb.append(at(j, j + 4))
         j += 4
-      } else {
+      } else
         die(j, "invalid UTF-8 encoding")
-      }
       c = byte(j) & 0xff
     }
     ctxt.add(sb.toString, i)

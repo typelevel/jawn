@@ -10,11 +10,10 @@ object JawnFacade extends Facade.NoIndexFacade[JValue] {
   final def jtrue: JValue = JTrue
 
   final def jnum(s: CharSequence, decIndex: Int, expIndex: Int): JValue =
-    if (decIndex == -1 && expIndex == -1) {
+    if (decIndex == -1 && expIndex == -1)
       DeferLong(s.toString)
-    } else {
+    else
       DeferNum(s.toString)
-    }
 
   final def jstring(s: CharSequence): JValue =
     JString(s.toString)
@@ -42,9 +41,9 @@ object JawnFacade extends Facade.NoIndexFacade[JValue] {
       private[this] var key: String = null
       private[this] val vs = mutable.TreeMap.empty[String, JValue]
       def add(s: CharSequence): Unit =
-        if (key == null) {
+        if (key == null)
           key = s.toString
-        } else {
+        else {
           vs(key.toString) = JString(s.toString); key = null
         }
       def add(v: JValue): Unit = { vs(key) = v; key = null }

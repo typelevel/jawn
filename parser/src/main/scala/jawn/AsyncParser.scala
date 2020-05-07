@@ -173,8 +173,8 @@ final class AsyncParser[J] protected[jawn] (
 
     // we rely on exceptions to tell us when we run out of data
     try {
-      while (true) {
-        if (state < 0) {
+      while (true)
+        if (state < 0)
           (at(offset): @switch) match {
             case '\n' =>
               newline(offset)
@@ -187,82 +187,74 @@ final class AsyncParser[J] protected[jawn] (
               if (state == ASYNC_PRESTART) {
                 offset += 1
                 state = ASYNC_START
-              } else if (state == ASYNC_END) {
+              } else if (state == ASYNC_END)
                 die(offset, "expected eof")
-              } else if (state == ASYNC_POSTVAL) {
+              else if (state == ASYNC_POSTVAL)
                 die(offset, "expected , or ]")
-              } else {
+              else
                 state = 0
-              }
 
             case ',' =>
               if (state == ASYNC_POSTVAL) {
                 offset += 1
                 state = ASYNC_PREVAL
-              } else if (state == ASYNC_END) {
+              } else if (state == ASYNC_END)
                 die(offset, "expected eof")
-              } else {
+              else
                 die(offset, "expected json value")
-              }
 
             case ']' =>
-              if (state == ASYNC_POSTVAL || state == ASYNC_START) {
+              if (state == ASYNC_POSTVAL || state == ASYNC_START)
                 if (streamMode > 0) {
                   offset += 1
                   state = ASYNC_END
-                } else {
+                } else
                   die(offset, "expected json value or eof")
-                }
-              } else if (state == ASYNC_END) {
+              else if (state == ASYNC_END)
                 die(offset, "expected eof")
-              } else {
+              else
                 die(offset, "expected json value")
-              }
 
             case c =>
-              if (state == ASYNC_END) {
+              if (state == ASYNC_END)
                 die(offset, "expected eof")
-              } else if (state == ASYNC_POSTVAL) {
+              else if (state == ASYNC_POSTVAL)
                 die(offset, "expected ] or ,")
-              } else {
+              else {
                 if (state == ASYNC_PRESTART && streamMode > 0) streamMode = -1
                 state = 0
               }
           }
-
-        } else {
+        else {
           // jump straight back into rparse
           offset = reset(offset)
-          val (value, j) = if (state <= 0) {
-            parse(offset)
-          } else {
-            rparse(state, curr, context, stack)
-          }
-          if (streamMode > 0) {
+          val (value, j) =
+            if (state <= 0)
+              parse(offset)
+            else
+              rparse(state, curr, context, stack)
+          if (streamMode > 0)
             state = ASYNC_POSTVAL
-          } else if (streamMode == 0) {
+          else if (streamMode == 0)
             state = ASYNC_PREVAL
-          } else {
+          else
             state = ASYNC_END
-          }
           curr = j
           offset = j
           context = null
           stack = Nil
           results += value
         }
-      }
       Right(results)
     } catch {
       case e: AsyncException =>
-        if (done) {
+        if (done)
           // if we are done, make sure we ended at a good stopping point
           if (state == ASYNC_PREVAL || state == ASYNC_END) Right(results)
           else Left(ParseException("exhausted input", -1, -1, -1))
-        } else {
+        else
           // we ran out of data, so return what we have so far
           Right(results)
-        }
 
       case e: ParseException =>
         // we hit a parser error, so return that error and results so far
@@ -280,9 +272,8 @@ final class AsyncParser[J] protected[jawn] (
       pos -= diff
       System.arraycopy(data, diff, data, 0, len)
       i - diff
-    } else {
+    } else
       i
-    }
 
   /**
    * We use this to keep track of the last recoverable place we've
