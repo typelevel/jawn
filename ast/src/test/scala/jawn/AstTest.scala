@@ -64,13 +64,12 @@ class AstTest extends Properties("AstTest") {
   }
 
   property(".getBigDecimal") = forAll { (n: BigDecimal) =>
-    if (Try(BigDecimal(n.toString)) == Success(n)) {
+    if (Try(BigDecimal(n.toString)) == Success(n))
       Claim(
         JNum(n.toString).getBigDecimal == Some(n) &&
           JParser.parseUnsafe(n.toString).getBigDecimal == Some(n)
       )
-    } else {
+    else
       Claim(true)
-    }
   }
 }

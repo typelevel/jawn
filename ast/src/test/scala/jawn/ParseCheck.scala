@@ -70,9 +70,8 @@ class AstCheck extends Properties("AstCheck") {
       val offsets = percs.map(n => (json.length * n).toInt)
       val pairs = offsets.zip(offsets.drop(1))
       pairs.map { case (i, j) => json.substring(i, j) }
-    } else {
+    } else
       json :: Nil
-    }
 
   def parseSegments(p: AsyncParser[JValue], segments: List[String]): collection.Seq[JValue] =
     segments.foldLeft(List.empty[JValue]) { (rs, s) =>
@@ -132,7 +131,7 @@ class AstCheck extends Properties("AstCheck") {
     val M = 1000000
     val q = "\""
 
-    val s0 = ("x" * (40 * M))
+    val s0 = "x" * (40 * M)
     val e0 = q + s0 + q
     val p0: Prop = TestUtil.withTemp(e0)(t => Claim(JParser.parseFromFile(t).filter(_ == JString(s0)).isSuccess))
 

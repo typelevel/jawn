@@ -46,9 +46,8 @@ package object util {
     }
 
     // detect and throw on overflow
-    if (size == 19 && (inverseSum >= 0 || (inverseSum == Long.MinValue && inverseSign < 0))) {
+    if (size == 19 && (inverseSum >= 0 || (inverseSum == Long.MinValue && inverseSign < 0)))
       throw InvalidLong(cs.toString)
-    }
 
     inverseSum * inverseSign
   }
