@@ -44,19 +44,19 @@ trait CharBasedParser[J] extends Parser[J] {
 
     var c = at(j)
     while (c != '"') {
-      if (c < ' ') {
+      if (c < ' ')
         die(j, s"control char (${c.toInt}) in string", 1)
-      } else if (c == '\\') {
+      else if (c == '\\')
         (at(j + 1): @switch) match {
-          case 'b' => { sb.append('\b'); j += 2 }
-          case 'f' => { sb.append('\f'); j += 2 }
-          case 'n' => { sb.append('\n'); j += 2 }
-          case 'r' => { sb.append('\r'); j += 2 }
-          case 't' => { sb.append('\t'); j += 2 }
+          case 'b' => sb.append('\b'); j += 2
+          case 'f' => sb.append('\f'); j += 2
+          case 'n' => sb.append('\n'); j += 2
+          case 'r' => sb.append('\r'); j += 2
+          case 't' => sb.append('\t'); j += 2
 
-          case '"' => { sb.append('"'); j += 2 }
-          case '/' => { sb.append('/'); j += 2 }
-          case '\\' => { sb.append('\\'); j += 2 }
+          case '"' => sb.append('"'); j += 2
+          case '/' => sb.append('/'); j += 2
+          case '\\' => sb.append('\\'); j += 2
 
           // if there's a problem then descape will explode
           case 'u' =>
@@ -66,7 +66,7 @@ trait CharBasedParser[J] extends Parser[J] {
 
           case c => die(j, s"illegal escape sequence (\\$c)", 1)
         }
-      } else {
+      else {
         // this case is for "normal" code points that are just one Char.
         //
         // we don't have to worry about surrogate pairs, since those
@@ -95,8 +95,7 @@ trait CharBasedParser[J] extends Parser[J] {
     if (k != -1) {
       ctxt.add(at(i + 1, k - 1), i)
       k
-    } else {
+    } else
       parseStringComplex(i, ctxt)
-    }
   }
 }

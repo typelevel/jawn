@@ -75,11 +75,10 @@ lazy val jawnSettings = Seq(
   pomIncludeRepository := Function.const(false),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value) {
+    if (isSnapshot.value)
       Some("Snapshots".at(nexus + "content/repositories/snapshots"))
-    } else {
+    else
       Some("Releases".at(nexus + "service/local/staging/deploy/maven2"))
-    }
   },
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
@@ -115,9 +114,9 @@ lazy val parser = project
   .settings(jawnSettings: _*)
   .settings(
     Test / unmanagedSourceDirectories ++= (
-      if (isDotty.value) {
+      if (isDotty.value)
         List(baseDirectory.value / "src" / "test" / "dotty")
-      } else Nil
+      else Nil
     )
   )
   .disablePlugins(JmhPlugin)

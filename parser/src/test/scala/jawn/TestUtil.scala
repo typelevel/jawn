@@ -9,10 +9,7 @@ object TestUtil {
     val pw = new PrintWriter(t)
     pw.println(s)
     pw.close()
-    try {
-      f(t)
-    } finally {
-      t.delete()
-    }
+    try f(t)
+    finally t.delete()
   }
 }

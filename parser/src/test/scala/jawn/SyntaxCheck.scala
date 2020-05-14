@@ -12,18 +12,19 @@ import Facade.NullFacade
 class SyntaxCheck extends Properties("SyntaxCheck") {
 
   sealed trait J {
-    def build: String = this match {
-      case JAtom(s) => s
-      case JArray(js) => js.map(_.build).mkString("[", ",", "]")
-      case JObject(js) =>
-        js.map {
-            case (k, v) =>
-              val kk = "\"" + k + "\""
-              val vv = v.build
-              s"$kk: $vv"
-          }
-          .mkString("{", ",", "}")
-    }
+    def build: String =
+      this match {
+        case JAtom(s) => s
+        case JArray(js) => js.map(_.build).mkString("[", ",", "]")
+        case JObject(js) =>
+          js.map {
+              case (k, v) =>
+                val kk = "\"" + k + "\""
+                val vv = v.build
+                s"$kk: $vv"
+            }
+            .mkString("{", ",", "}")
+      }
   }
 
   case class JAtom(s: String) extends J
@@ -65,15 +66,14 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     Gen.containerOf[List, (String, J)](jitem(lvl + 1)).map(ts => JObject(ts.toMap))
 
   def jvalue(lvl: Int): Gen[J] =
-    if (lvl < 3) {
+    if (lvl < 3)
       Gen.frequency((16, Symbol("ato")), (1, Symbol("arr")), (2, Symbol("obj"))).flatMap {
         case Symbol("ato") => jatom
         case Symbol("arr") => jarray(lvl)
         case Symbol("obj") => jobject(lvl)
       }
-    } else {
+    else
       jatom
-    }
 
   implicit lazy val arbJValue: Arbitrary[J] =
     Arbitrary(jvalue(0))
@@ -111,108 +111,89 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     isValidSyntax(qs("\\\\ö"))
   }
 
-  property("valid unicode is ok") = {
+  property("valid unicode is ok") =
     isValidSyntax("\"\\u0000\"") &&
-    isValidSyntax("\"\\uffff\"") &&
-    isValidSyntax("\"\\uFFFF\"")
-  }
+      isValidSyntax("\"\\uffff\"") &&
+      isValidSyntax("\"\\uFFFF\"")
 
-  property("invalid unicode is invalid") = {
+  property("invalid unicode is invalid") =
     isValidSyntax("\"\\uqqqq\"") != true &&
-    isValidSyntax("\"\\ugggg\"") != true &&
-    isValidSyntax("\"\\uGGGG\"") != true &&
-    isValidSyntax("\"\\ughij\"") != true &&
-    isValidSyntax("\"\\uklmn\"") != true &&
-    isValidSyntax("\"\\uopqr\"") != true &&
-    isValidSyntax("\"\\ustuv\"") != true &&
-    isValidSyntax("\"\\uwxyz\"") != true &&
-    isValidSyntax("\"\\u1\"") != true &&
-    isValidSyntax("\"\\u12\"") != true &&
-    isValidSyntax("\"\\u123\"") != true
-  }
+      isValidSyntax("\"\\ugggg\"") != true &&
+      isValidSyntax("\"\\uGGGG\"") != true &&
+      isValidSyntax("\"\\ughij\"") != true &&
+      isValidSyntax("\"\\uklmn\"") != true &&
+      isValidSyntax("\"\\uopqr\"") != true &&
+      isValidSyntax("\"\\ustuv\"") != true &&
+      isValidSyntax("\"\\uwxyz\"") != true &&
+      isValidSyntax("\"\\u1\"") != true &&
+      isValidSyntax("\"\\u12\"") != true &&
+      isValidSyntax("\"\\u123\"") != true
 
-  property("empty is invalid") = { isValidSyntax("") != true }
-  property("} is invalid") = { isValidSyntax("}") != true }
+  property("empty is invalid") = isValidSyntax("") != true
+  property("} is invalid") = isValidSyntax("}") != true
 
-  property("literal TAB is invalid") = { isValidSyntax(qs("\t")) != true }
-  property("literal NL is invalid") = { isValidSyntax(qs("\n")) != true }
-  property("literal CR is invalid") = { isValidSyntax(qs("\r")) != true }
-  property("literal NUL is invalid") = { isValidSyntax(qs("\u0000")) != true }
-  property("literal BS TAB is invalid") = { isValidSyntax(qs("\\\t")) != true }
-  property("literal BS NL is invalid") = { isValidSyntax(qs("\\\n")) != true }
-  property("literal BS CR is invalid") = { isValidSyntax(qs("\\\r")) != true }
-  property("literal BS NUL is invalid") = { isValidSyntax(qs("\\\u0000")) != true }
-  property("literal BS ZERO is invalid") = { isValidSyntax(qs("\\0")) != true }
-  property("literal BS X is invalid") = { isValidSyntax(qs("\\x")) != true }
+  property("literal TAB is invalid") = isValidSyntax(qs("\t")) != true
+  property("literal NL is invalid") = isValidSyntax(qs("\n")) != true
+  property("literal CR is invalid") = isValidSyntax(qs("\r")) != true
+  property("literal NUL is invalid") = isValidSyntax(qs("\u0000")) != true
+  property("literal BS TAB is invalid") = isValidSyntax(qs("\\\t")) != true
+  property("literal BS NL is invalid") = isValidSyntax(qs("\\\n")) != true
+  property("literal BS CR is invalid") = isValidSyntax(qs("\\\r")) != true
+  property("literal BS NUL is invalid") = isValidSyntax(qs("\\\u0000")) != true
+  property("literal BS ZERO is invalid") = isValidSyntax(qs("\\0")) != true
+  property("literal BS X is invalid") = isValidSyntax(qs("\\x")) != true
 
-  property("0 is ok") = { isValidSyntax("0") }
-  property("0e is invalid") = { isValidSyntax("0e") != true }
-  property("123e is invalid") = { isValidSyntax("123e") != true }
-  property(".999 is invalid") = { isValidSyntax(".999") != true }
-  property("0.999 is ok") = { isValidSyntax("0.999") }
-  property("-.999 is invalid") = { isValidSyntax("-.999") != true }
-  property("-0.999 is ok") = { isValidSyntax("-0.999") }
-  property("+0.999 is invalid") = { isValidSyntax("+0.999") != true }
-  property("--0.999 is invalid") = { isValidSyntax("--0.999") != true }
-  property("01 is invalid") = { isValidSyntax("01") != true }
-  property("1e is invalid") = { isValidSyntax("1e") != true }
-  property("1e- is invalid") = { isValidSyntax("1e+") != true }
-  property("1e+ is invalid") = { isValidSyntax("1e-") != true }
-  property("1. is invalid") = { isValidSyntax("1.") != true }
-  property("1.e is invalid") = { isValidSyntax("1.e") != true }
-  property("1.e9 is invalid") = { isValidSyntax("1.e9") != true }
-  property("1.e- is invalid") = { isValidSyntax("1.e+") != true }
-  property("1.e+ is invalid") = { isValidSyntax("1.e-") != true }
-  property("1.1e is invalid") = { isValidSyntax("1.1e") != true }
-  property("1.1e- is invalid") = { isValidSyntax("1.1e-") != true }
-  property("1.1e+ is invalid") = { isValidSyntax("1.1e+") != true }
-  property("1.1e1 is ok") = { isValidSyntax("1.1e1") }
-  property("1.1e-1 is ok") = { isValidSyntax("1.1e-1") }
-  property("1.1e+1 is ok") = { isValidSyntax("1.1e+1") }
-  property("1+ is invalid") = { isValidSyntax("1+") != true }
-  property("1- is invalid") = { isValidSyntax("1-") != true }
+  property("0 is ok") = isValidSyntax("0")
+  property("0e is invalid") = isValidSyntax("0e") != true
+  property("123e is invalid") = isValidSyntax("123e") != true
+  property(".999 is invalid") = isValidSyntax(".999") != true
+  property("0.999 is ok") = isValidSyntax("0.999")
+  property("-.999 is invalid") = isValidSyntax("-.999") != true
+  property("-0.999 is ok") = isValidSyntax("-0.999")
+  property("+0.999 is invalid") = isValidSyntax("+0.999") != true
+  property("--0.999 is invalid") = isValidSyntax("--0.999") != true
+  property("01 is invalid") = isValidSyntax("01") != true
+  property("1e is invalid") = isValidSyntax("1e") != true
+  property("1e- is invalid") = isValidSyntax("1e+") != true
+  property("1e+ is invalid") = isValidSyntax("1e-") != true
+  property("1. is invalid") = isValidSyntax("1.") != true
+  property("1.e is invalid") = isValidSyntax("1.e") != true
+  property("1.e9 is invalid") = isValidSyntax("1.e9") != true
+  property("1.e- is invalid") = isValidSyntax("1.e+") != true
+  property("1.e+ is invalid") = isValidSyntax("1.e-") != true
+  property("1.1e is invalid") = isValidSyntax("1.1e") != true
+  property("1.1e- is invalid") = isValidSyntax("1.1e-") != true
+  property("1.1e+ is invalid") = isValidSyntax("1.1e+") != true
+  property("1.1e1 is ok") = isValidSyntax("1.1e1")
+  property("1.1e-1 is ok") = isValidSyntax("1.1e-1")
+  property("1.1e+1 is ok") = isValidSyntax("1.1e+1")
+  property("1+ is invalid") = isValidSyntax("1+") != true
+  property("1- is invalid") = isValidSyntax("1-") != true
 
   def isStackSafe(s: String): Try[Boolean] =
-    try {
-      Success(isValidSyntax(s))
-    } catch {
+    try Success(isValidSyntax(s))
+    catch {
       case (e: StackOverflowError) => Failure(e)
       case (e: Exception) => Failure(e)
     }
 
   val S = "     " * 2000
 
-  property("stack-safety 1") = {
-    Claim(isStackSafe(s"${S}[${S}null${S}]${S}") == Success(true))
-  }
+  property("stack-safety 1") = Claim(isStackSafe(s"${S}[${S}null${S}]${S}") == Success(true))
 
-  property("stack-safety 2") = {
-    Claim(isStackSafe(s"${S}[${S}nul${S}]${S}") == Success(false))
-  }
+  property("stack-safety 2") = Claim(isStackSafe(s"${S}[${S}nul${S}]${S}") == Success(false))
 
-  property("stack-safety 3") = {
-    Claim(isStackSafe(S) == Success(false))
-  }
+  property("stack-safety 3") = Claim(isStackSafe(S) == Success(false))
 
-  property("stack-safety 4") = {
-    Claim(isStackSafe(s"${S}false${S}") == Success(true))
-  }
+  property("stack-safety 4") = Claim(isStackSafe(s"${S}false${S}") == Success(true))
 
-  property("stack-safety 5") = {
-    Claim(isStackSafe(s"${S}fals\\u0065${S}") == Success(false))
-  }
+  property("stack-safety 5") = Claim(isStackSafe(s"${S}fals\\u0065${S}") == Success(false))
 
-  property("stack-safety 6") = {
-    Claim(isStackSafe(s"${S}fals${S}") == Success(false))
-  }
+  property("stack-safety 6") = Claim(isStackSafe(s"${S}fals${S}") == Success(false))
 
-  property("stack-safety 7") = {
-    Claim(isStackSafe(s"false${S}false") == Success(false))
-  }
+  property("stack-safety 7") = Claim(isStackSafe(s"false${S}false") == Success(false))
 
-  property("stack-safety 8") = {
-    Claim(isStackSafe(s"false${S},${S}false") == Success(false))
-  }
+  property("stack-safety 8") = Claim(isStackSafe(s"false${S},${S}false") == Success(false))
 
   def testErrorLoc(json: String, line: Int, col: Int): Prop = {
     import java.io.ByteArrayInputStream
@@ -250,10 +231,10 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     extract2(Parser.async(AsyncParser.UnwrapArray).finalAbsorb(json)(NullFacade))
   }
 
-  property("error location 1") = { testErrorLoc("[1, 2,\nx3]", 2, 1) }
-  property("error location 2") = { testErrorLoc("[1, 2,    \n   x3]", 2, 4) }
-  property("error location 3") = { testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1) }
-  property("error location 4") = { testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2) }
+  property("error location 1") = testErrorLoc("[1, 2,\nx3]", 2, 1)
+  property("error location 2") = testErrorLoc("[1, 2,    \n   x3]", 2, 4)
+  property("error location 3") = testErrorLoc("[1, 2,\n\n\n\n\nx3]", 6, 1)
+  property("error location 4") = testErrorLoc("[1, 2,\n\n3,\n4,\n\n x3]", 6, 2)
 
   property("no extra \" in error message") = {
     val result = Parser.parseFromString("\"\u0000\"")(NullFacade)
