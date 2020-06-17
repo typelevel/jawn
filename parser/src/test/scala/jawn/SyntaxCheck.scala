@@ -18,12 +18,11 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
         case JArray(js) => js.map(_.build).mkString("[", ",", "]")
         case JObject(js) =>
           js.map {
-              case (k, v) =>
-                val kk = "\"" + k + "\""
-                val vv = v.build
-                s"$kk: $vv"
-            }
-            .mkString("{", ",", "}")
+            case (k, v) =>
+              val kk = "\"" + k + "\""
+              val vv = v.build
+              s"$kk: $vv"
+          }.mkString("{", ",", "}")
       }
   }
 
