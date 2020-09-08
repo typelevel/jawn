@@ -17,11 +17,10 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
         case JAtom(s) => s
         case JArray(js) => js.map(_.build).mkString("[", ",", "]")
         case JObject(js) =>
-          js.map {
-            case (k, v) =>
-              val kk = "\"" + k + "\""
-              val vv = v.build
-              s"$kk: $vv"
+          js.map { case (k, v) =>
+            val kk = "\"" + k + "\""
+            val vv = v.build
+            s"$kk: $vv"
           }.mkString("{", ",", "}")
       }
   }
@@ -110,23 +109,21 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
     isValidSyntax(qs("\\\\ö"))
   }
 
-  property("valid unicode is ok") =
-    isValidSyntax("\"\\u0000\"") &&
-      isValidSyntax("\"\\uffff\"") &&
-      isValidSyntax("\"\\uFFFF\"")
+  property("valid unicode is ok") = isValidSyntax("\"\\u0000\"") &&
+    isValidSyntax("\"\\uffff\"") &&
+    isValidSyntax("\"\\uFFFF\"")
 
-  property("invalid unicode is invalid") =
-    isValidSyntax("\"\\uqqqq\"") != true &&
-      isValidSyntax("\"\\ugggg\"") != true &&
-      isValidSyntax("\"\\uGGGG\"") != true &&
-      isValidSyntax("\"\\ughij\"") != true &&
-      isValidSyntax("\"\\uklmn\"") != true &&
-      isValidSyntax("\"\\uopqr\"") != true &&
-      isValidSyntax("\"\\ustuv\"") != true &&
-      isValidSyntax("\"\\uwxyz\"") != true &&
-      isValidSyntax("\"\\u1\"") != true &&
-      isValidSyntax("\"\\u12\"") != true &&
-      isValidSyntax("\"\\u123\"") != true
+  property("invalid unicode is invalid") = isValidSyntax("\"\\uqqqq\"") != true &&
+    isValidSyntax("\"\\ugggg\"") != true &&
+    isValidSyntax("\"\\uGGGG\"") != true &&
+    isValidSyntax("\"\\ughij\"") != true &&
+    isValidSyntax("\"\\uklmn\"") != true &&
+    isValidSyntax("\"\\uopqr\"") != true &&
+    isValidSyntax("\"\\ustuv\"") != true &&
+    isValidSyntax("\"\\uwxyz\"") != true &&
+    isValidSyntax("\"\\u1\"") != true &&
+    isValidSyntax("\"\\u12\"") != true &&
+    isValidSyntax("\"\\u123\"") != true
 
   property("empty is invalid") = isValidSyntax("") != true
   property("} is invalid") = isValidSyntax("}") != true
