@@ -4,7 +4,7 @@ lazy val previousJawnVersion = "1.0.0"
 
 lazy val scala212 = "2.12.10"
 lazy val scala213 = "2.13.1"
-lazy val dotty = "0.26.0-RC1"
+lazy val dotty = "0.27.0-RC1"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
