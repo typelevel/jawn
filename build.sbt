@@ -71,7 +71,13 @@ lazy val jawnSettings = Seq(
   releaseVcsSign := true,
   publishMavenStyle := true,
   publishArtifact in Test := false,
-  publishArtifact in (Compile, packageDoc) := !isDotty.value,
+  Compile / doc / sources := {
+    val old = (Compile / doc / sources).value
+    if (isDotty.value)
+      Seq()
+    else
+      old
+  },
   pomIncludeRepository := Function.const(false),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
