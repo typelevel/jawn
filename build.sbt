@@ -38,7 +38,7 @@ lazy val jawnSettings = Seq(
   resolvers += Resolver.sonatypeRepo("releases"),
   Test / fork := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-  libraryDependencies += ("org.scalacheck" %% "scalacheck" % "1.14.3" % Test).withDottyCompat(scalaVersion.value),
+  libraryDependencies += ("org.scalacheck" %% "scalacheck" % "1.15.0" % Test).withDottyCompat(scalaVersion.value),
   libraryDependencies ++= (
     if (isDotty.value) Nil
     else List("org.typelevel" %% "claimant" % "0.1.3" % Test)
