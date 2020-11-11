@@ -160,7 +160,7 @@ lazy val supportPlay = support("play")
   .settings(libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.9.1").withDottyCompat(scalaVersion.value))
 
 lazy val supportSpray = support("spray")
-  .settings(libraryDependencies += ("io.spray" %% "spray-json" % "1.3.5").withDottyCompat(scalaVersion.value))
+  .settings(libraryDependencies += ("io.spray" %% "spray-json" % "1.3.6").withDottyCompat(scalaVersion.value))
 
 lazy val benchmark = project
   .in(file("benchmark"))
