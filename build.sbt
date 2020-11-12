@@ -49,23 +49,8 @@ lazy val jawnSettings = Seq(
       "-feature" ::
       "-unchecked" ::
       "-Xlint" ::
+      "-opt:l:method" ::
       Nil,
-  scalacOptions ++= {
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, v)) if v <= 12 =>
-        Seq("-Xfatal-warnings", "-Xfuture")
-      case _ =>
-        Nil
-    }
-  },
-  scalacOptions += {
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, v)) if v <= 11 =>
-        "-optimize"
-      case _ =>
-        "-opt:l:method"
-    }
-  },
   // release stuff
   releaseCrossBuild := true,
   releaseVcsSign := true,
