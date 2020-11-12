@@ -4,7 +4,8 @@ lazy val previousJawnVersion = "1.0.0"
 
 lazy val scala212 = "2.12.10"
 lazy val scala213 = "2.13.1"
-lazy val dotty = "0.27.0-RC1"
+lazy val dottyPrev = "0.27.0-RC1"
+lazy val dottyNext = "3.0.0-M1"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -28,7 +29,7 @@ lazy val benchmarkVersion =
   scala212
 
 lazy val jawnSettings = Seq(
-  crossScalaVersions := Seq(scala212, scala213, dotty),
+  crossScalaVersions := Seq(scala212, scala213, dottyPrev, dottyNext),
   mimaPreviousArtifacts := {
     if (scalaVersion.value.startsWith("2"))
       Set(organization.value %% moduleName.value % previousJawnVersion)
