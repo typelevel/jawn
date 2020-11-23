@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: olafurpg/setup-scala@v5
+    - uses: olafurpg/setup-scala@v10
       with:
         java-version: openjdk@1.11.0
     - name: Scalafmt
