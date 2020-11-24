@@ -45,7 +45,7 @@ trait ByteBasedParser[J] extends Parser[J] {
   final protected[this] def parseString(i: Int, ctxt: FContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)
     if (k != -1) {
-      ctxt.add(at(i + 1, k - 1), i)
+      ctxt.add(at(i + 1, k - 1), i, k)
       return k
     }
 
@@ -100,7 +100,8 @@ trait ByteBasedParser[J] extends Parser[J] {
         die(j, "invalid UTF-8 encoding")
       c = byte(j) & 0xff
     }
-    ctxt.add(sb.toString, i)
-    j + 1
+    j += 1
+    ctxt.add(sb.toString, i, j)
+    j
   }
 }

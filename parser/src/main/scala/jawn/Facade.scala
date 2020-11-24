@@ -19,6 +19,7 @@ trait Facade[J] {
   def jtrue(index: Int): J
   def jnum(s: CharSequence, decIndex: Int, expIndex: Int, index: Int): J
   def jstring(s: CharSequence, index: Int): J
+  def jstring(s: CharSequence, start: Int, limit: Int): J = jstring(s, start)
 }
 
 object Facade {
@@ -47,6 +48,7 @@ object Facade {
     final def jnum(s: CharSequence, decIndex: Int, expIndex: Int, index: Int): J =
       jnum(s, decIndex, expIndex)
     final def jstring(s: CharSequence, index: Int): J = jstring(s)
+    final override def jstring(s: CharSequence, start: Int, limit: Int): J = jstring(s)
   }
 
   /**

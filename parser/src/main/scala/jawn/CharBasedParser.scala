@@ -78,8 +78,9 @@ trait CharBasedParser[J] extends Parser[J] {
       j = reset(j)
       c = at(j)
     }
-    ctxt.add(sb.toString, i)
-    j + 1
+    j += 1
+    ctxt.add(sb.toString, i, j)
+    j
   }
 
   /**
@@ -93,7 +94,7 @@ trait CharBasedParser[J] extends Parser[J] {
   final protected[this] def parseString(i: Int, ctxt: FContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)
     if (k != -1) {
-      ctxt.add(at(i + 1, k - 1), i)
+      ctxt.add(at(i + 1, k - 1), i, k)
       k
     } else
       parseStringComplex(i, ctxt)
