@@ -9,7 +9,7 @@ package org.typelevel.jawn
  */
 trait FContext[J] {
   def add(s: CharSequence, index: Int): Unit
-  def add(s: CharSequence, startIndex: Int, endIndex: Int): Unit = add(s, startIndex)
+  def add(s: CharSequence, start: Int, limit: Int): Unit = add(s, start)
   def add(v: J, index: Int): Unit
   def finish(index: Int): J
   def isObj: Boolean
