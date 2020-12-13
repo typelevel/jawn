@@ -36,28 +36,17 @@ support package.
 
 ### Quick Start
 
-Jawn supports Scala 2.12 and 2.13, and is cross-built on Dotty, although we're
-not yet publishing Dotty artifacts.
+Jawn supports Scala 2.12, 2.13, and Dotty.
 
 Here's a `build.sbt` snippet that shows you how to depend on Jawn in
-your own SBT project:
+your own sbt project:
 
 ```scala
-resolvers += Resolver.sonatypeRepo("releases")
-
 // use this if you just want jawn's parser, and will implement your own facade
 libraryDependencies += "org.typelevel" %% "jawn-parser" % "1.0.0"
 
 // use this if you want jawn's parser and also jawn's ast
 libraryDependencies += "org.typelevel" %% "jawn-ast" % "1.0.0"
-```
-
-If you want to use Jawn with Dotty, you can use the Scala 2 artifacts
-via `withDottyCompat`:
-
-```scala
-libraryDependencies +=
-  ("org.typelevel" %% "jawn-parser" % "1.0.0").withDottyCompat(scalaVersion.value)
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
@@ -67,6 +56,9 @@ you would say:
 ```scala
 libraryDependencies += "org.typelevel" %% "jawn-spray" % "1.0.0"
 ```
+
+Note that the third-party integration artifacts use `withDottyCompat` internally,
+since the upstream dependencies are not published for Dotty.
 
 There are a few reasons you might want to do this:
 
