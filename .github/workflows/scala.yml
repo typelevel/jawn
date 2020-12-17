@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        scala: [2.12.10, 2.13.1, 3.0.0-M1, 3.0.0-M2]
+        scala: [2.12.10, 2.13.1, 3.0.0-M2, 3.0.0-M3]
 
     steps:
     - uses: actions/checkout@v2
