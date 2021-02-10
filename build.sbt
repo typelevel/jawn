@@ -141,12 +141,14 @@ def support(s: String) =
 lazy val supportJson4s = support("json4s")
   .dependsOn(util)
   .settings(libraryDependencies += ("org.json4s" %% "json4s-ast" % "3.6.10").withDottyCompat(scalaVersion.value))
+  .settings(skip in publish := isDotty.value)
 
 lazy val supportPlay = support("play")
-  .settings(libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.9.2").withDottyCompat(scalaVersion.value))
+  .settings(libraryDependencies += ("com.typesafe.play" %% "play-json" % "2.10.0-RC1"))
 
 lazy val supportSpray = support("spray")
   .settings(libraryDependencies += ("io.spray" %% "spray-json" % "1.3.6").withDottyCompat(scalaVersion.value))
+  .settings(skip in publish := isDotty.value)
 
 lazy val benchmark = project
   .in(file("benchmark"))
