@@ -1,6 +1,6 @@
 name := "jawn-benchmarks"
 
-javaOptions in run += "-Xmx6G"
+run / javaOptions += "-Xmx6G"
 
 libraryDependencies ++= Seq(
   "io.argonaut" %% "argonaut" % "6.2.3",
@@ -18,4 +18,4 @@ libraryDependencies ++= Seq(
 )
 
 // enable forking in run
-fork in run := true
+run / fork := true
