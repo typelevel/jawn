@@ -4,8 +4,8 @@ lazy val previousJawnVersion = "1.0.1"
 
 lazy val scala212 = "2.12.13"
 lazy val scala213 = "2.13.5"
-lazy val dottyPrev = "3.0.0-RC1"
-lazy val dottyNext = "3.0.0-RC2"
+lazy val dottyPrev = "3.0.0-RC2"
+lazy val dottyNext = "3.0.0-RC3"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
@@ -38,7 +38,7 @@ lazy val jawnSettings = Seq(
   },
   resolvers += Resolver.sonatypeRepo("releases"),
   Test / fork := true,
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
+  Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
   libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.15.3" % Test,
   libraryDependencies ++= (
     if (isDotty.value) Nil
@@ -56,7 +56,7 @@ lazy val jawnSettings = Seq(
   releaseCrossBuild := true,
   releaseVcsSign := true,
   publishMavenStyle := true,
-  publishArtifact in Test := false,
+  Test / publishArtifact := false,
   Compile / doc / sources := {
     val old = (Compile / doc / sources).value
     if (isDotty.value)
