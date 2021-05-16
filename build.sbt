@@ -80,6 +80,9 @@ lazy val jawnSettingsJS = List(
   },
   mimaPreviousArtifacts := Set()
 )
+lazy val jawnSettingsNative = Seq(
+  crossScalaVersions := crossScalaVersions.value.filterNot(ScalaArtifacts.isScala3)
+)
 
 lazy val noPublish = Seq(publish / skip := true, mimaPreviousArtifacts := Set())
 
@@ -92,7 +95,7 @@ lazy val root = project
   .settings(crossScalaVersions := List())
   .settings(noPublish: _*)
 
-lazy val parser = crossProject(JVMPlatform, JSPlatform)
+lazy val parser = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Full)
   .in(file("parser"))
   .settings(name := "parser")
@@ -100,9 +103,10 @@ lazy val parser = crossProject(JVMPlatform, JSPlatform)
   .settings(jawnSettings: _*)
   .jvmSettings(jawnSettingsJVM: _*)
   .jsSettings(jawnSettingsJS: _*)
+  .nativeSettings(jawnSettingsNative: _*)
   .disablePlugins(JmhPlugin)
 
-lazy val util = crossProject(JVMPlatform, JSPlatform)
+lazy val util = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Full)
   .in(file("util"))
   .dependsOn(parser % "compile->compile;test->test")
@@ -111,9 +115,10 @@ lazy val util = crossProject(JVMPlatform, JSPlatform)
   .settings(jawnSettings: _*)
   .jvmSettings(jawnSettingsJVM: _*)
   .jsSettings(jawnSettingsJS: _*)
+  .nativeSettings(jawnSettingsNative: _*)
   .disablePlugins(JmhPlugin)
 
-lazy val ast = crossProject(JVMPlatform, JSPlatform)
+lazy val ast = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Full)
   .in(file("ast"))
   .dependsOn(parser % "compile->compile;test->test")
@@ -123,6 +128,7 @@ lazy val ast = crossProject(JVMPlatform, JSPlatform)
   .settings(jawnSettings: _*)
   .jvmSettings(jawnSettingsJVM: _*)
   .jsSettings(jawnSettingsJS: _*)
+  .nativeSettings(jawnSettingsNative: _*)
   .disablePlugins(JmhPlugin)
 
 lazy val benchmark = project
