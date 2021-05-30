@@ -1,6 +1,6 @@
 import ReleaseTransformations._
 
-lazy val previousJawnVersion = "1.0.1"
+lazy val previousJawnVersion = "1.1.2"
 
 lazy val scala212 = "2.12.14"
 lazy val scala213 = "2.13.6"
@@ -29,12 +29,7 @@ lazy val benchmarkVersion =
 
 lazy val jawnSettings = Seq(
   crossScalaVersions := Seq(scala212, scala213, scala3),
-  mimaPreviousArtifacts := {
-    if (scalaVersion.value.startsWith("2"))
-      Set(organization.value %% moduleName.value % previousJawnVersion)
-    else
-      Set()
-  },
+  mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
   resolvers += Resolver.sonatypeRepo("releases"),
   Test / fork := true,
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
