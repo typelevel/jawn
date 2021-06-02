@@ -1,3 +1,4 @@
+import sbt.internal.inc.ScalaInstance
 import ReleaseTransformations._
 
 lazy val previousJawnVersion = "1.1.2"
@@ -35,7 +36,7 @@ lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
   libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
   libraryDependencies ++= (
-    if (isDotty.value) Nil
+    if (ScalaInstance.isDotty(scalaVersion.value)) Nil
     else List("org.typelevel" %% "claimant" % "0.1.3" % Test)
   ),
   scalacOptions ++=
@@ -53,7 +54,7 @@ lazy val jawnSettings = Seq(
   Test / publishArtifact := false,
   Compile / doc / sources := {
     val old = (Compile / doc / sources).value
-    if (isDotty.value)
+    if (ScalaInstance.isDotty(scalaVersion.value))
       Seq()
     else
       old
@@ -100,7 +101,7 @@ lazy val parser = project
   .settings(jawnSettings: _*)
   .settings(
     Test / unmanagedSourceDirectories ++= (
-      if (isDotty.value)
+      if (ScalaInstance.isDotty(scalaVersion.value))
         List(baseDirectory.value / "src" / "test" / "dotty")
       else Nil
     )

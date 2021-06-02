@@ -1,4 +1,3 @@
-addSbtPlugin("ch.epfl.lamp" % "sbt-dotty" % "0.5.5")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.9.2")
 addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.1.2")
