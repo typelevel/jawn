@@ -3,8 +3,8 @@ package parser
 
 import java.nio.ByteBuffer
 import org.scalacheck.Properties
+import org.scalacheck.Prop
 import org.scalacheck.Prop.forAll
-import org.typelevel.claimant.Claim
 import scala.util.Success
 
 class JNumIndexCheck extends Properties("JNumIndexCheck") {
@@ -37,43 +37,43 @@ class JNumIndexCheck extends Properties("JNumIndexCheck") {
 
   property("jnum provides the correct indices with parseFromString") = forAll { (value: BigDecimal) =>
     val json = s"""{ "num": ${value.toString} }"""
-    Claim(Parser.parseFromString(json)(JNumIndexCheckFacade) == Success(true))
+    Prop(Parser.parseFromString(json)(JNumIndexCheckFacade) == Success(true))
   }
 
   property("jnum provides the correct indices with parseFromByteBuffer") = forAll { (value: BigDecimal) =>
     val json = s"""{ "num": ${value.toString} }"""
     val bb = ByteBuffer.wrap(json.getBytes("UTF-8"))
-    Claim(Parser.parseFromByteBuffer(bb)(JNumIndexCheckFacade) == Success(true))
+    Prop(Parser.parseFromByteBuffer(bb)(JNumIndexCheckFacade) == Success(true))
   }
 
   property("jnum provides the correct indices with parseFromByteArray") = forAll { (value: BigDecimal) =>
     val json = s"""{ "num": ${value.toString} }"""
     val ba = json.getBytes("UTF-8")
-    Claim(Parser.parseFromByteArray(ba)(JNumIndexCheckFacade) == Success(true))
+    Prop(Parser.parseFromByteArray(ba)(JNumIndexCheckFacade) == Success(true))
   }
 
   property("jnum provides the correct indices with parseFromFile") = forAll { (value: BigDecimal) =>
     val json = s"""{ "num": ${value.toString} }"""
-    TestUtil.withTemp(json)(t => Claim(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true)))
+    TestUtil.withTemp(json)(t => Prop(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true)))
   }
 
   property("jnum provides the correct indices at the top level with parseFromString") = forAll { (value: BigDecimal) =>
-    Claim(Parser.parseFromString(value.toString)(JNumIndexCheckFacade) == Success(true))
+    Prop(Parser.parseFromString(value.toString)(JNumIndexCheckFacade) == Success(true))
   }
 
   property("jnum provides the correct indices at the top level with parseFromByteBuffer") = forAll {
     (value: BigDecimal) =>
       val bb = ByteBuffer.wrap(value.toString.getBytes("UTF-8"))
-      Claim(Parser.parseFromByteBuffer(bb)(JNumIndexCheckFacade) == Success(true))
+      Prop(Parser.parseFromByteBuffer(bb)(JNumIndexCheckFacade) == Success(true))
   }
 
   property("jnum provides the correct indices at the top level with parseFromByteArray") = forAll {
     (value: BigDecimal) =>
       val ba = value.toString.getBytes("UTF-8")
-      Claim(Parser.parseFromByteArray(ba)(JNumIndexCheckFacade) == Success(true))
+      Prop(Parser.parseFromByteArray(ba)(JNumIndexCheckFacade) == Success(true))
   }
 
   property("jnum provides the correct indices at the top level with parseFromFile") = forAll { (value: BigDecimal) =>
-    TestUtil.withTemp(value.toString)(t => Claim(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true)))
+    TestUtil.withTemp(value.toString)(t => Prop(Parser.parseFromFile(t)(JNumIndexCheckFacade) == Success(true)))
   }
 }

@@ -2,7 +2,6 @@ package org.typelevel.jawn
 package parser
 
 import org.scalacheck.Properties
-import org.typelevel.claimant.Claim
 
 class ChannelSpec extends Properties("ChannelSpec") {
 
@@ -16,6 +15,6 @@ class ChannelSpec extends Properties("ChannelSpec") {
 
     val ok2 = TestUtil.withTemp(bigEscaped)(t => Parser.parseFromFile(t)(Facade.NullFacade).isSuccess)
 
-    Claim(ok1 && ok2)
+    ok1 && ok2
   }
 }

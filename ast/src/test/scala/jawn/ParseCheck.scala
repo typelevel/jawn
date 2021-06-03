@@ -2,7 +2,6 @@ package org.typelevel.jawn
 package ast
 
 import org.scalacheck.{Prop, Properties}
-import org.typelevel.claimant.Claim
 import org.typelevel.jawn.parser.TestUtil
 import scala.util.Success
 
@@ -23,14 +22,14 @@ class AstCheck extends Properties("AstCheck") {
     val value2 = JParser.parseFromString(json1).get
     val json2 = CanonicalRenderer.render(value2)
 
-    val p0: Prop = Claim(
+    val p0: Prop = Prop(
       json2 == json1 &&
         json2.## == json1.## &&
         value1 == value2 &&
         value1.## == value2.##
     )
 
-    val p1: Prop = TestUtil.withTemp(json1)(t => Claim(JParser.parseFromFile(t).get == value2))
+    val p1: Prop = TestUtil.withTemp(json1)(t => Prop(JParser.parseFromFile(t).get == value2))
 
     p0 && p1
   }
@@ -40,7 +39,7 @@ class AstCheck extends Properties("AstCheck") {
     val json1 = CanonicalRenderer.render(jstr1)
     val jstr2 = JParser.parseFromString(json1).get
     val json2 = CanonicalRenderer.render(jstr2)
-    Claim(
+    Prop(
       jstr2 == jstr1 &&
         json2 == json1 &&
         json2.## == json1.##
@@ -52,7 +51,7 @@ class AstCheck extends Properties("AstCheck") {
     val j1 = JParser.parseFromString(s)
     val cs = java.nio.CharBuffer.wrap(s.toCharArray)
     val j2 = JParser.parseFromCharSequence(cs)
-    Claim(j1 == j2 && j1.## == j2.##)
+    Prop(j1 == j2 && j1.## == j2.##)
   }
 
   implicit val facade: Facade[JValue] = JawnFacade
@@ -85,14 +84,14 @@ class AstCheck extends Properties("AstCheck") {
     val p = AsyncParser[JValue](ValueStream)
     p.absorb(data)
     p.finish()
-    Claim(true)
+    Prop(true)
   }
 
   property("async parsing") = forAll { (v: JValue) =>
     val json = CanonicalRenderer.render(v)
     val segments = splitIntoSegments(json)
     val parsed = parseSegments(AsyncParser[JValue](SingleValue), segments)
-    Claim(parsed == List(v))
+    Prop(parsed == List(v))
   }
 
   property("async unwrapping") = forAll { (vs0: List[Int]) =>
@@ -100,15 +99,15 @@ class AstCheck extends Properties("AstCheck") {
     val arr = JArray(vs.toArray)
     val json = CanonicalRenderer.render(arr)
     val segments = splitIntoSegments(json)
-    Claim(parseSegments(AsyncParser[JValue](UnwrapArray), segments) == vs)
+    Prop(parseSegments(AsyncParser[JValue](UnwrapArray), segments) == vs)
   }
 
   property("unicode string round-trip") = forAll { (s: String) =>
-    Claim(JParser.parseFromString(JString(s).render(FastRenderer)) == Success(JString(s)))
+    Prop(JParser.parseFromString(JString(s).render(FastRenderer)) == Success(JString(s)))
   }
 
   property("if x == y, then x.## == y.##") = forAll { (x: JValue, y: JValue) =>
-    if (x == y) Claim(x.## == y.##) else Claim(true)
+    if (x == y) Prop(x.## == y.##) else Prop(true)
   }
 
   property("ignore trailing zeros") = forAll { (n: Int) =>
@@ -117,7 +116,7 @@ class AstCheck extends Properties("AstCheck") {
     val n2 = DoubleNum(n.toDouble)
 
     def check(j: JValue): Prop =
-      Claim(j == n1 && n1 == j && j == n2 && n2 == j)
+      Prop(j == n1 && n1 == j && j == n2 && n2 == j)
 
     check(DeferNum(s)) &&
     check(DeferNum(s + ".0")) &&
@@ -133,11 +132,11 @@ class AstCheck extends Properties("AstCheck") {
 
     val s0 = "x" * (40 * M)
     val e0 = q + s0 + q
-    val p0: Prop = TestUtil.withTemp(e0)(t => Claim(JParser.parseFromFile(t).filter(_ == JString(s0)).isSuccess))
+    val p0: Prop = TestUtil.withTemp(e0)(t => Prop(JParser.parseFromFile(t).filter(_ == JString(s0)).isSuccess))
 
     val s1 = "\\" * (20 * M)
     val e1 = q + s1 + s1 + q
-    val p1: Prop = TestUtil.withTemp(e1)(t => Claim(JParser.parseFromFile(t).filter(_ == JString(s1)).isSuccess))
+    val p1: Prop = TestUtil.withTemp(e1)(t => Prop(JParser.parseFromFile(t).filter(_ == JString(s1)).isSuccess))
 
     p0 && p1
   }

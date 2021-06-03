@@ -34,10 +34,6 @@ lazy val jawnSettings = Seq(
   Test / fork := true,
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
   libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-  libraryDependencies ++= (
-    if (isDotty.value) Nil
-    else List("org.typelevel" %% "claimant" % "0.1.3" % Test)
-  ),
   scalacOptions ++=
     "-deprecation" ::
       "-encoding" :: "utf-8" ::
@@ -98,13 +94,6 @@ lazy val parser = project
   .settings(name := "parser")
   .settings(moduleName := "jawn-parser")
   .settings(jawnSettings: _*)
-  .settings(
-    Test / unmanagedSourceDirectories ++= (
-      if (isDotty.value)
-        List(baseDirectory.value / "src" / "test" / "dotty")
-      else Nil
-    )
-  )
   .disablePlugins(JmhPlugin)
 
 lazy val util = project
