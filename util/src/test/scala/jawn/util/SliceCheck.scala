@@ -2,7 +2,6 @@ package org.typelevel.jawn
 package util
 
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
-import org.typelevel.claimant.Claim
 import scala.util.{Failure, Success, Try}
 
 import Arbitrary.arbitrary
@@ -30,8 +29,8 @@ class SliceCheck extends Properties("SliceCheck") {
     val got = Try(got0)
     val expected = Try(expected0)
     got match {
-      case Success(_) => Claim(got == expected)
-      case Failure(_) => Claim(expected.isFailure)
+      case Success(_) => Prop(got == expected)
+      case Failure(_) => Prop(expected.isFailure)
     }
   }
 
@@ -43,7 +42,7 @@ class SliceCheck extends Properties("SliceCheck") {
     tryEqual(Slice(s, i, j).charAt(k), s.substring(i, j).charAt(k))
   }
 
-  property("slice.length >= 0") = forAll((cs: Slice) => Claim(cs.length >= 0))
+  property("slice.length >= 0") = forAll((cs: Slice) => Prop(cs.length >= 0))
 
   property("slice.charAt(i) ~ slice.toString.charAt(i)") = forAll { (cs: Slice, i: Int) =>
     tryEqual(cs.charAt(i), cs.toString.charAt(i))
@@ -60,22 +59,22 @@ class SliceCheck extends Properties("SliceCheck") {
 
   property("Slice(s, i, j) => Slice.unsafe(s, i, j)") = forAll { (s: String, i: Int, j: Int) =>
     Try(Slice(s, i, j).toString) match {
-      case Success(r) => Claim(r == Slice.unsafe(s, i, j).toString)
-      case Failure(_) => Claim(true)
+      case Success(r) => Prop(r == Slice.unsafe(s, i, j).toString)
+      case Failure(_) => Prop(true)
     }
   }
 
-  property("x == x") = forAll((x: Slice) => Claim(x == x))
+  property("x == x") = forAll((x: Slice) => Prop(x == x))
 
   property("(x == y) = (x.toString == y.toString)") = forAll { (x: Slice, y: Slice) =>
-    Claim((x == y) == (x.toString == y.toString))
+    Prop((x == y) == (x.toString == y.toString))
   }
 
   property("(x == y) -> (x.## == y.##)") = forAll { (x: Slice, y: Slice) =>
-    if (x == y) Claim(x.## == y.##) else Claim(x.## != y.##)
+    if (x == y) Prop(x.## == y.##) else Prop(x.## != y.##)
   }
 
-  property("x == Slice(x.toString)") = forAll((x: Slice) => Claim(Slice(x.toString) == x))
+  property("x == Slice(x.toString)") = forAll((x: Slice) => Prop(Slice(x.toString) == x))
 
   property("slice is serializable") = {
     import java.io._
@@ -88,7 +87,7 @@ class SliceCheck extends Properties("SliceCheck") {
       val bytes = baos.toByteArray
       val bais = new ByteArrayInputStream(bytes)
       val ois = new ObjectInputStream(bais)
-      val res = Claim(Try(ois.readObject()) == Try(x))
+      val res = Prop(Try(ois.readObject()) == Try(x))
       ois.close()
       res
     }

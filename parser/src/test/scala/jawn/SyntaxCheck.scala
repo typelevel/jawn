@@ -3,7 +3,6 @@ package parser
 
 import java.nio.ByteBuffer
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
-import org.typelevel.claimant.Claim
 import scala.util.{Failure, Success, Try}
 
 import Prop.forAll
@@ -175,21 +174,21 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
 
   val S = "     " * 2000
 
-  property("stack-safety 1") = Claim(isStackSafe(s"${S}[${S}null${S}]${S}") == Success(true))
+  property("stack-safety 1") = Prop(isStackSafe(s"${S}[${S}null${S}]${S}") == Success(true))
 
-  property("stack-safety 2") = Claim(isStackSafe(s"${S}[${S}nul${S}]${S}") == Success(false))
+  property("stack-safety 2") = Prop(isStackSafe(s"${S}[${S}nul${S}]${S}") == Success(false))
 
-  property("stack-safety 3") = Claim(isStackSafe(S) == Success(false))
+  property("stack-safety 3") = Prop(isStackSafe(S) == Success(false))
 
-  property("stack-safety 4") = Claim(isStackSafe(s"${S}false${S}") == Success(true))
+  property("stack-safety 4") = Prop(isStackSafe(s"${S}false${S}") == Success(true))
 
-  property("stack-safety 5") = Claim(isStackSafe(s"${S}fals\\u0065${S}") == Success(false))
+  property("stack-safety 5") = Prop(isStackSafe(s"${S}fals\\u0065${S}") == Success(false))
 
-  property("stack-safety 6") = Claim(isStackSafe(s"${S}fals${S}") == Success(false))
+  property("stack-safety 6") = Prop(isStackSafe(s"${S}fals${S}") == Success(false))
 
-  property("stack-safety 7") = Claim(isStackSafe(s"false${S}false") == Success(false))
+  property("stack-safety 7") = Prop(isStackSafe(s"false${S}false") == Success(false))
 
-  property("stack-safety 8") = Claim(isStackSafe(s"false${S},${S}false") == Success(false))
+  property("stack-safety 8") = Prop(isStackSafe(s"false${S},${S}false") == Success(false))
 
   def testErrorLoc(json: String, line: Int, col: Int): Prop = {
     import java.io.ByteArrayInputStream
@@ -202,7 +201,7 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
       ByteBuffer.wrap(s.getBytes("UTF-8"))
 
     def assertLoc(p: ParseException): Prop =
-      Claim(p.line == line && p.col == col)
+      Prop(p.line == line && p.col == col)
 
     def fail(msg: String): Prop =
       Prop.falsified :| msg
@@ -219,7 +218,7 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
         case right => fail(s"expected Left(ParseException), got $right")
       }
 
-    Claim(isValidSyntax(json) != true) &&
+    Prop(isValidSyntax(json) != true) &&
     extract1(Parser.parseFromString(json)(NullFacade)) &&
     extract1(Parser.parseFromCharSequence(json)(NullFacade)) &&
     extract1(Parser.parseFromChannel(ch(json))(NullFacade)) &&
@@ -235,7 +234,7 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
   property("no extra \" in error message") = {
     val result = Parser.parseFromString("\"\u0000\"")(NullFacade)
     val expected = "control char (0) in string got '\u0000...' (line 1, column 2)"
-    Claim(result.failed.get.getMessage == expected)
+    Prop(result.failed.get.getMessage == expected)
   }
 
   property("absorb should fail fast on bad inputs") = {
@@ -247,6 +246,6 @@ class SyntaxCheck extends Properties("SyntaxCheck") {
 
     val badInputs = Seq("}", "fälse", "n0ll", "try", "0x", "0.x", "0ex", "[1; 2]", "{\"a\"; 1}", "{1: 2}")
 
-    Claim(badInputs.forall(absorbFails))
+    Prop(badInputs.forall(absorbFails))
   }
 }
