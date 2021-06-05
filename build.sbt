@@ -1,4 +1,3 @@
-import sbt.internal.inc.ScalaInstance
 import ReleaseTransformations._
 
 lazy val previousJawnVersion = "1.1.2"
@@ -48,13 +47,6 @@ lazy val jawnSettings = Seq(
   releaseVcsSign := true,
   publishMavenStyle := true,
   Test / publishArtifact := false,
-  Compile / doc / sources := {
-    val old = (Compile / doc / sources).value
-    if (ScalaInstance.isDotty(scalaVersion.value))
-      Seq()
-    else
-      old
-  },
   pomIncludeRepository := Function.const(false),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
