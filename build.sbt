@@ -1,3 +1,4 @@
+import sbt.internal.inc.ScalaInstance
 import ReleaseTransformations._
 
 lazy val previousJawnVersion = "1.1.2"
@@ -49,7 +50,7 @@ lazy val jawnSettings = Seq(
   Test / publishArtifact := false,
   Compile / doc / sources := {
     val old = (Compile / doc / sources).value
-    if (isDotty.value)
+    if (ScalaInstance.isDotty(scalaVersion.value))
       Seq()
     else
       old
