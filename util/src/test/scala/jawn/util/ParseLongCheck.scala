@@ -2,7 +2,6 @@ package org.typelevel.jawn
 package util
 
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
-import org.typelevel.claimant.Claim
 import scala.util.{Failure, Success, Try}
 
 import Prop.forAll
@@ -24,7 +23,7 @@ class ParseLongCheck extends Properties("ParseLongCheck") {
     val s = prefix + payload + suffix
     val i = prefix.length
     val cs = s.subSequence(i, payload.length + i)
-    Claim(
+    Prop(
       cs.toString == payload &&
         parseLong(cs) == n &&
         parseLongUnsafe(cs) == n
@@ -33,8 +32,8 @@ class ParseLongCheck extends Properties("ParseLongCheck") {
 
   property("parsers agree on random input") = forAll { (s: String) =>
     Try(parseLong(s)) match {
-      case Success(n) => Claim(parseLongUnsafe(s) == n)
-      case Failure(_) => Claim(true)
+      case Success(n) => Prop(parseLongUnsafe(s) == n)
+      case Failure(_) => Prop(true)
     }
   }
 
@@ -43,30 +42,30 @@ class ParseLongCheck extends Properties("ParseLongCheck") {
     val t = Try(parseLong(s1))
     // .toLong is laxer than parseLong, so a parseLong failure does
     // not imply a .toLong failure.
-    val p1 = Claim(t.isFailure || t == Try(s1.toLong))
+    val p1 = Prop(t.isFailure || t == Try(s1.toLong))
 
     // avoid leading zeros, which .toLong is lax about
     val n2 = if (n1 == 0L) 1L else n1
     val s2 = n2.toString + (m & 0x7fffffffffffffffL).toString
     val tx = Try(parseLong(s2)).toOption
     val ty = Try(s2.toLong).toOption
-    val p2 = Claim(tx == ty)
+    val p2 = Prop(tx == ty)
 
     p1 && p2
   }
 
-  property("safe parser fails on test cases") = Claim(parseLong("9223372036854775807") == Long.MaxValue) &&
-    Claim(parseLong("-9223372036854775808") == Long.MinValue) &&
-    Claim(parseLong("-0") == 0L) &&
-    Claim(Try(parseLong("")).isFailure) &&
-    Claim(Try(parseLong("+0")).isFailure) &&
-    Claim(Try(parseLong("00")).isFailure) &&
-    Claim(Try(parseLong("01")).isFailure) &&
-    Claim(Try(parseLong("+1")).isFailure) &&
-    Claim(Try(parseLong("-")).isFailure) &&
-    Claim(Try(parseLong("--1")).isFailure) &&
-    Claim(Try(parseLong("9223372036854775808")).isFailure) &&
-    Claim(Try(parseLong("-9223372036854775809")).isFailure)
+  property("safe parser fails on test cases") = Prop(parseLong("9223372036854775807") == Long.MaxValue) &&
+    Prop(parseLong("-9223372036854775808") == Long.MinValue) &&
+    Prop(parseLong("-0") == 0L) &&
+    Prop(Try(parseLong("")).isFailure) &&
+    Prop(Try(parseLong("+0")).isFailure) &&
+    Prop(Try(parseLong("00")).isFailure) &&
+    Prop(Try(parseLong("01")).isFailure) &&
+    Prop(Try(parseLong("+1")).isFailure) &&
+    Prop(Try(parseLong("-")).isFailure) &&
+    Prop(Try(parseLong("--1")).isFailure) &&
+    Prop(Try(parseLong("9223372036854775808")).isFailure) &&
+    Prop(Try(parseLong("-9223372036854775809")).isFailure)
 
   // NOTE: parseLongUnsafe is not guaranteed to crash, or do anything
   // predictable, on invalid input, so we don't test this direction.
