@@ -77,7 +77,8 @@ lazy val jawnSettingsJS = List(
       _.withAsInstanceOfs(org.scalajs.linker.interface.CheckedBehavior.Unchecked)
         .withArrayIndexOutOfBounds(org.scalajs.linker.interface.CheckedBehavior.Unchecked)
     )
-  }
+  },
+  mimaPreviousArtifacts := Set()
 )
 
 lazy val noPublish = Seq(publish / skip := true, mimaPreviousArtifacts := Set())
