@@ -31,9 +31,8 @@ lazy val jawnSettings = Seq(
   crossScalaVersions := Seq(scala212, scala213, scala3),
   mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousJawnVersion),
   resolvers += Resolver.sonatypeRepo("releases"),
-  Test / fork := true,
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-  libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
+  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.4" % Test,
   scalacOptions ++=
     "-deprecation" ::
       "-encoding" :: "utf-8" ::
@@ -71,44 +70,64 @@ lazy val jawnSettings = Seq(
   )
 )
 
+lazy val jawnSettingsJVM = List(Test / fork := true)
+lazy val jawnSettingsJS = List(
+  scalaJSLinkerConfig ~= {
+    _.withSemantics(
+      _.withAsInstanceOfs(org.scalajs.linker.interface.CheckedBehavior.Unchecked)
+        .withArrayIndexOutOfBounds(org.scalajs.linker.interface.CheckedBehavior.Unchecked)
+    )
+  },
+  mimaPreviousArtifacts := Set()
+)
+
 lazy val noPublish = Seq(publish / skip := true, mimaPreviousArtifacts := Set())
 
 lazy val root = project
   .in(file("."))
-  .aggregate(all.map(Project.projectToRef): _*)
+  .aggregate(all.flatMap(_.componentProjects).map(Project.projectToRef): _*)
   .disablePlugins(JmhPlugin)
   .settings(name := "jawn")
   .settings(jawnSettings: _*)
   .settings(crossScalaVersions := List())
   .settings(noPublish: _*)
 
-lazy val parser = project
+lazy val parser = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
   .in(file("parser"))
   .settings(name := "parser")
   .settings(moduleName := "jawn-parser")
   .settings(jawnSettings: _*)
+  .jvmSettings(jawnSettingsJVM: _*)
+  .jsSettings(jawnSettingsJS: _*)
   .disablePlugins(JmhPlugin)
 
-lazy val util = project
+lazy val util = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
   .in(file("util"))
   .dependsOn(parser % "compile->compile;test->test")
   .settings(name := "util")
   .settings(moduleName := "jawn-util")
   .settings(jawnSettings: _*)
+  .jvmSettings(jawnSettingsJVM: _*)
+  .jsSettings(jawnSettingsJS: _*)
   .disablePlugins(JmhPlugin)
 
-lazy val ast = project
+lazy val ast = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
   .in(file("ast"))
   .dependsOn(parser % "compile->compile;test->test")
   .dependsOn(util % "compile->compile;test->test")
   .settings(name := "ast")
   .settings(moduleName := "jawn-ast")
   .settings(jawnSettings: _*)
+  .jvmSettings(jawnSettingsJVM: _*)
+  .jsSettings(jawnSettingsJS: _*)
   .disablePlugins(JmhPlugin)
 
 lazy val benchmark = project
   .in(file("benchmark"))
-  .dependsOn(all.map(Project.classpathDependency[Project]): _*)
+  .dependsOn(all.map(_.jvm).map(Project.classpathDependency[Project]): _*)
   .settings(name := "jawn-benchmark")
   .settings(jawnSettings: _*)
   .settings(scalaVersion := benchmarkVersion)
