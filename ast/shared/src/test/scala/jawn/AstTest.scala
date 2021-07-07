@@ -7,7 +7,7 @@ import scala.util.{Success, Try}
 import ArbitraryUtil._
 import Prop.forAll
 
-class AstTest extends Properties("AstTest") {
+class AstTest extends Properties("AstTest") with AstTestPlatform {
 
   property("calling .get never crashes") = forAll { (v: JValue, s: String, i: Int) =>
     Prop(
@@ -45,13 +45,6 @@ class AstTest extends Properties("AstTest") {
     Prop(
       JNum(n).getLong == Some(n) &&
         JParser.parseUnsafe(n.toString).getLong == Some(n)
-    )
-  }
-
-  property(".getDouble") = forAll { (n: Double) =>
-    Prop(
-      JNum(n).getDouble == Some(n) &&
-        JParser.parseUnsafe(n.toString).getDouble == Some(n)
     )
   }
 
