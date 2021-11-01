@@ -3,7 +3,7 @@ import ReleaseTransformations._
 lazy val previousJawnVersion = "1.1.2"
 
 lazy val scala212 = "2.12.14"
-lazy val scala213 = "2.13.6"
+lazy val scala213 = "2.13.7"
 lazy val scala3 = "3.0.1"
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "org.typelevel"
