@@ -2,6 +2,8 @@ package org.typelevel.jawn
 
 import scala.collection.mutable
 import scala.collection.immutable.TreeMap
+import scala.collection.JavaConverters._
+import java.util.HashMap
 
 /**
  * [[Facade]] is a type class that describes how Jawn should construct
@@ -122,7 +124,7 @@ object Facade {
     final def objectContext(): FContext[J] =
       new FContext.NoIndexFContext[J] {
         private[this] var key: String = null
-        private[this] val vs = mutable.Map.empty[String, J]
+        private[this] val vs = (new HashMap[String, J]).asScala
         def add(s: CharSequence): Unit =
           if (key == null)
             key = s.toString
