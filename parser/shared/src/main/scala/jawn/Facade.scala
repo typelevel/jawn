@@ -6,11 +6,9 @@ import scala.collection.JavaConverters._
 import java.util.HashMap
 
 /**
- * [[Facade]] is a type class that describes how Jawn should construct
- * JSON AST elements of type `J`.
+ * [[Facade]] is a type class that describes how Jawn should construct JSON AST elements of type `J`.
  *
- * `Facade[J]` also uses `FContext[J]` instances, so implementors will
- * usually want to define both.
+ * `Facade[J]` also uses `FContext[J]` instances, so implementors will usually want to define both.
  */
 trait Facade[J] {
   def singleContext(index: Int): FContext[J]
@@ -96,8 +94,8 @@ object Facade {
   }
 
   /**
-   * A convenience trait for [[Facade]] implementers that doesn't require [[FContext]] implementations
-   * and uses mutable collections.
+   * A convenience trait for [[Facade]] implementers that doesn't require [[FContext]] implementations and uses mutable
+   * collections.
    */
   trait MutableFacade[J] extends NoIndexFacade[J] {
     def jarray(vs: mutable.ArrayBuffer[J]): J
@@ -140,12 +138,10 @@ object Facade {
   /**
    * [[NullFacade]] discards all JSON AST information.
    *
-   * This is the simplest possible facade. It could be useful for
-   * checking JSON for correctness (via parsing) without worrying about
-   * saving the data.
+   * This is the simplest possible facade. It could be useful for checking JSON for correctness (via parsing) without
+   * worrying about saving the data.
    *
-   * It will always return `()` on any successful parse, no matter the
-   * content.
+   * It will always return `()` on any successful parse, no matter the content.
    */
   object NullFacade extends NoIndexFacade[Unit] {
     private[this] val nullContext: FContext[Unit] = new FContext.NoIndexFContext[Unit] {

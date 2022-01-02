@@ -5,25 +5,21 @@ import scala.annotation.switch
 /**
  * Trait used when the data to be parsed is in UTF-8.
  *
- * This parser has to translate input bytes to Chars and Strings. It
- * provides a byte() method to access individual bytes, and also
- * parser strings from bytes.
+ * This parser has to translate input bytes to Chars and Strings. It provides a byte() method to access individual
+ * bytes, and also parser strings from bytes.
  *
- * Its parseString() implementation has two cases. In the first case
- * (the hot path) the string has no escape sequences and we can just
- * UTF-8 decode the entire set of bytes. In the second case, it goes
- * to some trouble to be sure to de-escape correctly given that the
- * input data is UTF-8.
+ * Its parseString() implementation has two cases. In the first case (the hot path) the string has no escape sequences
+ * and we can just UTF-8 decode the entire set of bytes. In the second case, it goes to some trouble to be sure to
+ * de-escape correctly given that the input data is UTF-8.
  */
 trait ByteBasedParser[J] extends Parser[J] {
   protected[this] def byte(i: Int): Byte
 
   /**
-   * See if the string has any escape sequences. If not, return the end of the
-   * string. If so, bail out and return -1.
+   * See if the string has any escape sequences. If not, return the end of the string. If so, bail out and return -1.
    *
-   * This method expects the data to be in UTF-8 and accesses it as bytes. Thus
-   * we can just ignore any bytes with the highest bit set.
+   * This method expects the data to be in UTF-8 and accesses it as bytes. Thus we can just ignore any bytes with the
+   * highest bit set.
    */
   final protected[this] def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
     var j = i

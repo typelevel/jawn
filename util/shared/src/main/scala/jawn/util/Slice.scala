@@ -5,31 +5,24 @@ package org.typelevel.jawn.util
  *
  * This class has three constructors:
  *
- *  - Slice(s) wraps a string, ensuring that future operations
- *    (e.g. subSequence) will construct slices instead of strings.
+ *   - Slice(s) wraps a string, ensuring that future operations (e.g. subSequence) will construct slices instead of
+ *     strings.
  *
- *  - Slice(s, start, limit) is the default, and ensures that:
+ *   - Slice(s, start, limit) is the default, and ensures that:
  *
- *     1. start >= 0
- *     2. limit >= start
- *     3. limit <= s.length
+ *   1. start >= 0 2. limit >= start 3. limit <= s.length
  *
- *  - Slice.unsafe(s, start, limit) is for situations where the above
- *    bounds-checking has already occurred. Only use this if you are
- *    absolutely sure your arguments satisfy the above invariants.
+ *   - Slice.unsafe(s, start, limit) is for situations where the above bounds-checking has already occurred. Only use
+ *     this if you are absolutely sure your arguments satisfy the above invariants.
  *
- * Slice's subSequence returns another slice. This means that when
- * wrapping a very large string, garbage collection on the underlying
- * string will not occur until all slices are freed.
+ * Slice's subSequence returns another slice. This means that when wrapping a very large string, garbage collection on
+ * the underlying string will not occur until all slices are freed.
  *
- * Slice's universal equality is only defined with regard to other
- * slices. This means comparing a Slice with other CharSequence values
- * (including String) will always return false.
+ * Slice's universal equality is only defined with regard to other slices. This means comparing a Slice with other
+ * CharSequence values (including String) will always return false.
  *
- * Slices are serializable. However! They use the default Java
- * serialization layout, which is not that efficient, and could be a
- * disaster in cases where a large shared string might be serialized
- * many times in different slices.
+ * Slices are serializable. However! They use the default Java serialization layout, which is not that efficient, and
+ * could be a disaster in cases where a large shared string might be serialized many times in different slices.
  */
 @SerialVersionUID(1L)
 final class Slice private[jawn] (s: String, start: Int, limit: Int) extends CharSequence with Serializable {

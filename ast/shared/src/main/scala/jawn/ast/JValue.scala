@@ -120,10 +120,8 @@ object JNum { self =>
   /**
    * Create a JNum from a Double.
    *
-   * This factory constructor performs some error-checking (ensures
-   * that the given value is a finite Double). If you have already
-   * done this error-checking, you can use the DoubleNum(_) or
-   * DeferNum(_) constructors directly.
+   * This factory constructor performs some error-checking (ensures that the given value is a finite Double). If you
+   * have already done this error-checking, you can use the DoubleNum(_) or DeferNum(_) constructors directly.
    */
   final def apply(n: Double): JNum =
     if (isNaN(n) || isInfinite(n)) throw new InvalidNumException(n.toString)
@@ -132,10 +130,8 @@ object JNum { self =>
   /**
    * Create a JNum from a String.
    *
-   * This factory constructor validates the string (essentially,
-   * parsing it as a JSON value). If you are already sure this string
-   * is a valid JSON number, you can use the DeferLong(_) or
-   * DeferNum(_) constructors directly.
+   * This factory constructor validates the string (essentially, parsing it as a JSON value). If you are already sure
+   * this string is a valid JSON number, you can use the DeferLong(_) or DeferNum(_) constructors directly.
    */
   final def apply(s: String): JNum =
     JParser.parseUnsafe(s) match {

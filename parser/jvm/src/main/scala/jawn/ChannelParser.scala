@@ -25,11 +25,9 @@ object ChannelParser {
     new ChannelParser[J](ch, bufferSize)
 
   /**
-   * Given a desired buffer size, find the closest positive
-   * power-of-two larger than that size.
+   * Given a desired buffer size, find the closest positive power-of-two larger than that size.
    *
-   * This method throws an exception if the given values are negative
-   * or too large to have a valid power of two.
+   * This method throws an exception if the given values are negative or too large to have a valid power of two.
    */
   def computeBufferSize(x: Int): Int =
     if (x < 0)
@@ -45,8 +43,7 @@ object ChannelParser {
 /**
  * Basic file parser.
  *
- * Given a file name this parser opens it, chunks the data, and parses
- * it.
+ * Given a file name this parser opens it, chunks the data, and parses it.
  */
 final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends SyncParser[J] with ByteBasedParser[J] {
 
@@ -73,9 +70,8 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
   /**
    * Swap the curr and next arrays/buffers/counts.
    *
-   * We'll call this in response to certain reset() calls. Specifically, when
-   * the index provided to reset is no longer in the 'curr' buffer, we want to
-   * clear that data and swap the buffers.
+   * We'll call this in response to certain reset() calls. Specifically, when the index provided to reset is no longer
+   * in the 'curr' buffer, we want to clear that data and swap the buffers.
    */
   final protected[this] def swap(): Unit = {
     val tmp = curr; curr = next; next = tmp
@@ -98,9 +94,8 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
   }
 
   /**
-   * If the cursor 'i' is past the 'curr' buffer, we want to clear the
-   * current byte buffer, do a swap, load some more data, and
-   * continue.
+   * If the cursor 'i' is past the 'curr' buffer, we want to clear the current byte buffer, do a swap, load some more
+   * data, and continue.
    */
   final protected[this] def reset(i: Int): Int =
     if (i >= Bufsize) {
@@ -115,8 +110,7 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
     ()
 
   /**
-   * This is a specialized accessor for the case where our underlying
-   * data are bytes not chars.
+   * This is a specialized accessor for the case where our underlying data are bytes not chars.
    */
   final protected[this] def byte(i: Int): Byte =
     if (i < Bufsize) curr(i)
@@ -126,9 +120,8 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
     }
 
   /**
-   * Reads a byte as a single Char. The byte must be valid ASCII (this
-   * method is used to parse JSON values like numbers, constants, or
-   * delimiters, which are known to be within ASCII).
+   * Reads a byte as a single Char. The byte must be valid ASCII (this method is used to parse JSON values like numbers,
+   * constants, or delimiters, which are known to be within ASCII).
    */
   final protected[this] def at(i: Int): Char =
     if (i < Bufsize) curr(i).toChar
@@ -140,9 +133,8 @@ final class ChannelParser[J](ch: ReadableByteChannel, bufferSize: Int) extends S
   /**
    * Access a byte range as a string.
    *
-   * Since the underlying data are UTF-8 encoded, i and k must occur
-   * on unicode boundaries. Also, the resulting String is not
-   * guaranteed to have length (k - i).
+   * Since the underlying data are UTF-8 encoded, i and k must occur on unicode boundaries. Also, the resulting String
+   * is not guaranteed to have length (k - i).
    */
   final protected[this] def at(i: Int, k: Int): CharSequence = {
     val len = k - i
