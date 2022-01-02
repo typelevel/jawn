@@ -12,22 +12,17 @@ case class IncompleteParseException(msg: String) extends Exception(msg)
 /**
  * Parser implements a state machine for correctly parsing JSON data.
  *
- * The trait relies on a small number of methods which are left
- * abstract, and which generalize parsing based on whether the input
- * is in Bytes or Chars, coming from Strings, files, or other input.
- * All methods provided here are protected, so different parsers can
- * choose which functionality to expose.
+ * The trait relies on a small number of methods which are left abstract, and which generalize parsing based on whether
+ * the input is in Bytes or Chars, coming from Strings, files, or other input. All methods provided here are protected,
+ * so different parsers can choose which functionality to expose.
  *
- * Parser is parameterized on J, which is the type of the JSON AST it
- * will return. Jawn can produce any AST for which a Facade[J] is
- * available.
+ * Parser is parameterized on J, which is the type of the JSON AST it will return. Jawn can produce any AST for which a
+ * Facade[J] is available.
  *
- * The parser trait does not hold any state itself, but particular
- * implementations will usually hold state. Parser instances should
- * not be reused between parsing runs.
+ * The parser trait does not hold any state itself, but particular implementations will usually hold state. Parser
+ * instances should not be reused between parsing runs.
  *
- * For now the parser requires input to be in UTF-8. This requirement
- * may eventually be relaxed.
+ * For now the parser requires input to be in UTF-8. This requirement may eventually be relaxed.
  */
 abstract class Parser[J] {
 
@@ -38,8 +33,7 @@ abstract class Parser[J] {
   /**
    * Read the byte/char at 'i' as a Char.
    *
-   * Note that this should not be used on potential multi-byte
-   * sequences.
+   * Note that this should not be used on potential multi-byte sequences.
    */
   protected[this] def at(i: Int): Char
 
@@ -54,17 +48,14 @@ abstract class Parser[J] {
   protected[this] def atEof(i: Int): Boolean
 
   /**
-   * The reset() method is used to signal that we're working from the
-   * given position, and any previous data can be released. Some
-   * parsers (e.g.  StringParser) will ignore release, while others
-   * (e.g. PathParser) will need to use this information to release
-   * and allocate different areas.
+   * The reset() method is used to signal that we're working from the given position, and any previous data can be
+   * released. Some parsers (e.g. StringParser) will ignore release, while others (e.g. PathParser) will need to use
+   * this information to release and allocate different areas.
    */
   protected[this] def reset(i: Int): Int
 
   /**
-   * The checkpoint() method is used to allow some parsers to store
-   * their progress.
+   * The checkpoint() method is used to allow some parsers to store their progress.
    */
   protected[this] def checkpoint(state: Int, i: Int, context: FContext[J], stack: List[FContext[J]]): Unit
 
@@ -89,13 +80,11 @@ abstract class Parser[J] {
     die(i, msg, ErrorContext)
 
   /**
-   * A version of `at` that returns as much of the indicated substring as
-   * possible without throwing exceptions.
+   * A version of `at` that returns as much of the indicated substring as possible without throwing exceptions.
    *
-   * This method is necessary because `at(i, j)` may fail with an exception even
-   * when `atEof(i, j)` returns false (see #143 for an example). This method is
-   * a workaround; it is not optimized or robust against invalid input and
-   * should not be used outside of the context of `die`.
+   * This method is necessary because `at(i, j)` may fail with an exception even when `atEof(i, j)` returns false (see
+   * #143 for an example). This method is a workaround; it is not optimized or robust against invalid input and should
+   * not be used outside of the context of `die`.
    */
   @tailrec private[this] def safeAt(i: Int, j: Int): CharSequence =
     if (j <= i) ""
@@ -134,9 +123,8 @@ abstract class Parser[J] {
   /**
    * Used to generate messages for internal errors.
    *
-   * This should only be used in situations where a possible bug in
-   * the parser was detected. For errors in user-provided JSON, use
-   * die().
+   * This should only be used in situations where a possible bug in the parser was detected. For errors in user-provided
+   * JSON, use die().
    */
   protected[this] def error(msg: String) =
     sys.error(msg)
@@ -144,11 +132,9 @@ abstract class Parser[J] {
   /**
    * Parse the given number, and add it to the given context.
    *
-   * We don't actually instantiate a number here, but rather pass the
-   * string of for future use. Facades can choose to be lazy and just
-   * store the string. This ends up being way faster and has the nice
-   * side-effect that we know exactly how the user represented the
-   * number.
+   * We don't actually instantiate a number here, but rather pass the string of for future use. Facades can choose to be
+   * lazy and just store the string. This ends up being way faster and has the nice side-effect that we know exactly how
+   * the user represented the number.
    */
   final protected[this] def parseNum(i: Int, ctxt: FContext[J])(implicit facade: Facade[J]): Int = {
     var j = i
@@ -199,14 +185,11 @@ abstract class Parser[J] {
   /**
    * Parse the given number, and add it to the given context.
    *
-   * This method is a bit slower than parseNum() because it has to be
-   * sure it doesn't run off the end of the input.
+   * This method is a bit slower than parseNum() because it has to be sure it doesn't run off the end of the input.
    *
-   * Normally (when operating in rparse in the context of an outer
-   * array or object) we don't need to worry about this and can just
-   * grab characters, because if we run out of characters that would
-   * indicate bad input. This is for cases where the number could
-   * possibly be followed by a valid EOF.
+   * Normally (when operating in rparse in the context of an outer array or object) we don't need to worry about this
+   * and can just grab characters, because if we run out of characters that would indicate bad input. This is for cases
+   * where the number could possibly be followed by a valid EOF.
    *
    * This method has all the same caveats as the previous method.
    */
@@ -290,8 +273,8 @@ abstract class Parser[J] {
   /**
    * Generate a Char from the hex digits of "\u1234" (i.e. "1234").
    *
-   * NOTE: This is only capable of generating characters from the basic plane.
-   * This is why it can only return Char instead of Int.
+   * NOTE: This is only capable of generating characters from the basic plane. This is why it can only return Char
+   * instead of Int.
    */
   final protected[this] def descape(pos: Int, s: CharSequence): Char = {
     val hc = HexChars
@@ -390,16 +373,12 @@ abstract class Parser[J] {
   /**
    * Tail-recursive parsing method to do the bulk of JSON parsing.
    *
-   * This single method manages parser states, data, etc. Except for
-   * parsing non-recursive values (like strings, numbers, and
-   * constants) all important work happens in this loop (or in methods
-   * it calls, like reset()).
+   * This single method manages parser states, data, etc. Except for parsing non-recursive values (like strings,
+   * numbers, and constants) all important work happens in this loop (or in methods it calls, like reset()).
    *
-   * Currently the code is optimized to make use of switch
-   * statements. Future work should consider whether this is better or
-   * worse than manually constructed if/else statements or something
-   * else. Also, it may be possible to reorder some cases for speed
-   * improvements.
+   * Currently the code is optimized to make use of switch statements. Future work should consider whether this is
+   * better or worse than manually constructed if/else statements or something else. Also, it may be possible to reorder
+   * some cases for speed improvements.
    */
   @tailrec
   final protected[this] def rparse(

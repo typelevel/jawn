@@ -5,9 +5,8 @@ import scala.annotation.switch
 /**
  * Trait used when the data to be parsed is in UTF-16.
  *
- * This parser provides parseString(). Like ByteBasedParser it has
- * fast/slow paths for string parsing depending on whether any escapes
- * are present.
+ * This parser provides parseString(). Like ByteBasedParser it has fast/slow paths for string parsing depending on
+ * whether any escapes are present.
  *
  * It is simpler than ByteBasedParser.
  */
@@ -16,11 +15,9 @@ trait CharBasedParser[J] extends Parser[J] {
   final private[this] val builder = new StringBuilder()
 
   /**
-   * See if the string has any escape sequences. If not, return the
-   * end of the string. If so, bail out and return -1.
+   * See if the string has any escape sequences. If not, return the end of the string. If so, bail out and return -1.
    *
-   * This method expects the data to be in UTF-16 and accesses it as
-   * chars.
+   * This method expects the data to be in UTF-16 and accesses it as chars.
    */
   final protected[this] def parseStringSimple(i: Int, ctxt: FContext[J]): Int = {
     var j = i
@@ -84,12 +81,10 @@ trait CharBasedParser[J] extends Parser[J] {
   }
 
   /**
-   * Parse the string according to JSON rules, and add to the given
-   * context.
+   * Parse the string according to JSON rules, and add to the given context.
    *
-   * This method expects the data to be in UTF-16, and access it as
-   * Char. It performs the correct checks to make sure that we don't
-   * interpret a multi-char code point incorrectly.
+   * This method expects the data to be in UTF-16, and access it as Char. It performs the correct checks to make sure
+   * that we don't interpret a multi-char code point incorrectly.
    */
   final protected[this] def parseString(i: Int, ctxt: FContext[J]): Int = {
     val k = parseStringSimple(i + 1, ctxt)
