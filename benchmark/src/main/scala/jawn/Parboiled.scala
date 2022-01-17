@@ -42,21 +42,21 @@ import org.parboiled2._
 import spray.json.{ParserInput => _, _}
 
 /**
- * This is a feature-complete JSON parser implementation that almost directly
- * models the JSON grammar presented at http://www.json.org as a parboiled2 PEG parser.
+ * This is a feature-complete JSON parser implementation that almost directly models the JSON grammar presented at
+ * http://www.json.org as a parboiled2 PEG parser.
  */
 class ParboiledParser(val input: ParserInput) extends Parser with StringBuilding {
   import CharPredicate.{Digit, Digit19, HexDigit}
   import ParboiledParser._
 
   // the root rule
-  def Json = rule { WhiteSpace ~ Value ~ EOI }
+  def Json = rule(WhiteSpace ~ Value ~ EOI)
 
   def JsonObject: Rule1[JsObject] = rule {
-    ws('{') ~ zeroOrMore(Pair).separatedBy(ws(',')) ~ ws('}') ~> ((fields: Seq[JsField]) => JsObject(fields :_*))
+    ws('{') ~ zeroOrMore(Pair).separatedBy(ws(',')) ~ ws('}') ~> ((fields: Seq[JsField]) => JsObject(fields: _*))
   }
 
-  def Pair = rule { JsonStringUnwrapped ~ ws(':') ~ Value ~> ((_, _)) }
+  def Pair = rule(JsonStringUnwrapped ~ ws(':') ~ Value ~> ((_, _)))
 
   def Value: Rule1[JsValue] = rule {
     // as an optimization of the equivalent rule:
@@ -76,19 +76,19 @@ class ParboiledParser(val input: ParserInput) extends Parser with StringBuilding
     }
   }
 
-  def JsonString = rule { JsonStringUnwrapped ~> (JsString(_)) }
+  def JsonString = rule(JsonStringUnwrapped ~> (JsString(_)))
 
-  def JsonStringUnwrapped = rule { '"' ~ clearSB() ~ Characters ~ ws('"') ~ push(sb.toString) }
+  def JsonStringUnwrapped = rule('"' ~ clearSB() ~ Characters ~ ws('"') ~ push(sb.toString))
 
-  def JsonNumber = rule { capture(Integer ~ optional(Frac) ~ optional(Exp)) ~> (JsNumber(_)) ~ WhiteSpace }
+  def JsonNumber = rule(capture(Integer ~ optional(Frac) ~ optional(Exp)) ~> (JsNumber(_)) ~ WhiteSpace)
 
-  def JsonArray = rule { ws('[') ~ zeroOrMore(Value).separatedBy(ws(',')) ~ ws(']') ~> (JsArray(_ :_*)) }
+  def JsonArray = rule(ws('[') ~ zeroOrMore(Value).separatedBy(ws(',')) ~ ws(']') ~> (JsArray(_: _*)))
 
-  def Characters = rule { zeroOrMore(NormalChar | '\\' ~ EscapedChar) }
+  def Characters = rule(zeroOrMore(NormalChar | '\\' ~ EscapedChar))
 
-  def NormalChar = rule { !QuoteBackslash ~ ANY ~ appendSB() }
+  def NormalChar = rule(!QuoteBackslash ~ ANY ~ appendSB())
 
-  def EscapedChar = rule (
+  def EscapedChar = rule(
     QuoteSlashBackSlash ~ appendSB()
       | 'b' ~ appendSB('\b')
       | 'f' ~ appendSB('\f')
@@ -98,25 +98,25 @@ class ParboiledParser(val input: ParserInput) extends Parser with StringBuilding
       | Unicode ~> { code => sb.append(code.asInstanceOf[Char]); () }
   )
 
-  def Unicode = rule { 'u' ~ capture(HexDigit ~ HexDigit ~ HexDigit ~ HexDigit) ~> (java.lang.Integer.parseInt(_, 16)) }
+  def Unicode = rule('u' ~ capture(HexDigit ~ HexDigit ~ HexDigit ~ HexDigit) ~> (java.lang.Integer.parseInt(_, 16)))
 
-  def Integer = rule { optional('-') ~ (Digit19 ~ Digits | Digit) }
+  def Integer = rule(optional('-') ~ (Digit19 ~ Digits | Digit))
 
-  def Digits = rule { oneOrMore(Digit) }
+  def Digits = rule(oneOrMore(Digit))
 
-  def Frac = rule { "." ~ Digits }
+  def Frac = rule("." ~ Digits)
 
-  def Exp = rule { ignoreCase('e') ~ optional(anyOf("+-")) ~ Digits }
+  def Exp = rule(ignoreCase('e') ~ optional(anyOf("+-")) ~ Digits)
 
-  def JsonTrue = rule { "true" ~ WhiteSpace ~ push(JsTrue) }
+  def JsonTrue = rule("true" ~ WhiteSpace ~ push(JsTrue))
 
-  def JsonFalse = rule { "false" ~ WhiteSpace ~ push(JsFalse) }
+  def JsonFalse = rule("false" ~ WhiteSpace ~ push(JsFalse))
 
-  def JsonNull = rule { "null" ~ WhiteSpace ~ push(JsNull) }
+  def JsonNull = rule("null" ~ WhiteSpace ~ push(JsNull))
 
-  def WhiteSpace = rule { zeroOrMore(WhiteSpaceChar) }
+  def WhiteSpace = rule(zeroOrMore(WhiteSpaceChar))
 
-  def ws(c: Char) = rule { c ~ WhiteSpace }
+  def ws(c: Char) = rule(c ~ WhiteSpace)
 }
 
 object ParboiledParser {
