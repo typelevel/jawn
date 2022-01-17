@@ -15,9 +15,6 @@ ThisBuild / githubWorkflowBuildMatrixExclusions +=
   MatrixExclude(Map("scala" -> scala3, "project" -> "rootNative"))
 ThisBuild / tlFatalWarningsInCi := false
 
-lazy val benchmarkVersion =
-  scala212
-
 lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
   libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.4" % Test
@@ -79,5 +76,4 @@ lazy val benchmark = project
   .dependsOn(parser.jvm, util.jvm, ast.jvm)
   .settings(name := "jawn-benchmark")
   .settings(jawnSettings: _*)
-  .settings(crossScalaVersions := Seq(benchmarkVersion))
   .enablePlugins(NoPublishPlugin, JmhPlugin)
