@@ -13,6 +13,7 @@ ThisBuild / developers += Developer(
 )
 ThisBuild / githubWorkflowBuildMatrixExclusions +=
   MatrixExclude(Map("scala" -> scala3, "project" -> "rootNative"))
+ThisBuild / tlFatalWarningsInCi := false
 
 lazy val benchmarkVersion =
   scala212
