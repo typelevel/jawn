@@ -11,6 +11,8 @@ ThisBuild / developers += Developer(
   id = "d_m",
   url = url("http://github.com/non/")
 )
+ThisBuild / githubWorkflowBuildMatrixExclusions +=
+  MatrixExclude(Map("scala" -> scala3, "project" -> "rootNative"))
 
 lazy val benchmarkVersion =
   scala212
