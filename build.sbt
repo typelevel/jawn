@@ -20,14 +20,6 @@ lazy val benchmarkVersion =
 lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
   libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.4" % Test
-  // scalacOptions ++=
-  //   "-deprecation" ::
-  //     "-encoding" :: "utf-8" ::
-  //     "-feature" ::
-  //     "-unchecked" ::
-  //     "-Xlint" ::
-  //     "-opt:l:method" ::
-  //     Nil,
 )
 
 lazy val jawnSettingsJVM = List(Test / fork := true)
