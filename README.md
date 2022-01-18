@@ -13,17 +13,15 @@ we get a catchy slogan.
 Jawn was designed to parse JSON into an AST as quickly as possible.
 
 ![](https://github.com/typelevel/jawn/workflows/Scala/badge.svg)
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/non/jawn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Latest version](https://index.scala-lang.org/typelevel/jawn/jawn-parser/latest.svg?color=orange)](https://index.scala-lang.org/typelevel/jawn/jawn-parser)
 
 ### Overview
 
-Jawn consists of four parts:
+Jawn consists of three parts:
 
 1. A fast, generic JSON parser (`jawn-parser`)
 2. A small, somewhat anemic AST (`jawn-ast`)
-3. Support packages which parse to third-party ASTs
-4. A few helpful utilities (`jawn-util`)
+3. A few helpful utilities (`jawn-util`)
 
 Currently Jawn is competitive with the fastest Java JSON libraries
 (GSON and Jackson) and in the author's benchmarks it often wins. It
@@ -36,47 +34,33 @@ support package.
 
 ### Quick Start
 
-Jawn supports Scala 2.12, 2.13, and Dotty.
+Jawn supports Scala 2.12, 2.13, and 3 on the JVM and Scala.js.  Scala
+2.12 and 2.13 are supported on Scala Native.
 
 Here's a `build.sbt` snippet that shows you how to depend on Jawn in
 your own sbt project:
 
 ```scala
 // use this if you just want jawn's parser, and will implement your own facade
-libraryDependencies += "org.typelevel" %% "jawn-parser" % "1.0.0"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "1.3.2"
 
 // use this if you want jawn's parser and also jawn's ast
-libraryDependencies += "org.typelevel" %% "jawn-ast" % "1.0.0"
+libraryDependencies += "org.typelevel" %% "jawn-ast" % "1.3.2"
 ```
 
 If you want to use Jawn's parser with another project's AST, see the
-"Supporting external ASTs with Jawn" section. For example, with Spray
-you would say:
-
-```scala
-libraryDependencies += "org.typelevel" %% "jawn-spray" % "1.0.0"
-```
-
-Note that the third-party integration artifacts use `withDottyCompat` internally,
-since the upstream dependencies are not published for Dotty.
-
-There are a few reasons you might want to do this:
+"Supporting external ASTs with Jawn" section.  There are a few reasons
+you might want to do this:
 
  * The library's built-in parser is significantly slower than Jawn's.
  * Jawn supports more input types (`ByteBuffer`, `File`, etc.).
  * You need asynchronous JSON parsing.
-
-(NOTE: previous to version 0.8.3 the support libraries would have been
-named `"spray-support"` instead of `"jawn-spray"`.)
 
 ### Dependencies
 
 *jawn-parser* has no dependencies other than Scala.
 
 *jawn-ast* depends on *jawn-parser* but nothing else.
-
-The various support projects (e.g. *jawn-argonaut*) depend on
-the library they are supporting.
 
 ### Parsing
 
@@ -134,52 +118,13 @@ arbitrary data type (provided you also have an implicit `Facade[J]`).
 
 ### Supporting external ASTs with Jawn
 
-Jawn currently integrates three external ASTs directly:
+#### Circe
 
-| AST       | Version |
-|-----------|---------|
-| Json4s    | 3.6.5   |
-| Play-json | 2.8.1   |
-| Spray     | 1.3.5   |
+[circe] is supported via its [`circe-parser`](https://circe.github.io/circe/parsing.html) module.
 
-Integrations for [circe] and [argonaut] are maintained by those
-projects.
+#### Argonaut
 
-Each of these subprojects provides a `Parser` object (an instance of
-`SupportParser[J]`) that is parameterized on the given project's
-AST (`J`). The following methods are available:
-
-```scala
-Parser.parseUnsafe(String) → J
-Parser.parseFromString(String) → Try[J]
-Parser.parsefromPath(String) → Try[J]
-Parser.parseFromFile(File) → Try[J]
-Parser.parseFromChannel(ReadableByteChannel) → Try[J]
-Parser.parseFromByteBuffer(ByteBuffer) → Try[J]
-```
-
-These methods parallel those provided by `org.typelevel.jawn.Parser`.
-
-For the following snippets, `XYZ` is one of (`json4s`, `play`, or
-`spray`):
-
-This is how you would include the subproject in build.sbt:
-
-```scala
-resolvers += Resolver.sonatypeRepo("releases")
-
-libraryDependencies += "org.typelevel" %% jawn-"XYZ" % "1.0.0"
-```
-
-(Note that prior to the 0.14.0 release, the group ID was `"org.spire-math"`.)
-
-This is an example of how you might use the parser into your code:
-
-```scala
-import org.typelevel.jawn.support.XYZ.Parser
-
-val myResult = Parser.parseFromString(myString)
-```
+[argonaut] is supported via its `argonaut-jawn` module.
 
 ### Do-It-Yourself Parsing
 
@@ -194,7 +139,7 @@ snippet to your `build.sbt` file:
 ```scala
 resolvers += Resolver.sonatypeRepo("releases")
 
-libraryDependencies += "org.typelevel" %% "jawn-parser" % "1.0.0"
+libraryDependencies += "org.typelevel" %% "jawn-parser" % "1.3.2"
 ```
 
 To support your AST of choice, you'll want to define a `Facade[J]`
@@ -220,9 +165,9 @@ Most ASTs will be easy to define using the `SimpleFacade` or
 do more than just wrap a Scala collection, it may be necessary to
 extend `Facade` directly.
 
-You can also look at the facades used by the support projects to help
-you create your own. This could also be useful if you wanted to
-use an older version of a supported library.
+Extend `SupportParser[J]`, supplying your facade as the abstract
+`facade`, to get convenient methods for parsing various input types or
+an `AsyncParser`.
 
 ### Using the AST
 
@@ -426,8 +371,7 @@ power and sophistication of many other JSON libraries.
 
 People are expected to follow the
 [Scala Code of Conduct](https://scala-lang.org/conduct/) when
-discussing Jawn on GitHub, the Gitter channel, or other
-venues.
+discussing Jawn on GitHub or other venues.
 
 Jawn's current maintainers are:
 
@@ -442,7 +386,7 @@ Jawn's current maintainers are:
 All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
-Copyright Erik Osheim, 2012-2020.
+Copyright Erik Osheim, 2012-2022.
 
 [circe]: https://circe.github.io/circe/
 [argonaut]: http://argonaut.io
