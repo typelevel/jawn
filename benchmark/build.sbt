@@ -8,7 +8,7 @@ libraryDependencies ++= {
       "io.argonaut" %% "argonaut" % "6.2.5",
       "org.json4s" %% "json4s-native" % "3.5.5",
       "org.json4s" %% "json4s-jackson" % "3.5.5",
-      "com.typesafe.play" %% "play-json" % "2.6.14",
+      "com.typesafe.play" %% "play-json" % "2.9.2",
       "com.rojoma" %% "rojoma-json" % "2.4.3",
       "com.rojoma" %% "rojoma-json-v3" % "3.14.0",
       "io.spray" %% "spray-json" % "1.3.6",
