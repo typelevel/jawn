@@ -264,4 +264,23 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
 
     Prop(badInputs.forall(absorbFails))
   }
+
+  case class MultipleJsonArrays(jsonArrays: List[JArray]) {
+    def build: String = jsonArrays.map(_.build).mkString
+  }
+
+  implicit val multipleJsonArraysArb: Arbitrary[MultipleJsonArrays] = Arbitrary {
+    for {
+      range <- Gen.choose(1, 5)
+      arrays <- Gen.listOfN(range, jarray(0))
+    } yield MultipleJsonArrays(arrays)
+  }
+
+  property("AsyncParser supports multiple top level JSON arrays in UnwrapMultiArray mode") = forAll {
+    (multipleJsonArrays: MultipleJsonArrays) =>
+      val result =
+        AsyncParser[Unit](AsyncParser.UnwrapMultiArray).absorb(multipleJsonArrays.build)(NullFacade)
+      result.isRight
+  }
+
 }
