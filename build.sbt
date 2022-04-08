@@ -12,8 +12,6 @@ ThisBuild / developers += Developer(
   id = "d_m",
   url = url("http://github.com/non/")
 )
-ThisBuild / githubWorkflowBuildMatrixExclusions +=
-  MatrixExclude(Map("scala" -> scala3, "project" -> "rootNative"))
 ThisBuild / tlFatalWarningsInCi := false
 
 lazy val jawnSettings = Seq(
@@ -32,8 +30,11 @@ lazy val jawnSettingsJS = List(
   }
 )
 lazy val jawnSettingsNative = Seq(
-  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "1.3.0").toMap,
-  crossScalaVersions := List(scala212, scala213)
+  tlVersionIntroduced := Map(
+    "2.12" -> "1.3.0",
+    "2.13" -> "1.3.0",
+    "3" -> "1.4.0"
+  )
 )
 
 lazy val root = tlCrossRootProject
