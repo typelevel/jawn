@@ -1,7 +1,7 @@
-ThisBuild / tlBaseVersion := "1.3"
+ThisBuild / tlBaseVersion := "1.4"
 lazy val scala212 = "2.12.15"
 lazy val scala213 = "2.13.8"
-lazy val scala3 = "3.0.2"
+lazy val scala3 = "3.1.1"
 ThisBuild / crossScalaVersions := Seq(scala3, scala213, scala212)
 ThisBuild / tlVersionIntroduced := Map("3" -> "1.1.2")
 ThisBuild / startYear := Some(2012)
@@ -12,13 +12,11 @@ ThisBuild / developers += Developer(
   id = "d_m",
   url = url("http://github.com/non/")
 )
-ThisBuild / githubWorkflowBuildMatrixExclusions +=
-  MatrixExclude(Map("scala" -> scala3, "project" -> "rootNative"))
 ThisBuild / tlFatalWarningsInCi := false
 
 lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.15.4" % Test
+  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.16.0" % Test
 )
 
 lazy val jawnSettingsJVM = List(Test / fork := true)
@@ -32,8 +30,11 @@ lazy val jawnSettingsJS = List(
   }
 )
 lazy val jawnSettingsNative = Seq(
-  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "1.3.0").toMap,
-  crossScalaVersions := List(scala212, scala213)
+  tlVersionIntroduced := Map(
+    "2.12" -> "1.3.0",
+    "2.13" -> "1.3.0",
+    "3" -> "1.4.0"
+  )
 )
 
 lazy val root = tlCrossRootProject
