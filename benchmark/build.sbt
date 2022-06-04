@@ -10,7 +10,7 @@ libraryDependencies ++= {
       "org.json4s" %% "json4s-jackson" % "4.0.5",
       "com.typesafe.play" %% "play-json" % "2.9.2",
       "com.rojoma" %% "rojoma-json" % "2.4.3",
-      "com.rojoma" %% "rojoma-json-v3" % "3.14.0",
+      "com.rojoma" %% "rojoma-json-v3" % "3.15.0",
       "io.spray" %% "spray-json" % "1.3.6",
       "org.parboiled" %% "parboiled" % "2.4.0",
       "com.fasterxml.jackson.core" % "jackson-annotations" % "2.13.3",
