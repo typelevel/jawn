@@ -31,7 +31,6 @@ object AsyncParser {
 
   sealed abstract class Mode(val start: Int, val value: Int)
   case object UnwrapArray extends Mode(-5, 1)
-  case object UnwrapMultiArray extends Mode(-5, 1)
   case object ValueStream extends Mode(-1, 0)
   case object SingleValue extends Mode(-1, -1)
 
@@ -47,10 +46,22 @@ object AsyncParser {
       offset = 0,
       done = false,
       streamMode = mode.value,
-      multiValue = mode match {
-        case UnwrapMultiArray => true
-        case _ => false
-      }
+      multiValue = false
+    )
+
+  def apply[J](mode: Mode, multiValue: Boolean): AsyncParser[J] =
+    new AsyncParser(
+      state = mode.start,
+      curr = 0,
+      context = null,
+      stack = Nil,
+      data = new Array[Byte](131072),
+      len = 0,
+      allocated = 131072,
+      offset = 0,
+      done = false,
+      streamMode = mode.value,
+      multiValue = multiValue
     )
 }
 

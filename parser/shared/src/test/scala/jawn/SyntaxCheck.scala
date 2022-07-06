@@ -279,7 +279,7 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
   property("AsyncParser supports multiple top level JSON arrays in UnwrapMultiArray mode") = forAll {
     (multipleJsonArrays: MultipleJsonArrays) =>
       val result =
-        AsyncParser[Unit](AsyncParser.UnwrapMultiArray).absorb(multipleJsonArrays.build)(NullFacade)
+        AsyncParser[Unit](AsyncParser.UnwrapArray, multiValue = true).absorb(multipleJsonArrays.build)(NullFacade)
       result.isRight
   }
 
