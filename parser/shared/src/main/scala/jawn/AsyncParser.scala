@@ -45,7 +45,23 @@ object AsyncParser {
       allocated = 131072,
       offset = 0,
       done = false,
-      streamMode = mode.value
+      streamMode = mode.value,
+      multiValue = false
+    )
+
+  def apply[J](mode: Mode, multiValue: Boolean): AsyncParser[J] =
+    new AsyncParser(
+      state = mode.start,
+      curr = 0,
+      context = null,
+      stack = Nil,
+      data = new Array[Byte](131072),
+      len = 0,
+      allocated = 131072,
+      offset = 0,
+      done = false,
+      streamMode = mode.value,
+      multiValue = multiValue
     )
 }
 
@@ -88,8 +104,22 @@ final class AsyncParser[J] protected[jawn] (
   protected[jawn] var allocated: Int,
   protected[jawn] var offset: Int,
   protected[jawn] var done: Boolean,
-  protected[jawn] var streamMode: Int
+  protected[jawn] var streamMode: Int,
+  protected[jawn] val multiValue: Boolean
 ) extends ByteBasedParser[J] {
+
+  protected[jawn] def this(state: Int,
+                           curr: Int,
+                           context: FContext[J],
+                           stack: List[FContext[J]],
+                           data: Array[Byte],
+                           len: Int,
+                           allocated: Int,
+                           offset: Int,
+                           done: Boolean,
+                           streamMode: Int
+  ) =
+    this(state, curr, context, stack, data, len, allocated, offset, done, streamMode, multiValue = false)
 
   private[this] var _line = 0
   protected[this] var pos = 0
@@ -98,7 +128,7 @@ final class AsyncParser[J] protected[jawn] (
   final protected[this] def column(i: Int): Int = i - pos
 
   final def copy(): AsyncParser[J] =
-    new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode)
+    new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode, multiValue)
 
   final def absorb(buf: ByteBuffer)(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
     done = false
@@ -193,9 +223,12 @@ final class AsyncParser[J] protected[jawn] (
               if (state == ASYNC_PRESTART) {
                 offset += 1
                 state = ASYNC_START
-              } else if (state == ASYNC_END)
-                die(offset, "expected eof")
-              else if (state == ASYNC_POSTVAL)
+              } else if (state == ASYNC_END) {
+                if (multiValue) {
+                  offset += 1
+                  state = ASYNC_START
+                } else die(offset, "expected eof")
+              } else if (state == ASYNC_POSTVAL)
                 die(offset, "expected , or ]")
               else
                 state = 0

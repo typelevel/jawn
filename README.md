@@ -81,7 +81,8 @@ Jawn also supports asynchronous parsing, which allows users to feed
 the parser with data as it is available. There are three modes:
 
 * `SingleValue` waits to return a single `J` value once parsing is done.
-* `UnwrapArray` if the top-level element is an array, return values as they become available.
+* `UnwrapArray` if the top-level element is an array, return values as they become available. Set `multiValue` to `true`
+if you want to support multiple top level arrays.
 * `ValueStream` parse one-or-more json values separated by whitespace.
 
 Here's an example:
