@@ -12,10 +12,10 @@ libraryDependencies ++= {
       "com.rojoma" %% "rojoma-json" % "2.4.3",
       "com.rojoma" %% "rojoma-json-v3" % "3.15.0",
       "io.spray" %% "spray-json" % "1.3.6",
-      "org.parboiled" %% "parboiled" % "2.4.0",
+      "org.parboiled" %% "parboiled" % "2.4.1",
       "com.fasterxml.jackson.core" % "jackson-annotations" % "2.13.4",
       "com.fasterxml.jackson.core" % "jackson-core" % "2.13.4",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.4.2",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.1",
       "com.google.code.gson" % "gson" % "2.10"
     )
   else Nil
