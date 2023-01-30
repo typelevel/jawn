@@ -1,7 +1,7 @@
 ThisBuild / tlBaseVersion := "1.4"
 lazy val scala212 = "2.12.17"
 lazy val scala213 = "2.13.10"
-lazy val scala3 = "3.2.1"
+lazy val scala3 = "3.2.2"
 ThisBuild / crossScalaVersions := Seq(scala3, scala213, scala212)
 ThisBuild / tlVersionIntroduced := Map("3" -> "1.1.2")
 ThisBuild / startYear := Some(2012)
