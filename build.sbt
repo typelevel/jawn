@@ -39,6 +39,9 @@ lazy val jawnSettingsNative = Seq(
 
 lazy val root = tlCrossRootProject
   .aggregate(parser, util, ast, benchmark)
+  .settings(
+    name := "jawn-root"
+  )
 
 lazy val parser = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Full)
