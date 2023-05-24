@@ -39,8 +39,20 @@ final private[jawn] class StringParser[J](s: String) extends SyncParser[J] with 
   final protected[this] def line(): Int = _line
   final protected[this] def reset(i: Int): Int = i
   final protected[this] def checkpoint(state: Int, i: Int, context: FContext[J], stack: List[FContext[J]]): Unit = {}
-  final protected[this] def at(i: Int): Char = s.charAt(i)
-  final protected[this] def at(i: Int, j: Int): CharSequence = s.substring(i, j)
+  final protected[this] def at(i: Int): Char = {
+    if (Platform.isJs) {
+      if (i < 0 || i >= s.length) throw new StringIndexOutOfBoundsException
+    }
+    s.charAt(i)
+  }
+  final protected[this] def at(i: Int, j: Int): CharSequence = {
+    if (Platform.isJs) {
+      if (i < 0 || i >= s.length) throw new StringIndexOutOfBoundsException
+      if (j < 0 || j > s.length) throw new StringIndexOutOfBoundsException
+      if (i > j) throw new StringIndexOutOfBoundsException
+    }
+    s.substring(i, j)
+  }
   final protected[this] def atEof(i: Int): Boolean = i == s.length
   final protected[this] def close(): Unit = ()
 }

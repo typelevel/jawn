@@ -40,11 +40,29 @@ final class ByteArrayParser[J](src: Array[Byte]) extends SyncParser[J] with Byte
     context: FContext[J],
     stack: List[FContext[J]]
   ): Unit = {}
-  final protected[this] def byte(i: Int): Byte = src(i)
-  final protected[this] def at(i: Int): Char = src(i).toChar
 
-  final protected[this] def at(i: Int, k: Int): CharSequence =
+  final protected[this] def byte(i: Int): Byte = {
+    if (Platform.isJs) {
+      if (i < 0 || i >= src.length) throw new ArrayIndexOutOfBoundsException
+    }
+    src(i)
+  }
+
+  final protected[this] def at(i: Int): Char = {
+    if (Platform.isJs) {
+      if (i < 0 || i >= src.length) throw new ArrayIndexOutOfBoundsException
+    }
+    src(i).toChar
+  }
+
+  final protected[this] def at(i: Int, k: Int): CharSequence = {
+    if (Platform.isJs) {
+      if (i < 0 || i >= src.length) throw new ArrayIndexOutOfBoundsException
+      if (k < 0 || k > src.length) throw new ArrayIndexOutOfBoundsException
+      if (i > k) throw new ArrayIndexOutOfBoundsException
+    }
     new String(src, i, k - i, utf8)
+  }
 
   final protected[this] def atEof(i: Int): Boolean = i >= src.length
 }

@@ -45,6 +45,9 @@ package object util {
     var inverseSign: Long = -1L
     var i: Int = 0
 
+    if (cs.length == 0)
+      throw InvalidLong(cs.toString)
+
     if (cs.charAt(0) == '-') {
       inverseSign = 1L
       i = 1
