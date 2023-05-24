@@ -21,7 +21,7 @@ lazy val jawnSettings = Seq(
 
 lazy val jawnSettingsJVM = List(Test / fork := true)
 lazy val jawnSettingsJS = List(
-  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "1.2.0").toMap,
+  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "1.2.0").toMap
 )
 lazy val jawnSettingsNative = Seq(
   tlVersionIntroduced := Map(
