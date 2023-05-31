@@ -34,8 +34,20 @@ final private[jawn] class CharSequenceParser[J](cs: CharSequence) extends SyncPa
   final protected[this] def line(): Int = _line
   final protected[this] def reset(i: Int): Int = i
   final protected[this] def checkpoint(state: Int, i: Int, context: FContext[J], stack: List[FContext[J]]): Unit = ()
-  final protected[this] def at(i: Int): Char = cs.charAt(i)
-  final protected[this] def at(i: Int, j: Int): CharSequence = cs.subSequence(i, j)
+  final protected[this] def at(i: Int): Char = {
+    if (Platform.isJs) {
+      if (i < 0 || i >= cs.length) throw new IndexOutOfBoundsException
+    }
+    cs.charAt(i)
+  }
+  final protected[this] def at(i: Int, j: Int): CharSequence = {
+    if (Platform.isJs) {
+      if (i < 0 || i >= cs.length) throw new IndexOutOfBoundsException
+      if (j < 0 || j > cs.length) throw new IndexOutOfBoundsException
+      if (i > j) throw new IndexOutOfBoundsException
+    }
+    cs.subSequence(i, j)
+  }
   final protected[this] def atEof(i: Int): Boolean = i == cs.length
   final protected[this] def close(): Unit = ()
 }
