@@ -1,4 +1,4 @@
-ThisBuild / tlBaseVersion := "1.4"
+ThisBuild / tlBaseVersion := "1.5"
 lazy val scala212 = "2.12.17"
 lazy val scala213 = "2.13.10"
 lazy val scala3 = "3.2.2"
@@ -21,13 +21,7 @@ lazy val jawnSettings = Seq(
 
 lazy val jawnSettingsJVM = List(Test / fork := true)
 lazy val jawnSettingsJS = List(
-  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "1.2.0").toMap,
-  scalaJSLinkerConfig ~= {
-    _.withSemantics(
-      _.withAsInstanceOfs(org.scalajs.linker.interface.CheckedBehavior.Unchecked)
-        .withArrayIndexOutOfBounds(org.scalajs.linker.interface.CheckedBehavior.Unchecked)
-    )
-  }
+  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "1.2.0").toMap
 )
 lazy val jawnSettingsNative = Seq(
   tlVersionIntroduced := Map(
