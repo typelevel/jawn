@@ -22,8 +22,9 @@
 package org.typelevel.jawn
 package ast
 
-import java.lang.Double.{isInfinite, isNaN}
+import java.lang.Double.{ isInfinite, isNaN }
 import scala.collection.mutable
+import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
 
 class WrongValueException(e: String, g: String) extends Exception(s"expected $e, got $g")
@@ -81,6 +82,7 @@ sealed abstract class JValue {
 
 object JValue {
   implicit val facade: Facade[JValue] = JawnFacade
+  implicit val classTag: ClassTag[JValue] = ClassTag(classOf[JValue])
 }
 
 sealed abstract class JAtom extends JValue {

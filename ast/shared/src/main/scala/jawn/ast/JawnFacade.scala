@@ -53,7 +53,7 @@ object JawnFacade extends Facade.NoIndexFacade[JValue] {
       private[this] val vs = mutable.ArrayBuffer.empty[JValue]
       def add(s: CharSequence): Unit = vs += JString(s.toString)
       def add(v: JValue): Unit = vs += v
-      def finish(): JValue = JArray(vs.toArray)
+      def finish(): JValue = JArray(vs.toArray(JValue.classTag))
       def isObj: Boolean = false
     }
 
