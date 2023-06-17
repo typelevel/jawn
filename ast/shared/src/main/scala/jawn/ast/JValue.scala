@@ -22,7 +22,7 @@
 package org.typelevel.jawn
 package ast
 
-import java.lang.Double.{ isInfinite, isNaN }
+import java.lang.Double.{isInfinite, isNaN}
 import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
