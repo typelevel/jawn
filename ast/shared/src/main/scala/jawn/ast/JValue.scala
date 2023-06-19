@@ -82,7 +82,7 @@ sealed abstract class JValue {
 
 object JValue {
   implicit val facade: Facade[JValue] = JawnFacade
-  implicit val classTag: ClassTag[JValue] = ClassTag(classOf[JValue])
+  implicit lazy val classTag: ClassTag[JValue] = ClassTag(classOf[JValue])
 }
 
 sealed abstract class JAtom extends JValue {
