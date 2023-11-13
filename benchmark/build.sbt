@@ -15,7 +15,7 @@ libraryDependencies ++= {
       "org.parboiled" %% "parboiled" % "2.5.0",
       "com.fasterxml.jackson.core" % "jackson-annotations" % "2.15.3",
       "com.fasterxml.jackson.core" % "jackson-core" % "2.15.3",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.2",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.3",
       "com.google.code.gson" % "gson" % "2.10.1"
     )
   else Nil
