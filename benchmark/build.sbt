@@ -6,8 +6,8 @@ libraryDependencies ++= {
   if (scalaBinaryVersion.value.startsWith("2.12"))
     Seq(
       "io.argonaut" %% "argonaut" % "6.3.9",
-      "org.json4s" %% "json4s-native" % "4.0.6",
-      "org.json4s" %% "json4s-jackson" % "4.0.6",
+      "org.json4s" %% "json4s-native" % "4.0.7",
+      "org.json4s" %% "json4s-jackson" % "4.0.7",
       "com.typesafe.play" %% "play-json" % "2.10.3",
       "com.rojoma" %% "rojoma-json" % "2.4.3",
       "com.rojoma" %% "rojoma-json-v3" % "3.15.0",
