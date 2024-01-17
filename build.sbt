@@ -12,7 +12,7 @@ ThisBuild / developers += Developer(
   id = "d_m",
   url = url("http://github.com/non/")
 )
-ThisBuild / tlFatalWarningsInCi := false
+ThisBuild / tlFatalWarnings := false
 
 lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
