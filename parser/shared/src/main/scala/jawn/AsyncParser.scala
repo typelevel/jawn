@@ -106,7 +106,8 @@ final class AsyncParser[J] protected[jawn] (
   protected[jawn] var done: Boolean,
   protected[jawn] var streamMode: Int,
   protected[jawn] val multiValue: Boolean
-) extends ByteBasedParser[J] {
+) extends ByteBasedParser[J]
+    with AsyncParserStates {
 
   protected[jawn] def this(state: Int,
                            curr: Int,
@@ -179,28 +180,6 @@ final class AsyncParser[J] protected[jawn] (
       data = newdata
       allocated = newsize
     }
-
-  /**
-   * Explanation of the new synthetic states. The parser machinery uses positive integers for states while parsing json
-   * values. We use these negative states to keep track of the async parser's status between json values.
-   *
-   * ASYNC_PRESTART: We haven't seen any non-whitespace yet. We could be parsing an array, or not. We are waiting for
-   * valid JSON.
-   *
-   * ASYNC_START: We've seen an array and have begun unwrapping it. We could see a ] if the array is empty, or valid
-   * JSON.
-   *
-   * ASYNC_END: We've parsed an array and seen the final ]. At this point we should only see whitespace or an EOF.
-   *
-   * ASYNC_POSTVAL: We just parsed a value from inside the array. We expect to see whitespace, a comma, or a ].
-   *
-   * ASYNC_PREVAL: We are in an array and we just saw a comma. We expect to see whitespace or a JSON value.
-   */
-  @inline final private[this] def ASYNC_PRESTART = -5
-  @inline final private[this] def ASYNC_START = -4
-  @inline final private[this] def ASYNC_END = -3
-  @inline final private[this] def ASYNC_POSTVAL = -2
-  @inline final private[this] def ASYNC_PREVAL = -1
 
   protected[jawn] def churn()(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
 
