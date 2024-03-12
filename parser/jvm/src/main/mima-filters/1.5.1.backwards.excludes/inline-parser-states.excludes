@@ -1,0 +1,7 @@
+ProblemFilters.exclude[DirectMissingMethodProblem]("org.typelevel.jawn.Parser.ARRBEG")
+ProblemFilters.exclude[DirectMissingMethodProblem]("org.typelevel.jawn.Parser.ARREND")
+ProblemFilters.exclude[DirectMissingMethodProblem]("org.typelevel.jawn.Parser.DATA")
+ProblemFilters.exclude[DirectMissingMethodProblem]("org.typelevel.jawn.Parser.KEY")
+ProblemFilters.exclude[DirectMissingMethodProblem]("org.typelevel.jawn.Parser.OBJBEG")
+ProblemFilters.exclude[DirectMissingMethodProblem]("org.typelevel.jawn.Parser.OBJEND")
+ProblemFilters.exclude[DirectMissingMethodProblem]("org.typelevel.jawn.Parser.SEP")

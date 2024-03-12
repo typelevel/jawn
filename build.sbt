@@ -16,7 +16,19 @@ ThisBuild / tlFatalWarnings := false
 
 lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.17.0" % Test
+  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.17.0" % Test,
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, n)) if n == 12 | n == 13 =>
+        Seq(
+          "-opt-inline-from:<sources>",
+          "-opt:l:inline"
+        )
+      case Some((3, _)) =>
+        // Optimizer not yet available for Scala3, see https://docs.scala-lang.org/overviews/compiler-options/optimizer.html
+        Seq.empty
+    }
+  }
 )
 
 lazy val jawnSettingsJVM = List(Test / fork := true)
