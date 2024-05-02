@@ -488,7 +488,7 @@ abstract class Parser[J] {
   }
 }
 
-object Parser extends ParserCompanionPlatform {
+object Parser extends ParserCompanionPlatform with ParserStates {
 
   def parseUnsafe[J](s: String)(implicit facade: Facade[J]): J =
     new StringParser(s).parse()
@@ -506,20 +506,6 @@ object Parser extends ParserCompanionPlatform {
     Try(new ByteArrayParser[J](src).parse())
 
   def async[J](mode: AsyncParser.Mode): AsyncParser[J] = AsyncParser[J](mode)
-
-  /**
-   * Private variables.
-   */
-  /**
-   * Valid parser states.
-   */
-  @inline final private[jawn] val ARRBEG = 6
-  @inline final private[jawn] val OBJBEG = 7
-  @inline final private[jawn] val DATA = 1
-  @inline final private[jawn] val KEY = 2
-  @inline final private[jawn] val SEP = 3
-  @inline final private[jawn] val ARREND = 4
-  @inline final private[jawn] val OBJEND = 5
 
   final private[jawn] val HexChars: Array[Int] = {
     val arr = Array.fill(128)(-1)
