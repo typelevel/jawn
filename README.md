@@ -387,7 +387,7 @@ Jawn's current maintainers are:
 All code is available to you under the MIT license, available at
 http://opensource.org/licenses/mit-license.php.
 
-Copyright Erik Osheim, 2012-2022.
+Copyright Erik Osheim, 2012-2024.
 
 [circe]: https://circe.github.io/circe/
 [argonaut]: http://argonaut.io
