@@ -1,4 +1,4 @@
-ThisBuild / tlBaseVersion := "1.5"
+ThisBuild / tlBaseVersion := "1.6"
 lazy val scala212 = "2.12.19"
 lazy val scala213 = "2.13.14"
 lazy val scala3 = "3.3.3"
@@ -16,7 +16,7 @@ ThisBuild / tlFatalWarnings := false
 
 lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.17.1" % Test
+  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.18.0" % Test
 )
 
 lazy val jawnSettingsJVM = List(Test / fork := true)
@@ -25,9 +25,9 @@ lazy val jawnSettingsJS = List(
 )
 lazy val jawnSettingsNative = Seq(
   tlVersionIntroduced := Map(
-    "2.12" -> "1.3.0",
-    "2.13" -> "1.3.0",
-    "3" -> "1.4.0"
+    "2.12" -> "1.6.0",
+    "2.13" -> "1.6.0",
+    "3" -> "1.6.0"
   )
 )
 
