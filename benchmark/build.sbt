@@ -5,7 +5,7 @@ run / javaOptions += "-Xmx6G"
 libraryDependencies ++= {
   if (scalaBinaryVersion.value.startsWith("2.12"))
     Seq(
-      "io.argonaut" %% "argonaut" % "6.3.9",
+      "io.argonaut" %% "argonaut" % "6.3.10",
       "org.json4s" %% "json4s-native" % "4.0.7",
       "org.json4s" %% "json4s-jackson" % "4.0.7",
       "org.playframework" %% "play-json" % "3.0.3",
