@@ -28,7 +28,6 @@ package org.typelevel.jawn.util
  *
  *   - Slice(s) wraps a string, ensuring that future operations (e.g. subSequence) will construct slices instead of
  *     strings.
- *
  *   - Slice(s, start, limit) is the default, and ensures that:
  *
  *   1. start >= 0 2. limit >= start 3. limit <= s.length
