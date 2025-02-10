@@ -254,13 +254,13 @@ case class DeferNum(s: String) extends JNum {
   lazy val n: Double = java.lang.Double.parseDouble(s)
 
   final override def getInt: Option[Int] = Some(n.toInt)
-  final override def getLong: Option[Long] = Some(util.parseLongUnsafe(s))
+  final override def getLong: Option[Long] = Some(n.toLong)
   final override def getDouble: Option[Double] = Some(n)
   final override def getBigInt: Option[BigInt] = Some(BigDecimal(s).toBigInt)
   final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(s))
 
   final override def asInt: Int = n.toInt
-  final override def asLong: Long = util.parseLongUnsafe(s)
+  final override def asLong: Long = n.toLong
   final override def asDouble: Double = n
   final override def asBigInt: BigInt = BigDecimal(s).toBigInt
   final override def asBigDecimal: BigDecimal = BigDecimal(s)
