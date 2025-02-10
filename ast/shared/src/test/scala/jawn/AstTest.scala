@@ -93,7 +93,7 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
   property(".asBigInt") = forAllNoShrink { (expForm: (String, Double)) =>
     Prop(
       JParser.parseUnsafe(expForm._1).getBigInt == Try(JParser.parseUnsafe(expForm._1).asBigInt).toOption &&
-        JParser.parseUnsafe(expForm._1).asBigInt == BigDecimal(expForm._2).toBigInt()
+        JParser.parseUnsafe(expForm._1).asBigInt == BigDecimal(expForm._2).toBigInt
     )
   }
 
