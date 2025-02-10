@@ -62,4 +62,17 @@ object ArbitraryUtil {
 
   implicit lazy val arbitraryJValue: Arbitrary[JValue] =
     Arbitrary(jvalue())
+
+  // Valid JSON numbers with an exact double representation and in the Long range
+
+  implicit lazy val expNotationNums: Arbitrary[(String, Double)] = Arbitrary[(String, Double)] {
+    Gen.oneOf(
+      ("2e3", 2e3),
+      ("2.5e0", 2.5e0),
+      ("2e+3", 2e+3),
+      ("2.5e-1", 2.5e-1),
+      ("9.223372036854776e18", 9.223372036854776e18),
+      ("-9.223372036854776e+18", -9.223372036854776e18)
+    )
+  }
 }

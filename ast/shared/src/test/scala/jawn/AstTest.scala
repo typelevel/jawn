@@ -23,10 +23,10 @@ package org.typelevel.jawn
 package ast
 
 import org.scalacheck.{Prop, Properties}
-import scala.util.{Success, Try}
 
+import scala.util.{Success, Try}
 import ArbitraryUtil._
-import Prop.forAll
+import Prop.{forAll, forAllNoShrink}
 
 class AstTest extends Properties("AstTest") with AstTestPlatform {
 
@@ -62,6 +62,13 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
     )
   }
 
+  property(".asInt") = forAllNoShrink { (expForm: (String, Double)) =>
+    Prop(
+      JParser.parseUnsafe(expForm._1).getInt == Try(JParser.parseUnsafe(expForm._1).asInt).toOption &&
+        JParser.parseUnsafe(expForm._1).asInt == expForm._2.intValue()
+    )
+  }
+
   property(".getLong") = forAll { (n: Long) =>
     Prop(
       JNum(n).getLong == Some(n) &&
@@ -69,10 +76,24 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
     )
   }
 
+  property(".asLong") = forAllNoShrink { (expForm: (String, Double)) =>
+    Prop(
+      JParser.parseUnsafe(expForm._1).getLong == Try(JParser.parseUnsafe(expForm._1).asLong).toOption &&
+        JParser.parseUnsafe(expForm._1).asLong == expForm._2.longValue()
+    )
+  }
+
   property(".getBigInt") = forAll { (n: BigInt) =>
     Prop(
       JNum(n.toString).getBigInt == Some(n) &&
         JParser.parseUnsafe(n.toString).getBigInt == Some(n)
+    )
+  }
+
+  property(".asBigInt") = forAllNoShrink { (expForm: (String, Double)) =>
+    Prop(
+      JParser.parseUnsafe(expForm._1).getBigInt == Try(JParser.parseUnsafe(expForm._1).asBigInt).toOption &&
+        JParser.parseUnsafe(expForm._1).asBigInt == BigDecimal(expForm._2).toBigInt()
     )
   }
 
@@ -84,5 +105,12 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
       )
     else
       Prop(true)
+  }
+
+  property(".asBigDecimal") = forAllNoShrink { (expForm: (String, Double)) =>
+    Prop(
+      JParser.parseUnsafe(expForm._1).getBigDecimal == Try(JParser.parseUnsafe(expForm._1).asBigDecimal).toOption &&
+        JParser.parseUnsafe(expForm._1).asBigDecimal == BigDecimal(expForm._2)
+    )
   }
 }
