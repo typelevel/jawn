@@ -26,7 +26,7 @@ import org.scalacheck.{Prop, Properties}
 
 import scala.util.{Success, Try}
 import ArbitraryUtil._
-import Prop.{forAll, forAllNoShrink}
+import Prop.{forAll}
 
 class AstTest extends Properties("AstTest") with AstTestPlatform {
 
@@ -62,8 +62,8 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
     )
   }
 
-  property(".asInt") = forAllNoShrink { (expForm: (String, Double)) =>
-    Prop(
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asInt ${expForm._1}") = Prop(
       JParser.parseUnsafe(expForm._1).getInt == Try(JParser.parseUnsafe(expForm._1).asInt).toOption &&
         JParser.parseUnsafe(expForm._1).asInt == expForm._2.intValue()
     )
@@ -76,8 +76,8 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
     )
   }
 
-  property(".asLong") = forAllNoShrink { (expForm: (String, Double)) =>
-    Prop(
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asLong ${expForm._1}") = Prop(
       JParser.parseUnsafe(expForm._1).getLong == Try(JParser.parseUnsafe(expForm._1).asLong).toOption &&
         JParser.parseUnsafe(expForm._1).asLong == expForm._2.longValue()
     )
@@ -90,8 +90,8 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
     )
   }
 
-  property(".asBigInt") = forAllNoShrink { (expForm: (String, Double)) =>
-    Prop(
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asBigInt ${expForm._1}") = Prop(
       JParser.parseUnsafe(expForm._1).getBigInt == Try(JParser.parseUnsafe(expForm._1).asBigInt).toOption &&
         JParser.parseUnsafe(expForm._1).asBigInt == BigDecimal(expForm._2).toBigInt
     )
@@ -107,8 +107,8 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
       Prop(true)
   }
 
-  property(".asBigDecimal") = forAllNoShrink { (expForm: (String, Double)) =>
-    Prop(
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asBigDecimal ${expForm._1}") = Prop(
       JParser.parseUnsafe(expForm._1).getBigDecimal == Try(JParser.parseUnsafe(expForm._1).asBigDecimal).toOption &&
         JParser.parseUnsafe(expForm._1).asBigDecimal == BigDecimal(expForm._2)
     )

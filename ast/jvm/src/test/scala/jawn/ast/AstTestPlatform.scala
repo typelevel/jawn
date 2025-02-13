@@ -40,8 +40,8 @@ private[jawn] trait AstTestPlatform { self: AstTest =>
     )
   }
 
-  property(".asDouble") = forAllNoShrink { (expForm: (String, Double)) =>
-    Prop(
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asDouble ${expForm._1}") = Prop(
       JParser.parseUnsafe(expForm._1).getDouble == Try(JParser.parseUnsafe(expForm._1).asDouble).toOption &&
         JParser.parseUnsafe(expForm._1).asDouble == expForm._2
     )
