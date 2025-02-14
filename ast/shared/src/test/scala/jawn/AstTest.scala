@@ -26,7 +26,7 @@ import org.scalacheck.{Prop, Properties}
 
 import scala.util.{Success, Try}
 import ArbitraryUtil._
-import Prop.{forAll}
+import Prop.forAll
 
 class AstTest extends Properties("AstTest") with AstTestPlatform {
 
