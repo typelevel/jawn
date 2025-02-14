@@ -225,7 +225,7 @@ case class DoubleNum(n: Double) extends JNum {
 case class DeferLong(s: String) extends JNum {
 
   lazy val nOpt: Option[Long] = Try(util.parseLong(s)).toOption
-  lazy val n: Long = nOpt.orNull.asInstanceOf[Long] // would be better to throw an exception here? 
+  lazy val n: Long = nOpt.orNull.asInstanceOf[Long] // would be better to throw an exception here?
 
   final override def getInt: Option[Int] = nOpt.map(_.toInt)
   final override def getLong: Option[Long] = nOpt
