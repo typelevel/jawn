@@ -273,8 +273,8 @@ case class DeferNum(s: String) extends JNum {
     that match {
       case LongNum(n2) => JNum.hybridEq(n2, n)
       case DoubleNum(n2) => n == n2
-      case jn: DeferLong => 
-        try { JNum.hybridEq(jn.asLong, n) } 
+      case jn: DeferLong =>
+        try JNum.hybridEq(jn.asLong, n)
         catch { case _: InvalidNumException => false }
       case jn: DeferNum => n == jn.asDouble
       case _ => false
