@@ -29,7 +29,7 @@ import org.scalacheck.Prop.forAll
 
 private[jawn] trait AstCheckPlatform { self: AstCheck =>
 
-  // Rendering/parsing numbers on JS isn't always idempotent  
+  // Rendering/parsing numbers on JS isn't always idempotent
   property("string/charSequence parsing") = forAll { (value: JValue) =>
     val s = CanonicalRenderer.render(value)
     val j1 = JParser.parseFromString(s)
