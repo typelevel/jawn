@@ -22,4 +22,19 @@
 package org.typelevel.jawn
 package ast
 
-private[jawn] trait AstCheckPlatform
+import org.typelevel.jawn.ast.ArbitraryUtil.arbitraryJValue
+
+import org.scalacheck.Prop
+import org.scalacheck.Prop.forAll
+
+private[jawn] trait AstCheckPlatform { self: AstCheck =>
+
+  // Rendering/parsing numbers on JS isn't always idempotent  
+  property("string/charSequence parsing") = forAll { (value: JValue) =>
+    val s = CanonicalRenderer.render(value)
+    val j1 = JParser.parseFromString(s)
+    val cs = java.nio.CharBuffer.wrap(s.toCharArray)
+    val j2 = JParser.parseFromCharSequence(cs)
+    Prop(j1 == j2 && j1.## == j2.##)
+  }
+}
