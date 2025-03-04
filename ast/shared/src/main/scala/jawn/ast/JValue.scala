@@ -243,7 +243,10 @@ case class DeferLong(s: String) extends JNum {
 
   final override def equals(that: Any): Boolean =
     (nOpt, that) match {
+      // JNum with same string representation and type will behave the same way
+      case (None, that: DeferLong) => this.s == that.s
       case (None, _) => false
+      case (_, None) => false
       case (Some(n), LongNum(n2)) => n == n2
       case (Some(n), DoubleNum(n2)) => JNum.hybridEq(n, n2)
       case (Some(n), jn: DeferLong) => n == jn.asLong

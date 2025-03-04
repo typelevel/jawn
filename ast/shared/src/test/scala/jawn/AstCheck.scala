@@ -42,6 +42,14 @@ class AstCheck extends Properties("AstCheck") with AstCheckPlatform {
     )
   }
 
+  property("string/charSequence parsing") = forAll { (value: JValue) =>
+    val s = CanonicalRenderer.render(value)
+    val j1 = JParser.parseFromString(s)
+    val cs = java.nio.CharBuffer.wrap(s.toCharArray)
+    val j2 = JParser.parseFromCharSequence(cs)
+    Prop(j1 == j2 && j1.## == j2.##)
+  }
+
   implicit val facade: Facade[JValue] = JawnFacade
 
   val percs = List(0.0, 0.2, 0.4, 0.8, 1.0)
