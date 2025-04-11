@@ -16,7 +16,7 @@ libraryDependencies ++= {
       "com.fasterxml.jackson.core" % "jackson-annotations" % "2.18.3",
       "com.fasterxml.jackson.core" % "jackson-core" % "2.18.3",
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.3",
-      "com.google.code.gson" % "gson" % "2.12.1"
+      "com.google.code.gson" % "gson" % "2.13.0"
     )
   else Nil
 }
