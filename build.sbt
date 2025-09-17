@@ -16,7 +16,7 @@ ThisBuild / tlFatalWarnings := false
 
 lazy val jawnSettings = Seq(
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "1"),
-  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.18.1" % Test
+  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.19.0" % Test
 )
 
 lazy val jawnSettingsJVM = List(Test / fork := true)
