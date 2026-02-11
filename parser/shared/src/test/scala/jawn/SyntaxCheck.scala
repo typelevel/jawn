@@ -189,8 +189,8 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
   def isStackSafe(s: String): Try[Boolean] =
     try Success(isValidSyntax(s))
     catch {
-      case (e: StackOverflowError) => Failure(e)
-      case (e: Exception) => Failure(e)
+      case e: StackOverflowError => Failure(e)
+      case e: Exception => Failure(e)
     }
 
   val S = "     " * 2000
