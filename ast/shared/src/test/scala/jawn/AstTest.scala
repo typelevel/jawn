@@ -23,8 +23,8 @@ package org.typelevel.jawn
 package ast
 
 import org.scalacheck.{Prop, Properties}
-import scala.util.{Success, Try}
 
+import scala.util.{Success, Try}
 import ArbitraryUtil._
 import Prop.forAll
 
@@ -62,6 +62,13 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
     )
   }
 
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asInt ${expForm._1}") = Prop(
+      JParser.parseUnsafe(expForm._1).getInt == Try(JParser.parseUnsafe(expForm._1).asInt).toOption &&
+        JParser.parseUnsafe(expForm._1).asInt == expForm._2.intValue()
+    )
+  }
+
   property(".getLong") = forAll { (n: Long) =>
     Prop(
       JNum(n).getLong == Some(n) &&
@@ -69,10 +76,24 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
     )
   }
 
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asLong ${expForm._1}") = Prop(
+      JParser.parseUnsafe(expForm._1).getLong == Try(JParser.parseUnsafe(expForm._1).asLong).toOption &&
+        JParser.parseUnsafe(expForm._1).asLong == expForm._2.longValue()
+    )
+  }
+
   property(".getBigInt") = forAll { (n: BigInt) =>
     Prop(
       JNum(n.toString).getBigInt == Some(n) &&
         JParser.parseUnsafe(n.toString).getBigInt == Some(n)
+    )
+  }
+
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asBigInt ${expForm._1}") = Prop(
+      JParser.parseUnsafe(expForm._1).getBigInt == Try(JParser.parseUnsafe(expForm._1).asBigInt).toOption &&
+        JParser.parseUnsafe(expForm._1).asBigInt == BigDecimal(expForm._2).toBigInt
     )
   }
 
@@ -84,5 +105,12 @@ class AstTest extends Properties("AstTest") with AstTestPlatform {
       )
     else
       Prop(true)
+  }
+
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asBigDecimal ${expForm._1}") = Prop(
+      JParser.parseUnsafe(expForm._1).getBigDecimal == Try(JParser.parseUnsafe(expForm._1).asBigDecimal).toOption &&
+        JParser.parseUnsafe(expForm._1).asBigDecimal == BigDecimal(expForm._2)
+    )
   }
 }
