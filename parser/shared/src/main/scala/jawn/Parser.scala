@@ -507,7 +507,8 @@ abstract class Parser[J] {
 }
 
 object Parser extends ParserCompanionPlatform {
-  final val DefaultMaxDepth = 4096
+  val DefaultMaxDepth: Int =
+    Try(System.getProperty("jawn.parser.maxDepth").toInt).getOrElse(4096)
 
   def parseUnsafe[J](s: String)(implicit facade: Facade[J]): J =
     new StringParser(s).parse()
