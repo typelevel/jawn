@@ -211,6 +211,87 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
 
   property("stack-safety 8") = Prop(isStackSafe(s"false${S},${S}false") == Success(false))
 
+  property("nesting at max depth is ok") = {
+    val n = Parser.DefaultMaxDepth
+    Prop(isValidSyntax(("[" * n) + ("]" * n)))
+  }
+
+  property("nesting arrays beyond max depth fails") = {
+    val n = Parser.DefaultMaxDepth + 1
+    val s = ("[" * n) + ("]" * n)
+    Parser.parseFromString(s)(NullFacade) match {
+      case Failure(ParseException(msg, _, _, _)) => Prop(msg.contains("nesting depth"))
+      case other => Prop.falsified :| s"expected ParseException, got $other"
+    }
+  }
+
+  property("nesting objects beyond max depth fails") = {
+    val n = Parser.DefaultMaxDepth + 1
+    val s = ("{\"a\":" * n) + "1" + ("}" * n)
+    Parser.parseFromString(s)(NullFacade) match {
+      case Failure(ParseException(msg, _, _, _)) => Prop(msg.contains("nesting depth"))
+      case other => Prop.falsified :| s"expected ParseException, got $other"
+    }
+  }
+
+  property("nesting arrays beyond max depth fails (async, one chunk)") = {
+    val n = Parser.DefaultMaxDepth + 1
+    val s = ("[" * n) + ("]" * n)
+    AsyncParser[Unit](AsyncParser.SingleValue).finalAbsorb(s)(NullFacade) match {
+      case Left(p) => Prop(p.msg.contains("nesting depth"))
+      case right => Prop.falsified :| s"expected Left(ParseException), got $right"
+    }
+  }
+
+  property("nesting arrays beyond max depth fails (async, multiple chunks)") = {
+    val n = Parser.DefaultMaxDepth + 1
+    val s = ("[" * n) + ("]" * n)
+    val async = AsyncParser[Unit](AsyncParser.SingleValue)
+    val result = s.grouped(97).foldLeft[Either[ParseException, collection.Seq[Unit]]](Right(Nil)) { (acc, chunk) =>
+      acc.flatMap(_ => async.absorb(chunk)(NullFacade))
+    }
+    result.flatMap(_ => async.finish()(NullFacade)) match {
+      case Left(p) => Prop(p.msg.contains("nesting depth"))
+      case right => Prop.falsified :| s"expected Left(ParseException), got $right"
+    }
+  }
+
+  private class BoundedStringParser(s: String, md: Int) extends SyncParser[Unit] with CharBasedParser[Unit] {
+    override protected[this] def maxDepth: Int = md
+    private[this] var _line = 0
+    private[this] var pos = 0
+    protected[this] def column(i: Int): Int = i - pos
+    protected[this] def newline(i: Int): Unit = { _line += 1; pos = i + 1 }
+    protected[this] def line(): Int = _line
+    protected[this] def reset(i: Int): Int = i
+    protected[this] def checkpoint(st: Int, i: Int, ctx: FContext[Unit], stk: List[FContext[Unit]]): Unit = ()
+    protected[this] def at(i: Int): Char = s.charAt(i)
+    protected[this] def at(i: Int, j: Int): CharSequence = s.substring(i, j)
+    protected[this] def atEof(i: Int): Boolean = i == s.length
+    protected[this] def close(): Unit = ()
+  }
+
+  property("nesting depth honors parser's own maxDepth (at limit)") = {
+    val n = 42
+    val s = ("[" * n) + ("]" * n)
+    val parser = new BoundedStringParser(s, n) {
+      override def maxDepth = n
+    }
+    Prop(Try(parser.parse()(NullFacade)).isSuccess)
+  }
+
+  property("nesting depth honors parser's own maxDepth (one over limit)") = {
+    val n = 42
+    val s = ("[" * (n + 1)) + ("]" * (n + 1))
+    val parser = new BoundedStringParser(s, n) {
+      override def maxDepth = n
+    }
+    Try(parser.parse()(NullFacade)) match {
+      case Failure(ParseException(msg, _, _, _)) => Prop(msg.contains("nesting depth"))
+      case other => Prop.falsified :| s"expected ParseException, got $other"
+    }
+  }
+
   def testErrorLoc(json: String, line: Int, col: Int): Prop = {
 
     def bb(s: String): ByteBuffer =

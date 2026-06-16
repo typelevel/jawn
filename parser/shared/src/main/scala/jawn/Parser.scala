@@ -52,6 +52,12 @@ abstract class Parser[J] {
   import Parser.{ARRBEG, ARREND, DATA, ErrorContext, HexChars, KEY, OBJBEG, OBJEND, SEP}
 
   /**
+   * The maximum nesting of arrays and objects before raising a ParseException. This bounds memory usage to prevent
+   * adversarial inputs from exhausting the JVM heap. Set to [[Int.MaxValue]] to effectively disable the limit.
+   */
+  protected[this] def maxDepth: Int = Parser.DefaultMaxDepth
+
+  /**
    * Read the byte/char at 'i' as a Char.
    *
    * Note that this should not be used on potential multi-byte sequences.
@@ -367,8 +373,8 @@ abstract class Parser[J] {
 
       // if we have a recursive top-level structure, we'll delegate the parsing
       // duties to our good friend rparse().
-      case '[' => rparse(ARRBEG, i + 1, facade.arrayContext(i), Nil)
-      case '{' => rparse(OBJBEG, i + 1, facade.objectContext(i), Nil)
+      case '[' => rparse(ARRBEG, i + 1, facade.arrayContext(i), Nil, 1)
+      case '{' => rparse(OBJBEG, i + 1, facade.objectContext(i), Nil, 1)
 
       // we have a single top-level number
       case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
@@ -406,7 +412,8 @@ abstract class Parser[J] {
     state: Int,
     j: Int,
     context: FContext[J],
-    stack: List[FContext[J]]
+    stack: List[FContext[J]],
+    depth: Int
   )(implicit facade: Facade[J]): (J, Int) = {
     val i = reset(j)
     checkpoint(state, i, context, stack)
@@ -415,30 +422,32 @@ abstract class Parser[J] {
 
     if (c == '\n') {
       newline(i)
-      rparse(state, i + 1, context, stack)
+      rparse(state, i + 1, context, stack, depth)
     } else if (c == ' ' || c == '\t' || c == '\r')
-      rparse(state, i + 1, context, stack)
+      rparse(state, i + 1, context, stack, depth)
     else if (state == DATA)
       // we are inside an object or array expecting to see data
-      if (c == '[')
-        rparse(ARRBEG, i + 1, facade.arrayContext(i), context :: stack)
-      else if (c == '{')
-        rparse(OBJBEG, i + 1, facade.objectContext(i), context :: stack)
-      else if ((c >= '0' && c <= '9') || c == '-') {
+      if (c == '[') {
+        if (depth >= maxDepth) die(i, s"exceeded maximum nesting depth ($maxDepth)")
+        rparse(ARRBEG, i + 1, facade.arrayContext(i), context :: stack, depth + 1)
+      } else if (c == '{') {
+        if (depth >= maxDepth) die(i, s"exceeded maximum nesting depth ($maxDepth)")
+        rparse(OBJBEG, i + 1, facade.objectContext(i), context :: stack, depth + 1)
+      } else if ((c >= '0' && c <= '9') || c == '-') {
         val j = parseNum(i, context)
-        rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
+        rparse(if (context.isObj) OBJEND else ARREND, j, context, stack, depth)
       } else if (c == '"') {
         val j = parseString(i, context)
-        rparse(if (context.isObj) OBJEND else ARREND, j, context, stack)
+        rparse(if (context.isObj) OBJEND else ARREND, j, context, stack, depth)
       } else if (c == 't') {
         context.add(parseTrue(i), i)
-        rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
+        rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack, depth)
       } else if (c == 'f') {
         context.add(parseFalse(i), i)
-        rparse(if (context.isObj) OBJEND else ARREND, i + 5, context, stack)
+        rparse(if (context.isObj) OBJEND else ARREND, i + 5, context, stack, depth)
       } else if (c == 'n') {
         context.add(parseNull(i), i)
-        rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack)
+        rparse(if (context.isObj) OBJEND else ARREND, i + 4, context, stack, depth)
       } else
         die(i, "expected json value")
     else if (
@@ -452,43 +461,53 @@ abstract class Parser[J] {
       else {
         val ctxt2 = stack.head
         ctxt2.add(context.finish(i), i)
-        rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2, stack.tail)
+        rparse(if (ctxt2.isObj) OBJEND else ARREND, i + 1, ctxt2, stack.tail, depth - 1)
       }
     else if (state == KEY)
       // we are in an object expecting to see a key.
       if (c == '"') {
         val j = parseString(i, context)
-        rparse(SEP, j, context, stack)
+        rparse(SEP, j, context, stack, depth)
       } else
         die(i, "expected \"")
     else if (state == SEP)
       // we are in an object just after a key, expecting to see a colon.
       if (c == ':')
-        rparse(DATA, i + 1, context, stack)
+        rparse(DATA, i + 1, context, stack, depth)
       else
         die(i, "expected :")
     else if (state == ARREND)
       // we are in an array, expecting to see a comma (before more data).
       if (c == ',')
-        rparse(DATA, i + 1, context, stack)
+        rparse(DATA, i + 1, context, stack, depth)
       else
         die(i, "expected ] or ,")
     else if (state == OBJEND)
       // we are in an object, expecting to see a comma (before more data).
       if (c == ',')
-        rparse(KEY, i + 1, context, stack)
+        rparse(KEY, i + 1, context, stack, depth)
       else
         die(i, "expected } or ,")
     else if (state == ARRBEG)
       // we are starting an array, expecting to see data or a closing bracket.
-      rparse(DATA, i, context, stack)
+      rparse(DATA, i, context, stack, depth)
     else
       // we are starting an object, expecting to see a key or a closing brace.
-      rparse(KEY, i, context, stack)
+      rparse(KEY, i, context, stack, depth)
   }
+
+  @deprecated("Preserved for binary compatibility.  Use the overload with the depth parameter.", "1.6.1")
+  protected[this] def rparse(
+    state: Int,
+    j: Int,
+    context: FContext[J],
+    stack: List[FContext[J]]
+  )(implicit facade: Facade[J]): (J, Int) =
+    rparse(state, j, context, stack, maxDepth)
 }
 
 object Parser extends ParserCompanionPlatform {
+  final val DefaultMaxDepth = 4096
 
   def parseUnsafe[J](s: String)(implicit facade: Facade[J]): J =
     new StringParser(s).parse()
