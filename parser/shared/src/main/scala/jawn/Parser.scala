@@ -503,7 +503,7 @@ abstract class Parser[J] {
     context: FContext[J],
     stack: List[FContext[J]]
   )(implicit facade: Facade[J]): (J, Int) =
-    rparse(state, j, context, stack, maxDepth)
+    rparse(state, j, context, stack, stack.length + 1)
 }
 
 object Parser extends ParserCompanionPlatform {
