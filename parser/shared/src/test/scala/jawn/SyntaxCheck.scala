@@ -220,8 +220,8 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
     val n = Parser.DefaultMaxDepth + 1
     val s = ("[" * n) + ("]" * n)
     Parser.parseFromString(s)(NullFacade) match {
-      case Failure(ParseException(msg, _, _, _)) => Prop(msg.contains("nesting depth"))
-      case other => Prop.falsified :| s"expected ParseException, got $other"
+      case Failure(p: MaxDepthExceededException) => Prop(p.maxDepth == Parser.DefaultMaxDepth)
+      case other => Prop.falsified :| s"expected Failure(MaxDepthExceededException), got $other"
     }
   }
 
@@ -229,8 +229,8 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
     val n = Parser.DefaultMaxDepth + 1
     val s = ("{\"a\":" * n) + "1" + ("}" * n)
     Parser.parseFromString(s)(NullFacade) match {
-      case Failure(ParseException(msg, _, _, _)) => Prop(msg.contains("nesting depth"))
-      case other => Prop.falsified :| s"expected ParseException, got $other"
+      case Failure(p: MaxDepthExceededException) => Prop(p.maxDepth == Parser.DefaultMaxDepth)
+      case other => Prop.falsified :| s"expected Failure(MaxDepthExceededException), got $other"
     }
   }
 
@@ -238,8 +238,8 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
     val n = Parser.DefaultMaxDepth + 1
     val s = ("[" * n) + ("]" * n)
     AsyncParser[Unit](AsyncParser.SingleValue).finalAbsorb(s)(NullFacade) match {
-      case Left(p) => Prop(p.msg.contains("nesting depth"))
-      case right => Prop.falsified :| s"expected Left(ParseException), got $right"
+      case Left(p: MaxDepthExceededException) => Prop(p.maxDepth == Parser.DefaultMaxDepth)
+      case other => Prop.falsified :| s"expected Left(MaxDepthExceededException), got $other"
     }
   }
 
@@ -251,8 +251,8 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
       acc.flatMap(_ => async.absorb(chunk)(NullFacade))
     }
     result.flatMap(_ => async.finish()(NullFacade)) match {
-      case Left(p) => Prop(p.msg.contains("nesting depth"))
-      case right => Prop.falsified :| s"expected Left(ParseException), got $right"
+      case Left(p: MaxDepthExceededException) => Prop(p.maxDepth == Parser.DefaultMaxDepth)
+      case other => Prop.falsified :| s"expected Left(MaxDepthExceededException), got $other"
     }
   }
 
@@ -287,8 +287,8 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
       override def maxDepth = n
     }
     Try(parser.parse()(NullFacade)) match {
-      case Failure(ParseException(msg, _, _, _)) => Prop(msg.contains("nesting depth"))
-      case other => Prop.falsified :| s"expected ParseException, got $other"
+      case Failure(p: MaxDepthExceededException) => Prop(p.maxDepth == n)
+      case other => Prop.falsified :| s"expected Failure(ParseException), got $other"
     }
   }
 

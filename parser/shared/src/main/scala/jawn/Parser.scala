@@ -28,6 +28,9 @@ import scala.util.Try
 
 case class ParseException(msg: String, index: Int, line: Int, col: Int) extends Exception(msg)
 
+class MaxDepthExceededException(index: Int, line: Int, col: Int, val maxDepth: Int)
+    extends ParseException("max depth exceeded", index, line, col)
+
 case class IncompleteParseException(msg: String) extends Exception(msg)
 
 /**
@@ -145,6 +148,12 @@ abstract class Parser[J] {
       }
     val s = "%s got %s (line %d, column %d)".format(msg, got, y, x)
     throw ParseException(s, i, y, x)
+  }
+
+  protected[this] def maxDepthExceeded(i: Int): Nothing = {
+    val y = line() + 1
+    val x = column(i) + 1
+    throw new MaxDepthExceededException(i, y, x, maxDepth)
   }
 
   /**
@@ -428,10 +437,10 @@ abstract class Parser[J] {
     else if (state == DATA)
       // we are inside an object or array expecting to see data
       if (c == '[') {
-        if (depth >= maxDepth) die(i, s"exceeded maximum nesting depth ($maxDepth)")
+        if (depth >= maxDepth) maxDepthExceeded(i)
         rparse(ARRBEG, i + 1, facade.arrayContext(i), context :: stack, depth + 1)
       } else if (c == '{') {
-        if (depth >= maxDepth) die(i, s"exceeded maximum nesting depth ($maxDepth)")
+        if (depth >= maxDepth) maxDepthExceeded(i)
         rparse(OBJBEG, i + 1, facade.objectContext(i), context :: stack, depth + 1)
       } else if ((c >= '0' && c <= '9') || c == '-') {
         val j = parseNum(i, context)
