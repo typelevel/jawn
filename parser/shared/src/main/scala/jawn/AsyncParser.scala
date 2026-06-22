@@ -127,8 +127,14 @@ final class AsyncParser[J] protected[jawn] (
   final protected[this] def line(): Int = _line
   final protected[this] def column(i: Int): Int = i - pos
 
-  final def copy(): AsyncParser[J] =
-    new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode, multiValue)
+  private[jawn] var rescanSize: Int = 0
+
+  final def copy(): AsyncParser[J] = {
+    val p =
+      new AsyncParser(state, curr, context, stack, data.clone, len, allocated, offset, done, streamMode, multiValue)
+    p.rescanSize = rescanSize
+    p
+  }
 
   final def absorb(buf: ByteBuffer)(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
     done = false
@@ -202,10 +208,19 @@ final class AsyncParser[J] protected[jawn] (
   @inline final private[this] def ASYNC_POSTVAL = -2
   @inline final private[this] def ASYNC_PREVAL = -1
 
+  private[this] def resumePos: Int = if (state > 0) curr else offset
+
   protected[jawn] def churn()(implicit facade: Facade[J]): Either[ParseException, collection.Seq[J]] = {
 
     // accumulates json values
     val results = mutable.ArrayBuffer.empty[J]
+
+    // rescanSize is the number of bytes scanned and discarded in the
+    // middle of a token.  Defer until this many additional bytes have
+    // arrived so we do O(n) work instead of O(n^2) if fed tiny
+    // chunks.
+    if (!done && (len - resumePos) - rescanSize < rescanSize)
+      return Right(results)
 
     // we rely on exceptions to tell us when we run out of data
     try {
@@ -282,6 +297,7 @@ final class AsyncParser[J] protected[jawn] (
           offset = j
           context = null
           stack = Nil
+          rescanSize = 0
           results += value
         }
       Right(results)
@@ -291,9 +307,11 @@ final class AsyncParser[J] protected[jawn] (
           // if we are done, make sure we ended at a good stopping point
           if (state == ASYNC_PREVAL || state == ASYNC_END) Right(results)
           else Left(ParseException("exhausted input", -1, -1, -1))
-        else
+        else {
           // we ran out of data, so return what we have so far
+          rescanSize = len - resumePos
           Right(results)
+        }
 
       case e: ParseException =>
         // we hit a parser error, so return that error and results so far
