@@ -505,7 +505,7 @@ abstract class Parser[J] {
       rparse(KEY, i, context, stack, depth)
   }
 
-  @deprecated("Preserved for binary compatibility.  Use the overload with the depth parameter.", "1.6.1")
+  @deprecated("Preserved for binary compatibility.  Use the overload with the depth parameter.", "1.7.0")
   protected[this] def rparse(
     state: Int,
     j: Int,
