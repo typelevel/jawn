@@ -115,4 +115,39 @@ class AstCheck extends Properties("AstCheck") with AstCheckPlatform {
     check(DeferNum(s + ".0e0"))
   }
 
+  private def feedByteByByte(s: String): Either[ParseException, Vector[JValue]] = {
+    val p = AsyncParser[JValue](AsyncParser.SingleValue)
+    val bytes = s.getBytes("UTF-8")
+    val out = Vector.newBuilder[JValue]
+    var i = 0
+    while (i < bytes.length) {
+      p.absorb(Array(bytes(i))) match {
+        case Right(xs) => out ++= xs
+        case Left(e) => return Left(e)
+      }
+      i += 1
+    }
+    p.finish().foreach(xs => out ++= xs)
+    Right(out.result())
+  }
+
+  def oneByteChunksConsistentWithSync(j: JValue): Prop = {
+    val rendered = j.render(FastRenderer)
+    Prop(feedByteByByte(rendered) == Right(Vector(JParser.parseUnsafe(rendered))))
+  }
+
+  property("async 1-byte chunks: consistent with sync") = forAll { (j: JValue) =>
+    oneByteChunksConsistentWithSync(j)
+  }
+
+  property("async 1-byte chunks: long string in array") = oneByteChunksConsistentWithSync(
+    JArray(Array(JString("a" * 100000)))
+  )
+
+  property("async 1-byte chunks: long escaped string in object") = oneByteChunksConsistentWithSync(
+    JObject(scala.collection.mutable.Map("k" -> (JString("\n" * 100000): JValue)))
+  )
+
+  property("async 1-byte chunks: long number") = oneByteChunksConsistentWithSync(JNum("1" + ("0" * 200000)))
+
 }

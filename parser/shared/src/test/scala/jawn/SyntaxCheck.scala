@@ -364,4 +364,39 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
       result.isRight
   }
 
+  private def feedByteByByte(s: String): Either[ParseException, Int] = {
+    val async = AsyncParser[Unit](AsyncParser.SingleValue)
+    val bytes = s.getBytes("UTF-8")
+    var i = 0
+    var n = 0
+    while (i < bytes.length) {
+      async.absorb(Array(bytes(i)))(NullFacade) match {
+        case Right(xs) => n += xs.size
+        case Left(e) => return Left(e)
+      }
+      i += 1
+    }
+    async.finish()(NullFacade).map(xs => n + xs.size)
+  }
+
+  property("async 1-byte chunks: long string in array") = {
+    val s = "[\"" + ("a" * 20000) + "\"]"
+    feedByteByByte(s) == Right(1)
+  }
+
+  property("async 1-byte chunks: long escaped string in object") = {
+    val s = "{\"k\":\"" + ("\\n" * 10000) + "\"}"
+    feedByteByByte(s) == Right(1)
+  }
+
+  property("async 1-byte chunks: long top-level number") = {
+    val s = "1" + ("0" * 20000)
+    feedByteByByte(s) == Right(1)
+  }
+
+  property("async 1-byte chunks agree with sync parser") = forAll { (j: J) =>
+    val s = j.build
+    feedByteByByte(s) == Right(1)
+  }
+
 }
