@@ -23,8 +23,11 @@ package org.typelevel.jawn
 package ast
 
 import org.scalacheck.Prop
+import Prop.{forAll, forAllNoShrink}
 
-import Prop.forAll
+import scala.util.Try
+
+import ArbitraryUtil.expNotationNums
 
 private[jawn] trait AstTestPlatform { self: AstTest =>
 
@@ -37,4 +40,10 @@ private[jawn] trait AstTestPlatform { self: AstTest =>
     )
   }
 
+  expNotationNums.foreach { (expForm: (String, Double)) =>
+    property(s".asDouble ${expForm._1}") = Prop(
+      JParser.parseUnsafe(expForm._1).getDouble == Try(JParser.parseUnsafe(expForm._1).asDouble).toOption &&
+        JParser.parseUnsafe(expForm._1).asDouble == expForm._2
+    )
+  }
 }
