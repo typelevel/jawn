@@ -14,8 +14,8 @@ libraryDependencies ++= {
       "io.spray" %% "spray-json" % "1.3.6",
       "org.parboiled" %% "parboiled" % "2.5.1",
       "com.fasterxml.jackson.core" % "jackson-annotations" % "2.22",
-      "com.fasterxml.jackson.core" % "jackson-core" % "2.22.0",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.0",
+      "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1",
       "com.google.code.gson" % "gson" % "2.14.0"
     )
   else Nil
