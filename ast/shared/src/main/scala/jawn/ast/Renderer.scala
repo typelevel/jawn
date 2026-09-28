@@ -22,18 +22,62 @@
 package org.typelevel.jawn
 package ast
 
-import scala.annotation.switch
+import scala.annotation.{nowarn, switch}
 import scala.collection.mutable
 import scala.util.Sorting
 
+object Render {
+  sealed abstract private[ast] class Frame
+  final private[ast] class ArrFrame(val vs: Array[JValue]) extends Frame { var i: Int = 0 }
+  final private[ast] class ObjFrame(val it: Iterator[(String, JValue)]) extends Frame { var started: Boolean = false }
+}
+
 sealed trait Renderer {
+  import Render.{ArrFrame, Frame, ObjFrame}
+
   final def render(jv: JValue): String = {
     val sb = new StringBuilder
-    render(sb, 0, jv)
+    render(sb, jv)
     sb.toString
   }
 
+  final def render(sb: StringBuilder, jv: JValue): Unit = {
+    val stack = mutable.ArrayBuffer.empty[Frame]
+    open(sb, jv, stack)
+    drain(sb, stack)
+  }
+
+  @nowarn("msg=used")
+  @deprecated("Preserved for binary compatibility. Use the overload without the depth parameter.", "1.7.1")
   final def render(sb: StringBuilder, depth: Int, jv: JValue): Unit =
+    render(sb, jv)
+
+  def canonicalizeObject(vs: mutable.Map[String, JValue]): Iterator[(String, JValue)]
+
+  def renderString(sb: StringBuilder, s: String): Unit
+
+  @nowarn("msg=used")
+  @deprecated("Preserved for binary compatibility. Use render(sb, JArray(vs)).", "1.7.1")
+  final def renderArray(sb: StringBuilder, depth: Int, vs: Array[JValue]): Unit =
+    render(sb, JArray(vs))
+
+  final def renderObject(sb: StringBuilder, it: Iterator[(String, JValue)]): Unit =
+    if (!it.hasNext) {
+      sb.append("{}")
+      ()
+    } else {
+      sb.append('{')
+      val stack = mutable.ArrayBuffer.empty[Frame]
+      stack += new ObjFrame(it)
+      drain(sb, stack)
+    }
+
+  @nowarn("msg=used")
+  @deprecated("Preserved for binary compatibility. Use the overload without the depth parameter.", "1.7.1")
+  final def renderObject(sb: StringBuilder, depth: Int, it: Iterator[(String, JValue)]): Unit =
+    renderObject(sb, it)
+
+  private def open(sb: StringBuilder, jv: JValue, stack: mutable.ArrayBuffer[Frame]): Unit =
     jv match {
       case JNull => sb.append("null")
       case JTrue => sb.append("true")
@@ -43,43 +87,48 @@ sealed trait Renderer {
       case DeferNum(s) => sb.append(s)
       case DeferLong(s) => sb.append(s)
       case JString(s) => renderString(sb, s)
-      case JArray(vs) => renderArray(sb, depth, vs)
-      case JObject(vs) => renderObject(sb, depth, canonicalizeObject(vs))
+      case JArray(vs) =>
+        if (vs.isEmpty) sb.append("[]")
+        else {
+          sb.append('[')
+          stack += new ArrFrame(vs)
+        }
+      case JObject(vs) =>
+        val it = canonicalizeObject(vs)
+        if (!it.hasNext) sb.append("{}")
+        else {
+          sb.append('{')
+          stack += new ObjFrame(it)
+        }
     }
 
-  def canonicalizeObject(vs: mutable.Map[String, JValue]): Iterator[(String, JValue)]
+  private def drain(sb: StringBuilder, stack: mutable.ArrayBuffer[Frame]): Unit =
+    while (stack.nonEmpty)
+      stack.last match {
+        case f: ArrFrame =>
+          if (f.i < f.vs.length) {
+            if (f.i > 0) sb.append(',')
+            val v = f.vs(f.i)
+            f.i += 1
+            open(sb, v, stack)
+          } else {
+            sb.append(']')
+            stack.remove(stack.length - 1)
+          }
+        case f: ObjFrame =>
+          if (f.it.hasNext) {
+            if (f.started) sb.append(',')
+            else f.started = true
 
-  def renderString(sb: StringBuilder, s: String): Unit
-
-  final def renderArray(sb: StringBuilder, depth: Int, vs: Array[JValue]): Unit = {
-    if (vs.isEmpty) return { sb.append("[]"); () }
-    sb.append("[")
-    render(sb, depth + 1, vs(0))
-    var i = 1
-    while (i < vs.length) {
-      sb.append(",")
-      render(sb, depth + 1, vs(i))
-      i += 1
-    }
-    sb.append("]")
-  }
-
-  final def renderObject(sb: StringBuilder, depth: Int, it: Iterator[(String, JValue)]): Unit = {
-    if (!it.hasNext) return { sb.append("{}"); () }
-    val (k0, v0) = it.next
-    sb.append("{")
-    renderString(sb, k0)
-    sb.append(":")
-    render(sb, depth + 1, v0)
-    while (it.hasNext) {
-      val (k, v) = it.next
-      sb.append(",")
-      renderString(sb, k)
-      sb.append(":")
-      render(sb, depth + 1, v)
-    }
-    sb.append("}")
-  }
+            val (k, v) = f.it.next()
+            renderString(sb, k)
+            sb.append(':')
+            open(sb, v, stack)
+          } else {
+            sb.append('}')
+            stack.remove(stack.length - 1)
+          }
+      }
 
   final def escape(sb: StringBuilder, s: String, unicode: Boolean): Unit = {
     sb.append('"')

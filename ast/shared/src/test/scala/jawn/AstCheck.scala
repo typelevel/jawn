@@ -23,6 +23,7 @@ package org.typelevel.jawn
 package ast
 
 import org.scalacheck.{Prop, Properties}
+import scala.collection.mutable
 import scala.util.Success
 
 import ArbitraryUtil._
@@ -48,6 +49,26 @@ class AstCheck extends Properties("AstCheck") with AstCheckPlatform {
     val cs = java.nio.CharBuffer.wrap(s.toCharArray)
     val j2 = JParser.parseFromCharSequence(cs)
     Prop(j1 == j2 && j1.## == j2.##)
+  }
+
+  property("deeply nested list") = {
+    val n = 200000
+    val deep = (1 to n).foldLeft[JValue](JNull)((acc, _) => JArray(Array(acc)))
+    val expected = "[" * n + "null" + "]" * n
+    Prop(
+      CanonicalRenderer.render(deep) == expected &&
+      FastRenderer.render(deep) == expected
+    )
+  }
+
+  property("deeply nested object") = {
+    val n = 200000
+    val deep = (1 to n).foldLeft[JValue](JNull)((acc, _) => JObject(mutable.Map("a" -> acc)))
+    val expected = "{\"a\":" * n + "null" + "}" * n
+    Prop(
+      CanonicalRenderer.render(deep) == expected &&
+      FastRenderer.render(deep) == expected
+    )
   }
 
   implicit val facade: Facade[JValue] = JawnFacade
