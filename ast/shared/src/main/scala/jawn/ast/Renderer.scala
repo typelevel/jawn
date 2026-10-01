@@ -48,7 +48,7 @@ sealed trait Renderer {
   }
 
   @nowarn("msg=used")
-  @deprecated("Preserved for binary compatibility. Use the overload without the depth parameter.", "1.7.1")
+  @deprecated("Preserved for binary compatibility. Use the overload without the depth parameter.", "1.8.0")
   final def render(sb: StringBuilder, depth: Int, jv: JValue): Unit =
     render(sb, jv)
 
@@ -57,7 +57,7 @@ sealed trait Renderer {
   def renderString(sb: StringBuilder, s: String): Unit
 
   @nowarn("msg=used")
-  @deprecated("Preserved for binary compatibility. Use render(sb, JArray(vs)).", "1.7.1")
+  @deprecated("Preserved for binary compatibility. Use render(sb, JArray(vs)).", "1.8.0")
   final def renderArray(sb: StringBuilder, depth: Int, vs: Array[JValue]): Unit =
     render(sb, JArray(vs))
 
@@ -73,7 +73,7 @@ sealed trait Renderer {
     }
 
   @nowarn("msg=used")
-  @deprecated("Preserved for binary compatibility. Use the overload without the depth parameter.", "1.7.1")
+  @deprecated("Preserved for binary compatibility. Use the overload without the depth parameter.", "1.8.0")
   final def renderObject(sb: StringBuilder, depth: Int, it: Iterator[(String, JValue)]): Unit =
     renderObject(sb, it)
 
