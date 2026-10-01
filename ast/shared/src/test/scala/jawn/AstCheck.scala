@@ -57,7 +57,7 @@ class AstCheck extends Properties("AstCheck") with AstCheckPlatform {
     val expected = "[" * n + "null" + "]" * n
     Prop(
       CanonicalRenderer.render(deep) == expected &&
-      FastRenderer.render(deep) == expected
+        FastRenderer.render(deep) == expected
     )
   }
 
@@ -67,7 +67,7 @@ class AstCheck extends Properties("AstCheck") with AstCheckPlatform {
     val expected = "{\"a\":" * n + "null" + "}" * n
     Prop(
       CanonicalRenderer.render(deep) == expected &&
-      FastRenderer.render(deep) == expected
+        FastRenderer.render(deep) == expected
     )
   }
 
