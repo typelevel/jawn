@@ -256,6 +256,27 @@ class SyntaxCheck extends Properties("SyntaxCheck") with SyntaxCheckPlatform {
     }
   }
 
+  private val nonAsciiUnicodeEscapes: List[String] =
+    List(qs("\\u00\u00e90"), qs("\\u12\u0100\u0100"), qs("\\u\uff11\uff12\uff13\uff14"))
+
+  property("non-ASCII unicode escape fails with ParseException") = Prop.all(nonAsciiUnicodeEscapes.map { s =>
+    val results = List(
+      Parser.parseFromString(s)(NullFacade),
+      Parser.parseFromByteBuffer(ByteBuffer.wrap(s.getBytes("UTF-8")))(NullFacade)
+    )
+    Prop.all(results.map {
+      case Failure(_: ParseException) => Prop.passed
+      case other => Prop.falsified :| s"expected Failure(ParseException) for $s, got $other"
+    }: _*)
+  }: _*)
+
+  property("non-ASCII unicode escape fails with ParseException (async)") = Prop.all(nonAsciiUnicodeEscapes.map { s =>
+    Try(AsyncParser[Unit](AsyncParser.SingleValue).finalAbsorb(s)(NullFacade)) match {
+      case Success(Left(_)) => Prop.passed
+      case other => Prop.falsified :| s"expected Left(ParseException) for $s, got $other"
+    }
+  }: _*)
+
   private class BoundedStringParser(s: String, md: Int) extends SyncParser[Unit] with CharBasedParser[Unit] {
     override protected[this] def maxDepth: Int = md
     private[this] var _line = 0
