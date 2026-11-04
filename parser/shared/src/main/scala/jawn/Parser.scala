@@ -317,7 +317,8 @@ abstract class Parser[J] {
     var i = 0
     var x = 0
     while (i < 4) {
-      val n = hc(s.charAt(i).toInt)
+      val c = s.charAt(i).toInt
+      val n = if (c < hc.length) hc(c) else -1
       if (n < 0) die(pos, "expected valid unicode escape")
       x = (x << 4) | n
       i += 1
