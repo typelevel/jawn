@@ -25,6 +25,7 @@ package ast
 import java.lang.Double.{isInfinite, isNaN}
 import scala.collection.mutable
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.hashing.MurmurHash3
 
 class WrongValueException(e: String, g: String) extends Exception(s"expected $e, got $g")
@@ -223,28 +224,33 @@ case class DoubleNum(n: Double) extends JNum {
 
 case class DeferLong(s: String) extends JNum {
 
-  lazy val n: Long = util.parseLongUnsafe(s)
+  lazy val nOpt: Option[Long] = Try(util.parseLong(s)).toOption
+  lazy val n: Long = nOpt.getOrElse(throw new InvalidNumException(s))
 
-  final override def getInt: Option[Int] = Some(n.toInt)
-  final override def getLong: Option[Long] = Some(n)
-  final override def getDouble: Option[Double] = Some(n.toDouble)
+  final override def getInt: Option[Int] = nOpt.map(_.toInt)
+  final override def getLong: Option[Long] = nOpt
+  final override def getDouble: Option[Double] = nOpt.map(_.toDouble)
   final override def getBigInt: Option[BigInt] = Some(BigInt(s))
   final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(s))
 
-  final override def asInt: Int = n.toInt
-  final override def asLong: Long = n
-  final override def asDouble: Double = n.toDouble
+  final override def asInt: Int = nOpt.map(_.toInt).getOrElse(throw new InvalidNumException(s))
+  final override def asLong: Long = nOpt.getOrElse(throw new InvalidNumException(s))
+  final override def asDouble: Double = nOpt.map(_.toDouble).getOrElse(throw new InvalidNumException(s))
   final override def asBigInt: BigInt = BigInt(s)
   final override def asBigDecimal: BigDecimal = BigDecimal(s)
 
-  final override def hashCode: Int = n.##
+  final override def hashCode: Int = if (nOpt.isEmpty) s.## else nOpt.get.##
 
   final override def equals(that: Any): Boolean =
-    that match {
-      case LongNum(n2) => n == n2
-      case DoubleNum(n2) => JNum.hybridEq(n, n2)
-      case jn: DeferLong => n == jn.asLong
-      case jn: DeferNum => JNum.hybridEq(n, jn.asDouble)
+    (nOpt, that) match {
+      // JNum with same string representation and type will behave the same way
+      case (None, that: DeferLong) => this.s == that.s
+      case (None, _) => false
+      case (_, None) => false
+      case (Some(n), LongNum(n2)) => n == n2
+      case (Some(n), DoubleNum(n2)) => JNum.hybridEq(n, n2)
+      case (Some(n), jn: DeferLong) => n == jn.asLong
+      case (Some(n), jn: DeferNum) => JNum.hybridEq(n, jn.asDouble)
       case _ => false
     }
 }
@@ -254,13 +260,13 @@ case class DeferNum(s: String) extends JNum {
   lazy val n: Double = java.lang.Double.parseDouble(s)
 
   final override def getInt: Option[Int] = Some(n.toInt)
-  final override def getLong: Option[Long] = Some(util.parseLongUnsafe(s))
+  final override def getLong: Option[Long] = Some(n.toLong)
   final override def getDouble: Option[Double] = Some(n)
   final override def getBigInt: Option[BigInt] = Some(BigDecimal(s).toBigInt)
   final override def getBigDecimal: Option[BigDecimal] = Some(BigDecimal(s))
 
   final override def asInt: Int = n.toInt
-  final override def asLong: Long = util.parseLongUnsafe(s)
+  final override def asLong: Long = n.toLong
   final override def asDouble: Double = n
   final override def asBigInt: BigInt = BigDecimal(s).toBigInt
   final override def asBigDecimal: BigDecimal = BigDecimal(s)
@@ -271,7 +277,9 @@ case class DeferNum(s: String) extends JNum {
     that match {
       case LongNum(n2) => JNum.hybridEq(n2, n)
       case DoubleNum(n2) => n == n2
-      case jn: DeferLong => JNum.hybridEq(jn.asLong, n)
+      case jn: DeferLong =>
+        try JNum.hybridEq(jn.asLong, n)
+        catch { case _: InvalidNumException => false }
       case jn: DeferNum => n == jn.asDouble
       case _ => false
     }

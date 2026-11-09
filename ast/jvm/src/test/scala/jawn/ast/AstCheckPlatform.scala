@@ -56,6 +56,14 @@ private[jawn] trait AstCheckPlatform { self: AstCheck =>
     p0 && p1
   }
 
+  property("string/charSequence parsing") = forAll { (value: JValue) =>
+    val s = CanonicalRenderer.render(value)
+    val j1 = JParser.parseFromString(s)
+    val cs = java.nio.CharBuffer.wrap(s.toCharArray)
+    val j2 = JParser.parseFromCharSequence(cs)
+    Prop(j1 == j2 && j1.## == j2.##)
+  }
+
   import AsyncParser.SingleValue
 
   property("async parsing") = forAll { (v: JValue) =>
